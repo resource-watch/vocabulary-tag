@@ -1,0 +1,8 @@
+{
+    "logger": {
+        "name": "rw-vocabulary-tag-STAGING",
+        "level": "info",
+        "toFile": false,
+        "dirLogFile": null
+    }
+}

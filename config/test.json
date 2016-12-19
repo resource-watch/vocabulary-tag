@@ -1,0 +1,8 @@
+{
+    "logger": {
+        "name": "rw-vocabulary-tag-TEST",
+        "level": "debug",
+        "toFile": false,
+        "dirLogFile": null
+    }
+}

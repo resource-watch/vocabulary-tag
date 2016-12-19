@@ -1,0 +1,35 @@
+{
+    "name": "#(service.name)",
+    "endpoints": [{
+        "path": "/vocabulary",
+        "method": "GET",
+        "redirect": {
+            "method": "GET",
+            "path": "/api/v1/vocabulary"
+        }
+    }, {
+        "path": "/vocabulary",
+        "method": "POST",
+        "authenticated": true,
+        "redirect": {
+            "method": "POST",
+            "path": "/api/v1/vocabulary"
+        }
+    }, {
+        "path": "/vocabulary",
+        "method": "PATCH",
+        "authenticated": true,
+        "redirect": {
+            "method": "PATCH",
+            "path": "/api/v1/vocabulary"
+        }
+    }, {
+        "path": "/vocabulary",
+        "method": "DELETE",
+        "authenticated": true,
+        "redirect": {
+            "method": "DELETE",
+            "path": "/api/v1/vocabulary"
+        }
+    }]
+}
