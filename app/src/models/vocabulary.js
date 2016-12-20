@@ -10,7 +10,7 @@ var Vocabulary = new Schema({
         id: {type: String, required: true, trim: true},
         dataset: {type: String, required: true, trim: true},
         type: {type: String, required: true, trim: true, enum: RESOURCES},
-        terms: [{type: String, required: true, trim: true}]
+        tags: [{type: String, required: true, trim: true}]
     }],
     userId: {type: String, required: false, trim: true, default: 'legacy'},
     createdAt: {type: Date, default: Date.now},
