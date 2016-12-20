@@ -1,4 +1,4 @@
-# Resource Watch Vocabulary Tag Microservice
+# Vocabulary Tag Microservice
 
 This repository implements the Vocabulary Tag services that are available in the Resource Watch API.
 
@@ -64,8 +64,8 @@ vim /etc/hosts
 Now we're ready to actually get the application running:
 
 ```
-git clone https://github.com/resource-watch/rw_vocabulary_tag
-cd rw_vocabulary_tag
+git clone https://github.com/resource-watch/vocabulary-tag
+cd vocabulary-tag
 ./vocabulary.sh develop
 ```
 

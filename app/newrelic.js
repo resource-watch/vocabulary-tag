@@ -8,7 +8,7 @@ exports.config = {
   /**
    * Array of application names.
    */
-  app_name: ['RW Vocabulary Tag'],
+  app_name: ['Vocabulary Tag'],
   /**
    * Your New Relic license key.
    */

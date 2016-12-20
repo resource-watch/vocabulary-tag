@@ -3,9 +3,6 @@
 var Router = require('koa-router');
 var logger = require('logger');
 var config = require('config');
-var VocabularyService = require('services/vocabularyService');
-var VocabularyServiceSerializer = require('serializers/vocabularySerializer');
-var VocabularyServiceValidator = require('validators/vocabularyValidator');
 
 const USER_ROLES = require('appConstants').USER_ROLES;
 
@@ -26,6 +23,10 @@ class VocabularyRouter {
     }
 
     static * delete(){
+        this.body = true;
+    }
+
+    static * getAll(){
         this.body = true;
     }
 

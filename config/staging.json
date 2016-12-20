@@ -1,6 +1,6 @@
 {
     "logger": {
-        "name": "rw-vocabulary-tag-STAGING",
+        "name": "vocabulary-tag-STAGING",
         "level": "info",
         "toFile": false,
         "dirLogFile": null

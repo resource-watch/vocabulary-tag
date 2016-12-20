@@ -1,7 +1,7 @@
 {
-  "name": "rw-vocabulary-tag",
+  "name": "vocabulary-tag",
   "version": "1.0.0",
-  "description": "Resource Watch - Vocabulary Tag",
+  "description": "Vocabulary Tag",
   "main": "index.js",
   "scripts": {
     "test-e2e": "NODE_PATH=app/src grunt --gruntfile app/Gruntfile.js e2eTest",
@@ -11,10 +11,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/resource-watch/rw_vocabulary_tag.git"
+    "url": "git+https://github.com/resource-watch/vocabulary-tag.git"
   },
   "keywords": [
-    "rw",
     "api",
     "microservice",
     "node",
@@ -27,9 +26,9 @@
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/resource-watch/rw_vocabulary_tag/issues"
+    "url": "https://github.com/resource-watch/vocabulary-tag/issues"
   },
-  "homepage": "https://github.com/resource-watch/rw_vocabulary_tag#readme",
+  "homepage": "https://github.com/resource-watch/vocabulary-tag#readme",
   "dependencies": {
     "bunyan": "1.7.1",
     "co": "4.6.0",

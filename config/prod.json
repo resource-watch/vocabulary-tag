@@ -1,6 +1,6 @@
 {
     "logger": {
-        "name": "rw-vocabulary-tag",
+        "name": "vocabulary-tag",
         "level": "warn",
         "toFile": false,
         "dirLogFile": null

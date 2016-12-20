@@ -5,4 +5,4 @@ base:
   environment:
     PORT: 4100
     NODE_PATH: app/src
-  container_name: rw-vocabulary-tag
+  container_name: vocabulary-tag

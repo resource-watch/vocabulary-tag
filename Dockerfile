@@ -1,7 +1,7 @@
 FROM mhart/alpine-node:6.2
 MAINTAINER sergio.gordillo@vizzuality.com
 
-ENV NAME rw-vocabulary-tag
+ENV NAME vocabulary-tag
 ENV USER microservice
 
 RUN apk update && apk upgrade && \

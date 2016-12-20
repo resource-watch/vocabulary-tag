@@ -1,17 +1,17 @@
 {
     "logger": {
-        "name": "rw-vocabulary-tag-DEV",
+        "name": "vocabulary-tag-DEV",
         "level": "debug",
         "toFile": false,
         "dirLogFile": null
     },
     "service": {
-        "name": "RW Vocabulary Tag API",
+        "name": "Vocabulary Tag API",
         "uri": "http://mymachine:4100",
         "port": 4100
     },
     "mongodb":{
-        "database": "rw_vocabulary_tag_db",
+        "database": "vocabulary_tag_db",
         "host": "http://mymachine",
         "port": 27017
     }
