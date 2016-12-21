@@ -4,9 +4,8 @@ const logger = require('logger');
 const config = require('config');
 const Resource = require('models/resource');
 const ResourceUpdateFailed = require('errors/resourceUpdateFailed');
-const AssociationDuplicated = require('errors/AssociationDuplicated');
-const ResourceNotFound = require('errors/ResourceNotFound');
-var VocabularyService = require('services/vocabularyService');
+const ResourceNotFound = require('errors/resourceNotFound');
+const VocabularyNotFound = require('errors/vocabularyNotFound');
 
 class ResourceService {
 
@@ -20,13 +19,28 @@ class ResourceService {
         return yield Resource.findOne(query).exec();
     }
 
-    static * create(){
-        return true;
+    static * create(dataset, _resource){
+        logger.debug('Checking if resource doesnt exist');
+        let resource = yield Resource.findOne({
+            id: _resource.id,
+            dataset: dataset,
+            type: _resource.type
+        }).exec();
+        if(resource){
+            return resource;
+        }
+        logger.debug('Creating resource');
+        let nResource = new Resource({
+            id: _resource.id,
+            dataset: dataset,
+            type: _resource.type
+        });
+        return nResource.save();
     }
 
     /* Delete a resource */
     static * delete(){
-        return true; // @TODO but not yet
+        return true; // @TODO
     }
 
     /* Updating vocabularies from Resources */
@@ -47,46 +61,6 @@ class ResourceService {
         };
         logger.debug('Getting resources');
         return yield Resource.find(query).exec();
-    }
-
-    static * createAssociation(user, _vocabulary, dataset, _resource, body){
-        logger.debug(`Checking entities`);
-        let vocabulary = yield VocabularyService.getById(_vocabulary);
-        if(!vocabulary){
-            logger.debug(`This Vocabulary doesn't exist, let's create it`);
-            vocabulary = yield VocabularyService.create(user, _vocabulary);
-        }
-        let resource = yield ResourceService.get(dataset, _resource);
-        if(!resource){
-            logger.debug(`This resource doesnt' exist, let's create it`);
-            resource = yield ResourceService.create(dataset, _resource);
-        }
-        logger.debug(`Checking if association doesn't exist yet`);
-        let association = resource.vocabularies.find(function(elVocabulary){
-            return vocabulary.id === elVocabulary.id;
-        });
-        if(association){
-            throw new AssociationDuplicated(`This association already exists`);
-        }
-        try{
-            yield VocabularyService.createAssociation(vocabulary, resource, body);
-        }
-        catch(err){
-            throw err;
-        }
-        resource.vocabularies.push({
-            id: vocabulary.id,
-            tags: body.tags
-        });
-        return resource.save();
-    }
-
-    static * addTagsToAssociation(){
-        return true;
-    }
-
-    static * removeTagsFromAssociation(){
-        return true;
     }
 
     /*

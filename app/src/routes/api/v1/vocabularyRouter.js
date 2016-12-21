@@ -3,14 +3,16 @@
 var Router = require('koa-router');
 var logger = require('logger');
 var config = require('config');
-var VocabularyService = require('services/vocabularyService');
-var ResourceService = require('services/resourceService');
-var VocabularySerializer = require('serializers/vocabularySerializer');
-var VocabularyValidator = require('validators/vocabularyValidator');
+const VocabularyService = require('services/vocabularyService');
+const ResourceService = require('services/resourceService');
+const RelationshipService = require('services/relationshipService');
+const VocabularySerializer = require('serializers/vocabularySerializer');
+const ResourceSerializer = require('serializers/resourceSerializer');
+const VocabularyValidator = require('validators/vocabularyValidator');
 const VocabularyNotFound = require('errors/vocabularyNotFound');
 const VocabularyDuplicated = require('errors/vocabularyDuplicated');
 const VocabularyNotValid = require('errors/vocabularyNotValid');
-const AssociationDuplicated = require('errors/AssociationDuplicated');
+const RelationshipDuplicated = require('errors/relationshipDuplicated');
 const ConsistencyViolation = require('errors/consistencyViolation');
 const USER_ROLES = require('appConstants').USER_ROLES;
 
@@ -45,7 +47,7 @@ class VocabularyRouter {
     static * get(){
         let query = this.request.query;
         if(Object.keys(query).length === 0){
-            this.throw(400, 'Bad request');
+            this.throw(400, 'Vocabulary and Tags are required in the queryParams');
             return;
         }
         logger.info(`Getting resources by vocabulary-tag`);
@@ -116,13 +118,10 @@ class VocabularyRouter {
         this.body = VocabularySerializer.serialize(result);
     }
 
-    static * getById(body){
-        if(!this.request.body.id){
-            this.throw(400, 'Bad request');
-            return;
-        }
-        logger.info(`Getting vocabulary by id: ${this.request.body.id}`);
-        let result = yield VocabularyService.getById(body);
+    static * getById(){
+        logger.info(`Getting vocabulary by name: ${this.params.vocabulary}`);
+        var name = this.params.vocabulary;
+        let result = yield VocabularyService.getById(name);
         this.body = VocabularySerializer.serialize(result);
     }
 
@@ -133,7 +132,7 @@ class VocabularyRouter {
         logger.info(`Getting vocabularies of ${resource.type}: ${resource.id}`);
         let filter = {};
         let result = yield ResourceService.get(this.params.dataset, resource);
-        this.body = VocabularySerializer.serialize(result);
+        this.body = ResourceSerializer.serialize(result);
     }
 
     static * getByIds(){
@@ -150,21 +149,21 @@ class VocabularyRouter {
         }
         resource.type = VocabularyRouter.getResourceTypeByPath(this.path);
         let result = yield ResourceService.getByIds(resource);
-        this.body = VocabularySerializer.serialize(result);
+        this.body = ResourceSerializer.serialize(result);
     }
 
-    static * createAssociation(){
+    static * createRelationship(){
         let dataset = this.params.dataset;
         let vocabulary = {name: this.params.vocabulary};
         let resource = VocabularyRouter.getResource(this.params);
         let body = this.request.body;
-        logger.info(`Creating association between vocabulary: ${vocabulary} and resource: ${resource.type} - ${resource.id}`);
+        logger.info(`Creating realtionship between vocabulary: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
         try{
             let user = this.request.body.loggedUser;
-            let result = yield ResourceService.createAssociation(user, vocabulary, dataset, resource, body);
-            this.body = VocabularySerializer.serialize(result);
+            let result = yield RelationshipService.create(user, vocabulary, dataset, resource, body);
+            this.body = ResourceSerializer.serialize(result);
         } catch(err) {
-            if(err instanceof AssociationDuplicated){
+            if(err instanceof RelationshipDuplicated){
                 this.throw(409, err.message);
                 return;
             }
@@ -172,11 +171,11 @@ class VocabularyRouter {
         }
     }
 
-    static * addTagsToAssociation(){
+    static * addTagsToRelationship(){ // @TODO HERE some types of error can be thrown here
         this.body = true;
     }
 
-    static * removeTagsFromAssociation(){
+    static * removeTagsFromRelationship(){
         this.body = true;
     }
 
@@ -184,7 +183,7 @@ class VocabularyRouter {
 
 // Negative checking
 const authorizationMiddleware = function*(next) {
-    this.body.loggedUser = {
+    this.request.body.loggedUser = {
       'id': '5810d796e97e7b2d6a1fdab7',
       'provider': 'local',
       'providerId': null,
@@ -210,29 +209,29 @@ const validationMiddleware = function*(next){
 
 // dataset
 router.get('/dataset/:dataset/vocabulary', VocabularyRouter.getByResource); //get ALL vocabularies (name and tags) for that dataset -> Go To Resource Model
-router.get('/dataset/:dataset/vocabulary/:vocabulary', VocabularyRouter.getByResource); //get the desired vocabulary for that dataset -> Go To Resource Model
+router.get('/dataset/:dataset/vocabulary/:vocabulary', VocabularyRouter.getByResource); //get the desired vocabulary for that dataset -> Go To Resource Model @TODO not yet
 router.get('/dataset/vocabulary', VocabularyRouter.get); //get resources of that vocabulary and vocabulary tags ? queryParams (it's a query) -> Go To Vocabulary Model (very important) reason we've model 2 schemas
-router.post('/dataset/:dataset/vocabulary/:vocabulary', authorizationMiddleware, validationMiddleware, VocabularyRouter.createAssociation); // Create association
-router.patch('/dataset/:dataset/vocabulary/:vocabulary', authorizationMiddleware, validationMiddleware, VocabularyRouter.addTagsToAssociation); // Modify terms of that association
-router.delete('/dataset/:dataset/vocabulary/:vocabulary', authorizationMiddleware, VocabularyRouter.removeTagsFromAssociation); // Delete association
+router.post('/dataset/:dataset/vocabulary/:vocabulary', authorizationMiddleware, validationMiddleware, VocabularyRouter.createRelationship); // Create relationship
+router.patch('/dataset/:dataset/vocabulary/:vocabulary', authorizationMiddleware, validationMiddleware, VocabularyRouter.addTagsToRelationship); // Modify terms of that relationship
+//router.delete('/dataset/:dataset/vocabulary/:vocabulary', authorizationMiddleware, VocabularyRouter.removeTagsFromRelationship); // Delete relationship
 
 // widget
 router.get('/dataset/:dataset/widget/:widget/vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/:dataset/widget/vocabulary', VocabularyRouter.get);
-router.post('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', authorizationMiddleware, validationMiddleware, VocabularyRouter.createAssociation);
-router.patch('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', authorizationMiddleware, validationMiddleware, VocabularyRouter.addTagsToAssociation);
-router.delete('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', authorizationMiddleware, VocabularyRouter.removeTagsFromAssociation);
+router.post('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', authorizationMiddleware, validationMiddleware, VocabularyRouter.createRelationship);
+router.patch('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', authorizationMiddleware, validationMiddleware, VocabularyRouter.addTagsToRelationship);
+//router.delete('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', authorizationMiddleware, VocabularyRouter.removeTagsFromRelationship);
 
 // layer
 router.get('/dataset/:dataset/layer/:layer/vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/:dataset/layer/vocabulary', VocabularyRouter.get);
-router.post('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', authorizationMiddleware, validationMiddleware, VocabularyRouter.createAssociation);
-router.patch('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', authorizationMiddleware, validationMiddleware, VocabularyRouter.addTagsToAssociation);
-router.delete('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', authorizationMiddleware, VocabularyRouter.removeTagsFromAssociation);
+router.post('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', authorizationMiddleware, validationMiddleware, VocabularyRouter.createRelationship);
+router.patch('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', authorizationMiddleware, validationMiddleware, VocabularyRouter.addTagsToRelationship);
+//router.delete('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', authorizationMiddleware, VocabularyRouter.removeTagsFromRelationship);
 
-// vocabulary
+// vocabulary (not the commmon use case)
 router.get('/vocabulary', VocabularyRouter.getAll); // Get all vocabularies
 router.get('/vocabulary/:vocabulary', VocabularyRouter.getById); // Get a particular vocabulary
 router.post('/vocabulary/:vocabulary', VocabularyRouter.create); // Create a particular vocabulary

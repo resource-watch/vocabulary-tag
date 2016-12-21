@@ -3,27 +3,33 @@
 const logger = require('logger');
 const config = require('config');
 const Vocabulary = require('models/vocabulary');
+const ResourceService = require('services/resourceService');
 const VocabularyNotFound = require('errors/vocabularyNotFound');
 const VocabularyDuplicated = require('errors/vocabularyDuplicated');
 const ResourceUpdateFailed = require('errors/resourceUpdateFailed');
 const ConsistencyViolation = require('errors/consistencyViolation');
-var ResourceService = require('services/resourceService');
 
 class VocabularyService {
 
     static * get(resource, _query){
         logger.debug(`Getting resources by vocabulary-tag`);
-        let vocabularies = [];
         let query = {
-            'resource.type': resource.type,
+            'resources.type': resource.type,
         };
-        logger.debug('Getting resources');
-        Object.keys(_query).forEach(function*(vocabularyName){
+        logger.debug('Getting resources', query);
+        let vocabularies = yield Object.keys(_query).map(function(vocabularyName){
             query.id = vocabularyName;
-            query.tags = { $in: _query[vocabularyName].split(',').map(function(elem){return elem.trim();}) };
-            let vocabulary = yield Vocabulary.find(query).exec();
-            vocabularies.push(vocabulary);
+            query['resources.tags'] = { $in: _query[vocabularyName].split(',').map(function(elem){return elem.trim();}) };
+            return Vocabulary.find(query).exec();
+            // let query2 = [
+            //     {$match: {id: vocabularyName, 'resources.type': resource.type}}
+            // ];
+            // logger.debug('AA', query2);
+            // let result = Vocabulary.aggregate(query2).exec();
+            // logger.debug(result);
+            // return null;
         });
+        vocabularies = vocabularies.reduce(function(a,b){return a.concat(b);});
         let limit = (isNaN(parseInt(query.limit))) ? 0:parseInt(query.limit);
         if(limit > 0){
             return vocabularies.slice(0, limit-1);
@@ -50,7 +56,7 @@ class VocabularyService {
     }
 
     static * update(body){
-        logger.debug('Checking if vocabulary doesnt exists');
+        logger.debug('Checking if vocabulary doesnt exist');
         let vocabulary = yield Vocabulary.findOne({
             id: body.name
         }).exec();
@@ -98,38 +104,18 @@ class VocabularyService {
     }
 
     static * getAll(filter){
-        logger.debug(`Getting vocabularies with limit: ${filter.limit}`);
         let limit = (isNaN(parseInt(filter.limit))) ? 0:parseInt(filter.limit);
         logger.debug('Getting vocabularies');
         return yield Vocabulary.find({}).limit(limit).exec();
     }
 
-    static * getById(body){
-        logger.debug(`Getting vocabulary with id ${body.id}`);
+    static * getById(name){
+        logger.debug(`Getting vocabulary with id ${name}`);
         let query = {
-            id: body.name
+            id: name
         };
         logger.debug('Getting vocabulary');
         return yield Vocabulary.findOne(query).exec();
-    }
-
-    static * createAssociation(vocabulary, resource, body){
-        logger.debug(`Association in vocabulary`);
-        vocabulary.resources.push({
-            id: resource.id,
-            dataset: resource.dataset,
-            type: resource.type,
-            tags: body.tags
-        });
-        return vocabulary.save();
-    }
-
-    static * addTagsToAssociation(vocabulary, resource, body){
-        return true;
-    }
-
-    static * deleteTagsFromAssociation(vocabulary, resource, body){
-        return true;
     }
 
     /*

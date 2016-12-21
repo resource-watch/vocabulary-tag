@@ -9,6 +9,7 @@ var Resource = new Schema({
     dataset: {type: String, required: true, trim: true},
     type: {type: String, required: true, trim: true, enum: RESOURCES},
     vocabularies: [{
+        _id: false,
         id: {type: String, required: true, trim: true},
         tags: [{type: String, required: true, trim: true}]
     }]

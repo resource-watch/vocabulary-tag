@@ -3,7 +3,7 @@
 var logger = require('logger');
 var JSONAPISerializer = require('jsonapi-serializer').Serializer;
 var vocabularySerializer = new JSONAPISerializer('vocabulary', {
-    attributes: ['terms', 'resources'],
+    attributes: ['resources'],
     pluralizeType: false,
     keyForAttribute: 'camelCase'
 });
@@ -12,6 +12,7 @@ class VocabularySerializer {
 
     static serialize(data) {
 
+        logger.debug(data);
         let result = {
             data:[]
         };
@@ -24,7 +25,6 @@ class VocabularySerializer {
                     id: el.id,
                     type: 'vocabulary',
                     attributes:{
-                        tags: el.tags,
                         resources: el.resources,
                         createdAt: el.createdAt,
                         updatedAt: el.updatedAt,

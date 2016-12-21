@@ -7,6 +7,7 @@ const STATUS = require('appConstants').STATUS;
 var Vocabulary = new Schema({
     id: {type: String, required: true, trim: true},
     resources: [{
+        _id: false,
         id: {type: String, required: true, trim: true},
         dataset: {type: String, required: true, trim: true},
         type: {type: String, required: true, trim: true, enum: RESOURCES},
