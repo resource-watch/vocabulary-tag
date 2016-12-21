@@ -9,18 +9,26 @@ const VocabularyDuplicated = require('errors/vocabularyDuplicated');
 
 class VocabularyService {
 
-    static * getByResource(dataset, resource){
+    static * get(resource, _query){
+        logger.debug(`Getting resources by vocabulary-tag`);
+        let vocabularies = [];
         let query = {
-            dataset: dataset,
-            'resource.id': resource.id,
-            'resource.type': resource.type
+            'resource.type': resource.type,
         };
-        logger.debug('Getting vocabularies by resource');
-        return yield Resource.find(query, 'vocabularies').exec();
-    }
-
-    static * get(user, dataset, resource, body){
-        return true;
+        logger.debug('Getting resources');
+        Object.keys(_query).forEach(function*(vocabularyName){
+            query.id = vocabularyName;
+            query.tags = { $in: _query[vocabularyName].split(',').map(function(elem){return elem.trim();}) };
+            let vocabulary = yield Vocabulary.find(query).exec();
+            vocabularies.push(vocabulary);
+        });
+        let limit = (isNaN(parseInt(query.limit))) ? 0:parseInt(query.limit);
+        if(limit > 0){
+            return vocabularies.slice(0, limit-1);
+        }
+        else{
+            return vocabularies;
+        }
     }
 
     static * create(user, body){
@@ -56,6 +64,7 @@ class VocabularyService {
     }
 
     static * delete(body){
+        logger.debug('Checking if vocabulary doesnt exists');
         let query = {
             id: body.name
         };
@@ -70,8 +79,23 @@ class VocabularyService {
         return vocabulary;
     }
 
-    static * getAll(body){
+    static * createAssociation(){
         return true;
+    }
+
+    static * addTagsToAssociation(){
+        return true;
+    }
+
+    static * removeTagsFromAssociation(){
+        return true;
+    }
+
+    static * getAll(filter){
+        logger.debug(`Getting vocabularies with limit: ${filter.limit}`);
+        let limit = (isNaN(parseInt(filter.limit))) ? 0:parseInt(filter.limit);
+        logger.debug('Getting vocabularies');
+        return yield Vocabulary.find({}).limit(limit).exec();
     }
 
     static * getById(body){

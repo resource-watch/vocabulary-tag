@@ -4,6 +4,7 @@ var Router = require('koa-router');
 var logger = require('logger');
 var config = require('config');
 var VocabularyService = require('services/vocabularyService');
+var ResourceService = require('services/resourceService');
 var VocabularySerializer = require('serializers/vocabularySerializer');
 var VocabularyValidator = require('validators/vocabularyValidator');
 const VocabularyNotFound = require('errors/vocabularyNotFound');
@@ -40,9 +41,17 @@ class VocabularyRouter {
     }
 
     static * get(){
-        this.body = true;
+        let query = this.request.query;
+        if(Object.keys(query).length === 0){
+            this.throw(400, 'Bad request');
+            return;
+        }
+        logger.info(`Getting resources by vocabulary-tag`);
+        let resource = {};
+        resource.type = VocabularyRouter.getResourceTypeByPath(this.path);
+        let result = yield VocabularyService.get(resource, query);
+        this.body = VocabularySerializer.serialize(result);
     }
-
 
     static * create(){
         logger.info(`Creating vocabulary with name: ${this.request.body.name}`);
@@ -89,28 +98,12 @@ class VocabularyRouter {
         }
     }
 
-    static * getByResource(){
-        let resource = VocabularyRouter.getResource(this.params);
-        logger.info(`Getting vocabularies of ${resource.type}: ${resource.id}`);
+    static * getAll(){
+        logger.info('Getting all vocabularies');
         let filter = {};
-        let result = yield VocabularyService.getByResource(this.params.dataset, resource);
+        if(this.query.limit){filter.limit = this.query.limit;}
+        let result = yield VocabularyService.getAll(filter);
         this.body = VocabularySerializer.serialize(result);
-    }
-
-    static * createAssociation(){
-        this.body = true;
-    }
-
-    static * addTagsToAssociation(){
-        this.body = true;
-    }
-
-    static * removeTagsFromAssociation(){
-        this.body = true;
-    }
-
-    static * getAll(limit){
-        this.body = true;
     }
 
     static * getById(body){
@@ -125,6 +118,27 @@ class VocabularyRouter {
 
     static * getByIds(){
         this.body = true; // resource is important here
+    }
+
+    /* Resource Service Direct Methods */
+    static * getByResource(){
+        let resource = VocabularyRouter.getResource(this.params);
+        logger.info(`Getting vocabularies of ${resource.type}: ${resource.id}`);
+        let filter = {};
+        let result = yield ResourceService.get(this.params.dataset, resource);
+        this.body = VocabularySerializer.serialize(result);
+    }
+
+    static * createAssociation(){
+        this.body = true;
+    }
+
+    static * addTagsToAssociation(){
+        this.body = true;
+    }
+
+    static * removeTagsFromAssociation(){
+        this.body = true;
     }
 
 }
@@ -158,7 +172,7 @@ const validationMiddleware = function*(next){
 // dataset
 router.get('/dataset/:dataset/vocabulary', VocabularyRouter.getByResource); //get ALL vocabularies (name and tags) for that dataset -> Go To Resource Model
 router.get('/dataset/:dataset/vocabulary/:vocabulary', VocabularyRouter.getByResource); //get the desired vocabulary for that dataset -> Go To Resource Model
-router.get('/dataset/vocabulary', VocabularyRouter.get); //get resources of that vocabulary and vocabulary terms ? queryParams (it's a query) -> Go To Vocabulary Model (very important) reason we've model 2 schemas
+router.get('/dataset/vocabulary', VocabularyRouter.get); //get resources of that vocabulary and vocabulary tags ? queryParams (it's a query) -> Go To Vocabulary Model (very important) reason we've model 2 schemas
 router.post('/dataset/:dataset/vocabulary/:vocabulary', authorizationMiddleware, validationMiddleware, VocabularyRouter.createAssociation); // Create association
 router.patch('/dataset/:dataset/vocabulary/:vocabulary', authorizationMiddleware, validationMiddleware, VocabularyRouter.addTagsToAssociation); // Modify terms of that association
 router.delete('/dataset/:dataset/vocabulary/:vocabulary', authorizationMiddleware, VocabularyRouter.removeTagsFromAssociation); // Delete association
