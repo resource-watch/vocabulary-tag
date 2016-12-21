@@ -10,6 +10,8 @@ var VocabularyValidator = require('validators/vocabularyValidator');
 const VocabularyNotFound = require('errors/vocabularyNotFound');
 const VocabularyDuplicated = require('errors/vocabularyDuplicated');
 const VocabularyNotValid = require('errors/vocabularyNotValid');
+const AssociationDuplicated = require('errors/AssociationDuplicated');
+const ConsistencyViolation = require('errors/consistencyViolation');
 const USER_ROLES = require('appConstants').USER_ROLES;
 
 var router = new Router();
@@ -79,6 +81,10 @@ class VocabularyRouter {
                 this.throw(400, err.message);
                 return;
             }
+            else if(err instanceof ConsistencyViolation){
+                this.throw(409, err.message);
+                return;
+            }
             throw err;
         }
     }
@@ -92,6 +98,10 @@ class VocabularyRouter {
         } catch(err) {
             if(err instanceof VocabularyNotFound){
                 this.throw(400, err.message);
+                return;
+            }
+            else if(err instanceof ConsistencyViolation){
+                this.throw(409, err.message);
                 return;
             }
             throw err;
@@ -116,11 +126,8 @@ class VocabularyRouter {
         this.body = VocabularySerializer.serialize(result);
     }
 
-    static * getByIds(){
-        this.body = true; // resource is important here
-    }
+    /* Using the Resource Service */
 
-    /* Resource Service Direct Methods */
     static * getByResource(){
         let resource = VocabularyRouter.getResource(this.params);
         logger.info(`Getting vocabularies of ${resource.type}: ${resource.id}`);
@@ -129,8 +136,40 @@ class VocabularyRouter {
         this.body = VocabularySerializer.serialize(result);
     }
 
+    static * getByIds(){
+        if(!this.request.body.ids){
+            this.throw(400, 'Bad request');
+            return;
+        }
+        logger.info(`Getting vocabularies by ids: ${this.request.body.ids}`);
+        let resource = {
+            ids: this.request.body.ids
+        };
+        if(typeof resource.ids === 'string'){
+            resource.ids = resource.ids.split(',').map(function(elem){return elem.trim();});
+        }
+        resource.type = VocabularyRouter.getResourceTypeByPath(this.path);
+        let result = yield ResourceService.getByIds(resource);
+        this.body = VocabularySerializer.serialize(result);
+    }
+
     static * createAssociation(){
-        this.body = true;
+        let dataset = this.params.dataset;
+        let vocabulary = {name: this.params.vocabulary};
+        let resource = VocabularyRouter.getResource(this.params);
+        let body = this.request.body;
+        logger.info(`Creating association between vocabulary: ${vocabulary} and resource: ${resource.type} - ${resource.id}`);
+        try{
+            let user = this.request.body.loggedUser;
+            let result = yield ResourceService.createAssociation(user, vocabulary, dataset, resource, body);
+            this.body = VocabularySerializer.serialize(result);
+        } catch(err) {
+            if(err instanceof AssociationDuplicated){
+                this.throw(409, err.message);
+                return;
+            }
+            throw err;
+        }
     }
 
     static * addTagsToAssociation(){
@@ -197,8 +236,8 @@ router.delete('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', authoriza
 router.get('/vocabulary', VocabularyRouter.getAll); // Get all vocabularies
 router.get('/vocabulary/:vocabulary', VocabularyRouter.getById); // Get a particular vocabulary
 router.post('/vocabulary/:vocabulary', VocabularyRouter.create); // Create a particular vocabulary
-router.patch('/vocabulary/:vocabulary', VocabularyRouter.update); // Update a particular vocabulary
-router.delete('/vocabulary/:vocabulary', VocabularyRouter.delete); // Delete a particular vocabulary
+router.patch('/vocabulary/:vocabulary', VocabularyRouter.update); // Update a particular vocabulary JUST SUPERADMIN
+router.delete('/vocabulary/:vocabulary', VocabularyRouter.delete); // Delete a particular vocabulary JUST SUPERADMIN
 
 // get by ids (to include queries)
 router.post('/dataset/vocabulary/get-by-ids', VocabularyRouter.getByIds); //get vocabularies from ids -> go to Resource Model

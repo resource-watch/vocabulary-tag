@@ -3,9 +3,11 @@
 const logger = require('logger');
 const config = require('config');
 const Vocabulary = require('models/vocabulary');
-const Resource = require('models/resource');
 const VocabularyNotFound = require('errors/vocabularyNotFound');
 const VocabularyDuplicated = require('errors/vocabularyDuplicated');
+const ResourceUpdateFailed = require('errors/resourceUpdateFailed');
+const ConsistencyViolation = require('errors/consistencyViolation');
+var ResourceService = require('services/resourceService');
 
 class VocabularyService {
 
@@ -56,11 +58,19 @@ class VocabularyService {
             logger.error('Error updating vocabulary');
             throw new VocabularyNotFound(`Vocabulary with name: ${body.name} doesn't exist`);
         }
-        logger.debug('Updating vocabulary');
         vocabulary.name = body.name ? body.name:vocabulary.name;
         vocabulary.updatedAt = new Date();
+        logger.debug('Updating resources'); // first update Resource References to ensure consistency
+        try{
+            let resource = yield ResourceService.updateVocabulary(vocabulary);
+        }
+        catch(err){
+            if(err instanceof ResourceUpdateFailed){
+                throw new ConsistencyViolation(`Consistency Violation: References cannot be updated`);
+            }
+        }
+        logger.debug('Updating vocabulary');
         return vocabulary.save();
-        // @TODO Update all resources with this vocabulary
     }
 
     static * delete(body){
@@ -73,22 +83,18 @@ class VocabularyService {
             logger.error('Error deleting vocabulary');
             throw new VocabularyNotFound(`Vocabulary with name: ${body.name} doesn't exist`);
         }
+        logger.debug('Updating resources'); // first delete Resource References to ensure consistency
+        try{
+            let resource = yield ResourceService.deleteVocabulary(vocabulary);
+        }
+        catch(err){
+            if(err instanceof ResourceUpdateFailed){
+                throw new ConsistencyViolation(`Consistency Violation: References cannot be deleted`);
+            }
+        }
         logger.debug('Deleting vocabulary');
         yield Vocabulary.remove(query).exec();
-        // @TODO Update all resources with this vocabulary
         return vocabulary;
-    }
-
-    static * createAssociation(){
-        return true;
-    }
-
-    static * addTagsToAssociation(){
-        return true;
-    }
-
-    static * removeTagsFromAssociation(){
-        return true;
     }
 
     static * getAll(filter){
@@ -107,7 +113,22 @@ class VocabularyService {
         return yield Vocabulary.findOne(query).exec();
     }
 
-    static * getByIds(body){
+    static * createAssociation(vocabulary, resource, body){
+        logger.debug(`Association in vocabulary`);
+        vocabulary.resources.push({
+            id: resource.id,
+            dataset: resource.dataset,
+            type: resource.type,
+            tags: body.tags
+        });
+        return vocabulary.save();
+    }
+
+    static * addTagsToAssociation(vocabulary, resource, body){
+        return true;
+    }
+
+    static * deleteTagsFromAssociation(vocabulary, resource, body){
         return true;
     }
 
