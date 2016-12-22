@@ -35,7 +35,19 @@ class VocabularyService {
                 }}
             ]).exec();
         });
-        vocabularies = vocabularies.reduce(function(a,b){return a.concat(b);});
+        vocabularies = vocabularies.reduce(function(a,b){
+            return a.concat(b).reduce(function(a,b){
+                b.resources.forEach(function(nextResource){
+                    let alreadyIn = a.resources.find(function(currentResource){
+                        return (nextResource.type === currentResource.type) && (nextResource.id === currentResource.id) && (nextResource.dataset === currentResource.dataset);
+                    });
+                    if(!alreadyIn){
+                        a.resources.push(nextResource);
+                    }
+                });
+                return a;
+            });
+        });
         let limit = (isNaN(parseInt(_query.limit))) ? 0:parseInt(_query.limit);
         if(limit > 0){
             return vocabularies.slice(0, limit-1);

@@ -3,7 +3,7 @@ develop:
     file: base.yml
     service: base
   ports:
-    - "35731:35729"
+    - "35732:35729"
   container_name: vocabulary-tag-develop
   environment:
     NODE_ENV: dev

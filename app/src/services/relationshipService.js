@@ -63,17 +63,17 @@ class RelationshipService {
         let vocabulary = yield VocabularyService.getById(_vocabulary.name);
         if(!vocabulary){
             logger.debug(`This Vocabulary doesn't exist`);
-            throw new VocabularyNotFound(`Vocabulary with name ${_vocabulary.name}`);
+            throw new VocabularyNotFound(`Vocabulary with name ${_vocabulary.name} doesn't exist`);
         }
         let resource = yield ResourceService.get(dataset, _resource);
         if(!resource){
             logger.debug(`This resource doesnt' exist`);
-            throw new ResourceNotFound(`Resource ${_resource.tpye} - ${resource.id} and dataset: ${dataset} doesn't exist`);
+            throw new ResourceNotFound(`Resource ${_resource.type} - ${_resource.id} and dataset: ${dataset} doesn't exist`);
         }
         logger.debug(`Checking if relationship doesn't exist yet`);
         let relationship = RelationshipService.checkRelationship(resource, vocabulary);
         if(!relationship){
-            throw new RelationshipNotFound(`Relationship between ${vocabulary.id} and ${resource.tpye} - ${resource.id} and dataset: ${dataset} doesn't exist`);
+            throw new RelationshipNotFound(`Relationship between ${vocabulary.id} and ${resource.type} - ${resource.id} and dataset: ${dataset} doesn't exist`);
         }
         let position;
         var vResources = vocabulary.resources.find(function(elResource, pos){
@@ -108,17 +108,17 @@ class RelationshipService {
         let vocabulary = yield VocabularyService.getById(_vocabulary.name);
         if(!vocabulary){
             logger.debug(`This Vocabulary doesn't exist`);
-            throw new VocabularyNotFound(`Vocabulary with name ${_vocabulary.name}`);
+            throw new VocabularyNotFound(`Vocabulary with name ${_vocabulary.name} doesn't exist`);
         }
         let resource = yield ResourceService.get(dataset, _resource);
         if(!resource){
             logger.debug(`This resource doesnt' exist`);
-            throw new ResourceNotFound(`Resource ${_resource.tpye} - ${resource.id} and dataset: ${dataset} doesn't exist`);
+            throw new ResourceNotFound(`Resource ${_resource.type} - ${_resource.id} and dataset: ${dataset} doesn't exist`);
         }
         logger.debug(`Checking if relationship doesn't exist yet`);
         let relationship = RelationshipService.checkRelationship(resource, vocabulary);
         if(!relationship){
-            throw new RelationshipNotFound(`Relationship between ${vocabulary.id} and ${resource.tpye} - ${resource.id} and dataset: ${dataset} doesn't exist`);
+            throw new RelationshipNotFound(`Relationship between ${vocabulary.id} and ${resource.type} - ${resource.id} and dataset: ${dataset} doesn't exist`);
         }
         let position;
         var vResources = vocabulary.resources.find(function(elResource, pos){
