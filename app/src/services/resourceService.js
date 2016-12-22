@@ -41,9 +41,21 @@ class ResourceService {
         return nResource.save();
     }
 
-    /* Delete a resource IMPORTANT: REMOVE ALL VOCABULARIES FROM A RESOURCE*/
-    static * delete(){
-        return true; // @TODO
+    static * delete(dataset, _resource){
+        logger.debug('Checking if resource doesnt exists');
+        let query ={
+            id: _resource.id,
+            dataset: dataset,
+            type: _resource.type
+        };
+        let resource = yield Resource.findOne(query).exec();
+        if(!resource){
+            logger.error('Error deleting resource');
+            throw new ResourceNotFound(`Resource ${_resource.tpye} - ${resource.id} and dataset: ${dataset} doesn't exist`);
+        }
+        logger.debug('Deleting resource');
+        yield Resource.remove(query).exec();
+        return resource;
     }
 
     /* Updating vocabularies from Resources */

@@ -174,7 +174,21 @@ class VocabularyRouter {
     }
 
     static * deleteRelationship(){
-        this.body = true;
+        let dataset = this.params.dataset;
+        let vocabulary = {name: this.params.vocabulary};
+        let resource = VocabularyRouter.getResource(this.params);
+        logger.info(`Deleting Relationship between: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
+        try{
+            let user = this.request.body.loggedUser;
+            let result = yield RelationshipService.updateTagsFromRelationship(user, vocabulary, dataset, resource);
+            this.body = ResourceSerializer.serialize(result);
+        } catch(err) {
+            if(err instanceof VocabularyNotFound || err instanceof ResourceNotFound || err instanceof RelationshipNotFound){
+                this.throw(404, err.message);
+                return;
+            }
+            throw err;
+        }
     }
 
     static * updateRelationshipTags(){
