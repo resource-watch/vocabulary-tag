@@ -16,7 +16,26 @@ class ResourceService {
             type: resource.type
         };
         if (vocabulary){
-            query['vocabularies.id'] = vocabulary; //SAME PROBLEM than vocabulary
+            return Resource.aggregate([
+                {$match: {
+                    dataset: dataset,
+                    id: resource.id,
+                    type: resource.type,
+                    'vocabularies.id': vocabulary,
+                }},
+
+                {$unwind: '$vocabularies'},
+                {$unwind: '$vocabularies.id'},
+
+                {$match: {
+                    'vocabularies.id': vocabulary
+                }},
+
+                {$group: {
+                    '_id': 0,
+                    'vocabularies': { $push: '$vocabularies'}
+                }}
+            ]).exec();
         }
         logger.debug('Getting resource by resource');
         return yield Resource.findOne(query).exec();

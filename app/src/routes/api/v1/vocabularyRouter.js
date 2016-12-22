@@ -180,7 +180,7 @@ class VocabularyRouter {
         logger.info(`Deleting Relationship between: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
         try{
             let user = this.request.body.loggedUser;
-            let result = yield RelationshipService.updateTagsFromRelationship(user, vocabulary, dataset, resource);
+            let result = yield RelationshipService.delete(user, vocabulary, dataset, resource);
             this.body = ResourceSerializer.serialize(result);
         } catch(err) {
             if(err instanceof VocabularyNotFound || err instanceof ResourceNotFound || err instanceof RelationshipNotFound){
@@ -195,7 +195,7 @@ class VocabularyRouter {
         let dataset = this.params.dataset;
         let vocabulary = {name: this.params.vocabulary};
         let resource = VocabularyRouter.getResource(this.params);
-        let body = this.request.body; //VALIDATE if body.tags > 0 in other case validation erro
+        let body = this.request.body; //@TODO VALIDATE if body.tags > 0 in other case validation erro
         logger.info(`Updating tags of relationship: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
         try{
             let user = this.request.body.loggedUser;
@@ -240,8 +240,8 @@ const validationMiddleware = function*(next){
 
 // dataset
 router.get('/dataset/:dataset/vocabulary', VocabularyRouter.getByResource); //get ALL vocabularies (name and tags) for that dataset -> Go To Resource Model
-router.get('/dataset/:dataset/vocabulary/:vocabulary', VocabularyRouter.getByResource); //get the desired vocabulary for that dataset -> Go To Resource Model @TODO not yet
-router.get('/dataset/vocabulary', VocabularyRouter.get); //get resources of that vocabulary and vocabulary tags ? queryParams (it's a query) -> Go To Vocabulary Model (very important) reason we've model 2 schemas
+router.get('/dataset/:dataset/vocabulary/:vocabulary', VocabularyRouter.getByResource); // @TODO !!!! @TODO !!!!get the desired vocabulary for that dataset -> Go To Resource Model @TODO not yet
+router.get('/dataset/vocabulary', VocabularyRouter.get); // @TODO !!!!@TODO !!!!get resources of that vocabulary and vocabulary tags ? queryParams (it's a query) -> Go To Vocabulary Model (very important) reason we've model 2 schemas
 router.post('/dataset/:dataset/vocabulary/:vocabulary', authorizationMiddleware, validationMiddleware, VocabularyRouter.createRelationship); // Create relationship
 router.patch('/dataset/:dataset/vocabulary/:vocabulary', authorizationMiddleware, validationMiddleware, VocabularyRouter.updateRelationshipTags); // Modify terms of that relationship
 router.delete('/dataset/:dataset/vocabulary/:vocabulary', authorizationMiddleware, VocabularyRouter.deleteRelationship); // Delete relationship

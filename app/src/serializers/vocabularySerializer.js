@@ -12,7 +12,6 @@ class VocabularySerializer {
 
     static serialize(data) {
 
-        logger.debug(data);
         let result = {
             data:[]
         };
@@ -25,10 +24,7 @@ class VocabularySerializer {
                     id: el.id,
                     type: 'vocabulary',
                     attributes:{
-                        resources: el.resources,
-                        createdAt: el.createdAt,
-                        updatedAt: el.updatedAt,
-                        status: el.status
+                        resources: el.resources
                     }
                 });
             });

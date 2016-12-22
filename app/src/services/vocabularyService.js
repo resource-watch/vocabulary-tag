@@ -13,24 +13,30 @@ class VocabularyService {
 
     static * get(resource, _query){
         logger.debug(`Getting resources by vocabulary-tag`);
-        let query = {
-            'resources.type': resource.type,
-        };
-        logger.debug('Getting resources', query);
         let vocabularies = yield Object.keys(_query).map(function(vocabularyName){
-            query.id = vocabularyName;
-            query['resources.tags'] = { $in: _query[vocabularyName].split(',').map(function(elem){return elem.trim();}) };
-            return Vocabulary.find(query).exec();
-            // let query2 = [
-            //     {$match: {id: vocabularyName, 'resources.type': resource.type}}
-            // ];
-            // logger.debug('AA', query2);
-            // let result = Vocabulary.aggregate(query2).exec();
-            // logger.debug(result);
-            // return null;
+            return Vocabulary.aggregate([
+                {$match: {
+                    id: vocabularyName,
+                    'resources.type': resource.type,
+                    'resources.tags': { $in: _query[vocabularyName].split(',').map(function(elem){return elem.trim();}) }
+                }},
+
+                {$unwind: '$resources'},
+                {$unwind: '$resources.tags'},
+
+                {$match: {
+                    'resources.type': resource.type,
+                    'resources.tags': { $in: _query[vocabularyName].split(',').map(function(elem){return elem.trim();}) }
+                }},
+
+                {$group: {
+                    '_id': 0,
+                    'resources': { $push: '$resources'}
+                }}
+            ]).exec();
         });
         vocabularies = vocabularies.reduce(function(a,b){return a.concat(b);});
-        let limit = (isNaN(parseInt(query.limit))) ? 0:parseInt(query.limit);
+        let limit = (isNaN(parseInt(_query.limit))) ? 0:parseInt(_query.limit);
         if(limit > 0){
             return vocabularies.slice(0, limit-1);
         }

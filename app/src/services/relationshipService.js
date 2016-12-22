@@ -81,7 +81,7 @@ class RelationshipService {
             return (resource.type === elResource.type) && (resource.id === elResource.id) && (resource.dataset === elResource.dataset);
         });
         try{
-            logger.debug(`Tags to vocabulary`);
+            logger.debug(`Deleting from vocabulary`);
             vocabulary.resources.splice(position, 1);
             vocabulary.save();
         }
@@ -92,10 +92,11 @@ class RelationshipService {
             position = pos;
             return vocabulary.id === elVocabulary.id;
         });
-        logger.debug(`Tags to resource`);
+        logger.debug(`Deleting from resource`);
         resource.vocabularies.splice(position, 1);
         resource = yield resource.save();
         if(resource.vocabularies.length === 0){
+            logger.debug(`Deleting the resource cause it doesnt have any vocabulary`);
             yield ResourceService.delete(resource.dataset, resource);
         }
         return resource;
