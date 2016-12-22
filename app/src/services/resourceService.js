@@ -9,12 +9,15 @@ const VocabularyNotFound = require('errors/vocabularyNotFound');
 
 class ResourceService {
 
-    static * get(dataset, resource){
+    static * get(dataset, resource, vocabulary){
         let query = {
             dataset: dataset,
             id: resource.id,
             type: resource.type
         };
+        if (vocabulary){
+            query['vocabularies.id'] = vocabulary; //SAME PROBLEM than vocabulary
+        }
         logger.debug('Getting resource by resource');
         return yield Resource.findOne(query).exec();
     }
@@ -38,7 +41,7 @@ class ResourceService {
         return nResource.save();
     }
 
-    /* Delete a resource */
+    /* Delete a resource IMPORTANT: REMOVE ALL VOCABULARIES FROM A RESOURCE*/
     static * delete(){
         return true; // @TODO
     }

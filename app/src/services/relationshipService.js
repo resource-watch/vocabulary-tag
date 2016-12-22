@@ -57,7 +57,12 @@ class RelationshipService {
         return resource.save();
     }
 
-    static * addTagsToRelationship(_vocabulary, dataset, _resource, body){
+    static * delete(user, _vocabulary, dataset, _resource, body){
+        return true; //@TODO delete relationship
+    }
+
+
+    static * updateTagsFromRelationship(user, _vocabulary, dataset, _resource, body){
         logger.debug(`Checking entities`);
         let vocabulary = yield VocabularyService.getById(_vocabulary.name);
         if(!vocabulary){
@@ -74,14 +79,27 @@ class RelationshipService {
         if(!relationship){
             throw new RelationshipNotFound(``);
         }
-        // @TODO HERE what returns checkRelationship???? we ahve to update dat!
-
+        let position;
+        var vResources = vocabulary.resources.find(function(elResource, pos){
+            position = pos;
+            return (resource.type === elResource.type) && (resource.id === elResource.id) && (resource.dataset === elResource.dataset);
+        });
+        try{
+            logger.debug(`Tags to vocabulary`);
+            vocabulary.resources[position].tags = body.tags;
+            vocabulary.save();
+        }
+        catch(err){
+            throw err;
+        }
+        var rVocabulary = resource.vocabularies.find(function(elVocabulary, pos){
+            position = pos;
+            return vocabulary.id === elVocabulary.id;
+        });
+        logger.debug(`Tags to resource`);
+        resource.vocabularies[position].tags = body.tags;
+        return resource.save();
     }
-
-    static * removeTagsFromRelationship(){
-        return true;
-    }
-
 
 }
 
