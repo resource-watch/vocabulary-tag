@@ -20,17 +20,17 @@ class RelationshipService {
         });
     }
 
-    static * create(user, _vocabulary, dataset, _resource, body){
+    static * create(user, pVocabulary, dataset, pResource, body){
         logger.debug(`Checking entities`);
-        let vocabulary = yield VocabularyService.getById(_vocabulary.name);
+        let vocabulary = yield VocabularyService.getById(pVocabulary);
         if(!vocabulary){
             logger.debug(`This Vocabulary doesn't exist, let's create it`);
-            vocabulary = yield VocabularyService.create(user, _vocabulary);
+            vocabulary = yield VocabularyService.create(user, pVocabulary);
         }
-        let resource = yield ResourceService.get(dataset, _resource);
+        let resource = yield ResourceService.get(dataset, pResource);
         if(!resource){
             logger.debug(`This resource doesnt' exist, let's create it`);
-            resource = yield ResourceService.create(dataset, _resource);
+            resource = yield ResourceService.create(dataset, pResource);
         }
         logger.debug(`Checking if relationship doesn't exist yet`);
         let relationship = RelationshipService.checkRelationship(resource, vocabulary);
@@ -58,17 +58,17 @@ class RelationshipService {
         return resource.save();
     }
 
-    static * delete(user, _vocabulary, dataset, _resource){
+    static * delete(user, pVocabulary, dataset, pResource){
         logger.debug(`Checking entities`);
-        let vocabulary = yield VocabularyService.getById(_vocabulary.name);
+        let vocabulary = yield VocabularyService.getById(pVocabulary);
         if(!vocabulary){
             logger.debug(`This Vocabulary doesn't exist`);
-            throw new VocabularyNotFound(`Vocabulary with name ${_vocabulary.name} doesn't exist`);
+            throw new VocabularyNotFound(`Vocabulary with name ${pVocabulary.name} doesn't exist`);
         }
-        let resource = yield ResourceService.get(dataset, _resource);
+        let resource = yield ResourceService.get(dataset, pResource);
         if(!resource){
             logger.debug(`This resource doesnt' exist`);
-            throw new ResourceNotFound(`Resource ${_resource.type} - ${_resource.id} and dataset: ${dataset} doesn't exist`);
+            throw new ResourceNotFound(`Resource ${pResource.type} - ${pResource.id} and dataset: ${dataset} doesn't exist`);
         }
         logger.debug(`Checking if relationship doesn't exist yet`);
         let relationship = RelationshipService.checkRelationship(resource, vocabulary);
@@ -103,17 +103,17 @@ class RelationshipService {
     }
 
 
-    static * updateTagsFromRelationship(user, _vocabulary, dataset, _resource, body){
+    static * updateTagsFromRelationship(user, pVocabulary, dataset, pResource, body){
         logger.debug(`Checking entities`);
-        let vocabulary = yield VocabularyService.getById(_vocabulary.name);
+        let vocabulary = yield VocabularyService.getById(pVocabulary);
         if(!vocabulary){
             logger.debug(`This Vocabulary doesn't exist`);
-            throw new VocabularyNotFound(`Vocabulary with name ${_vocabulary.name} doesn't exist`);
+            throw new VocabularyNotFound(`Vocabulary with name ${pVocabulary.name} doesn't exist`);
         }
-        let resource = yield ResourceService.get(dataset, _resource);
+        let resource = yield ResourceService.get(dataset, pResource);
         if(!resource){
             logger.debug(`This resource doesnt' exist`);
-            throw new ResourceNotFound(`Resource ${_resource.type} - ${_resource.id} and dataset: ${dataset} doesn't exist`);
+            throw new ResourceNotFound(`Resource ${pResource.type} - ${pResource.id} and dataset: ${dataset} doesn't exist`);
         }
         logger.debug(`Checking if relationship doesn't exist yet`);
         let relationship = RelationshipService.checkRelationship(resource, vocabulary);

@@ -15,20 +15,20 @@ class ResourceService {
             id: resource.id,
             type: resource.type
         };
-        if (vocabulary){
+        if (vocabulary && vocabulary.name){
             return Resource.aggregate([
                 {$match: {
                     dataset: dataset,
                     id: resource.id,
                     type: resource.type,
-                    'vocabularies.id': vocabulary,
+                    'vocabularies.id': vocabulary.name,
                 }},
 
                 {$unwind: '$vocabularies'},
                 {$unwind: '$vocabularies.id'},
 
                 {$match: {
-                    'vocabularies.id': vocabulary
+                    'vocabularies.id': vocabulary.name
                 }},
 
                 {$group: {
@@ -41,50 +41,50 @@ class ResourceService {
         return yield Resource.findOne(query).exec();
     }
 
-    static * create(dataset, _resource){
+    static * create(dataset, pResource){
         logger.debug('Checking if resource doesnt exist');
         let resource = yield Resource.findOne({
-            id: _resource.id,
+            id: pResource.id,
             dataset: dataset,
-            type: _resource.type
+            type: pResource.type
         }).exec();
         if(resource){
             return resource;
         }
         logger.debug('Creating resource');
         let nResource = new Resource({
-            id: _resource.id,
+            id: pResource.id,
             dataset: dataset,
-            type: _resource.type
+            type: pResource.type
         });
         return nResource.save();
     }
 
-    static * delete(dataset, _resource){
+    static * delete(dataset, pResource){
         logger.debug('Checking if resource doesnt exists');
         let query ={
-            id: _resource.id,
+            id: pResource.id,
             dataset: dataset,
-            type: _resource.type
+            type: pResource.type
         };
         let resource = yield Resource.findOne(query).exec();
         if(!resource){
             logger.error('Error deleting resource');
-            throw new ResourceNotFound(`Resource ${_resource.tpye} - ${resource.id} and dataset: ${dataset} doesn't exist`);
+            throw new ResourceNotFound(`Resource ${pResource.tpye} - ${resource.id} and dataset: ${dataset} doesn't exist`);
         }
         logger.debug('Deleting resource');
         yield Resource.remove(query).exec();
         return resource;
     }
 
-    /* Updating vocabularies from Resources */
+    /* Updating vocabularies from Resources -> Just a superadmin can modify vocabularies */
     static * updateVocabulary(vocabulary){
-        return true; // @TODO but not yet
+        return true; // @TODO
     }
 
-    /* Removing vocabularies from Resources */
+    /* Removing vocabularies from Resources -> Just a superadmin can delete vocabularies */
     static * deleteVocabulary(vocabulary){
-        return true; // @TODO but not yet
+        return true; // @TODO
     }
 
     static * getByIds(resource){

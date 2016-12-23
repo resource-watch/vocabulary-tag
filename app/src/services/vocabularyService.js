@@ -11,14 +11,14 @@ const ConsistencyViolation = require('errors/consistencyViolation');
 
 class VocabularyService {
 
-    static * get(resource, _query){
+    static * get(resource, query){
         logger.debug(`Getting resources by vocabulary-tag`);
-        let vocabularies = yield Object.keys(_query).map(function(vocabularyName){
+        let vocabularies = yield Object.keys(query).map(function(vocabularyName){
             return Vocabulary.aggregate([
                 {$match: {
                     id: vocabularyName,
                     'resources.type': resource.type,
-                    'resources.tags': { $in: _query[vocabularyName].split(',').map(function(elem){return elem.trim();}) }
+                    'resources.tags': { $in: query[vocabularyName].split(',').map(function(elem){return elem.trim();}) }
                 }},
 
                 {$unwind: '$resources'},
@@ -26,7 +26,7 @@ class VocabularyService {
 
                 {$match: {
                     'resources.type': resource.type,
-                    'resources.tags': { $in: _query[vocabularyName].split(',').map(function(elem){return elem.trim();}) }
+                    'resources.tags': { $in: query[vocabularyName].split(',').map(function(elem){return elem.trim();}) }
                 }},
 
                 {$group: {
@@ -48,7 +48,7 @@ class VocabularyService {
                 return a;
             });
         });
-        let limit = (isNaN(parseInt(_query.limit))) ? 0:parseInt(_query.limit);
+        let limit = (isNaN(parseInt(query.limit))) ? 0:parseInt(query.limit);
         if(limit > 0){
             return vocabularies.slice(0, limit-1);
         }
@@ -57,34 +57,34 @@ class VocabularyService {
         }
     }
 
-    static * create(user, body){
+    static * create(user, pVocabulary){
         logger.debug('Checking if vocabulary already exists');
-        let _vocabulary = yield Vocabulary.findOne({
-            id: body.name
+        let vocabulary = yield Vocabulary.findOne({
+            id: pVocabulary.name
         }).exec();
-        if(_vocabulary){
+        if(vocabulary){
             logger.error('Error creating vocabulary');
-            throw new VocabularyDuplicated(`Vocabulary of with name: ${body.name}: already exists`);
+            throw new VocabularyDuplicated(`Vocabulary of with name: ${pVocabulary.name}: already exists`);
         }
         logger.debug('Creating vocabulary');
-        let vocabulary = new Vocabulary({
-            id: body.name,
+        vocabulary = new Vocabulary({
+            id: pVocabulary.name,
         });
         return vocabulary.save();
     }
 
-    static * update(body){
+    static * update(pVocabulary){
         logger.debug('Checking if vocabulary doesnt exist');
         let vocabulary = yield Vocabulary.findOne({
-            id: body.name
+            id: pVocabulary.name
         }).exec();
         if(!vocabulary){
             logger.error('Error updating vocabulary');
-            throw new VocabularyNotFound(`Vocabulary with name: ${body.name} doesn't exist`);
+            throw new VocabularyNotFound(`Vocabulary with name: ${pVocabulary.name} doesn't exist`);
         }
-        vocabulary.name = body.name ? body.name:vocabulary.name;
+        vocabulary.name = pVocabulary.name ? pVocabulary.name:vocabulary.name;
         vocabulary.updatedAt = new Date();
-        logger.debug('Updating resources'); // first update Resource References to ensure consistency
+        logger.debug('Updating resources');
         try{
             let resource = yield ResourceService.updateVocabulary(vocabulary);
         }
@@ -97,17 +97,17 @@ class VocabularyService {
         return vocabulary.save();
     }
 
-    static * delete(body){
+    static * delete(pVocabulary){
         logger.debug('Checking if vocabulary doesnt exists');
         let query = {
-            id: body.name
+            id: pVocabulary.name
         };
         let vocabulary = yield Vocabulary.findOne(query).exec();
         if(!vocabulary){
             logger.error('Error deleting vocabulary');
-            throw new VocabularyNotFound(`Vocabulary with name: ${body.name} doesn't exist`);
+            throw new VocabularyNotFound(`Vocabulary with name: ${pVocabulary.name} doesn't exist`);
         }
-        logger.debug('Updating resources'); // first delete Resource References to ensure consistency
+        logger.debug('Updating resources');
         try{
             let resource = yield ResourceService.deleteVocabulary(vocabulary);
         }
@@ -127,10 +127,10 @@ class VocabularyService {
         return yield Vocabulary.find({}).limit(limit).exec();
     }
 
-    static * getById(name){
-        logger.debug(`Getting vocabulary with id ${name}`);
+    static * getById(vocabulary){
+        logger.debug(`Getting vocabulary with id ${vocabulary.name}`);
         let query = {
-            id: name
+            id: vocabulary.name
         };
         logger.debug('Getting vocabulary');
         return yield Vocabulary.findOne(query).exec();
