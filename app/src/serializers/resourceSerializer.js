@@ -33,6 +33,31 @@ class ResourceSerializer {
         }
         return result;
     }
+
+    static serializeByIds(data) {
+
+        let result = {
+            data:[]
+        };
+        if(data){
+            if(!Array.isArray(data)){
+                data = [data];
+            }
+            data.forEach(function(el){
+                let obj = {
+                    type: 'resource',
+                    id: el.id,
+                    attributes: {}
+                };
+                el.vocabularies.forEach(function(vocabulary){
+                    obj.attributes[vocabulary.id] = vocabulary.tags;
+                });
+                result.data.push(obj);
+            });
+        }
+        return result;
+    }
+
 }
 
 module.exports = ResourceSerializer;

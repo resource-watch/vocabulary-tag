@@ -154,7 +154,7 @@ class VocabularyRouter {
         }
         resource.type = VocabularyRouter.getResourceTypeByPath(this.path);
         let result = yield ResourceService.getByIds(resource);
-        this.body = ResourceSerializer.serialize(result);
+        this.body = ResourceSerializer.serializeByIds(result); //
     }
 
     static * createRelationship(){
@@ -295,7 +295,7 @@ router.post('/vocabulary/:vocabulary', vocabularyValidationMiddleware, authoriza
 router.patch('/vocabulary/:vocabulary', vocabularyValidationMiddleware, authorizationMiddleware, VocabularyRouter.update);
 router.delete('/vocabulary/:vocabulary', authorizationMiddleware, VocabularyRouter.delete);
 
-// get by ids (to include queries) //@TODO
+// get by ids (to include queries)
 router.post('/dataset/vocabulary/get-by-ids', VocabularyRouter.getByIds);
 router.post('/dataset/:dataset/widget/vocabulary/get-by-ids', VocabularyRouter.getByIds);
 router.post('/dataset/:dataset/layer/vocabulary/get-by-ids', VocabularyRouter.getByIds);
