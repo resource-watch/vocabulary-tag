@@ -139,7 +139,7 @@ class VocabularyService {
     /*
     * @returns: hasPermission: <Boolean>
     */
-    static * hasPermission(user, dataset, resource, body){
+    static * hasPermission(user, vocabulary){
         return true;
     }
 

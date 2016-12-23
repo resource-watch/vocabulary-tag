@@ -6,6 +6,7 @@ const Resource = require('models/resource');
 const ResourceUpdateFailed = require('errors/resourceUpdateFailed');
 const ResourceNotFound = require('errors/resourceNotFound');
 const VocabularyNotFound = require('errors/vocabularyNotFound');
+const ctRegisterMicroservice = require('ct-register-microservice-node');
 
 class ResourceService {
 
@@ -70,7 +71,7 @@ class ResourceService {
         let resource = yield Resource.findOne(query).exec();
         if(!resource){
             logger.error('Error deleting resource');
-            throw new ResourceNotFound(`Resource ${pResource.tpye} - ${resource.id} and dataset: ${dataset} doesn't exist`);
+            throw new ResourceNotFound(`Resource ${pResource.type} - ${resource.id} and dataset: ${dataset} doesn't exist`);
         }
         logger.debug('Deleting resource');
         yield Resource.remove(query).exec();
@@ -100,8 +101,35 @@ class ResourceService {
     /*
     * @returns: hasPermission: <Boolean>
     */
-    static * hasPermission(){
-        return true;
+    static * hasPermission(user, dataset, pResource){
+        let permission = true;
+        let resource;
+        try{
+            resource = yield ctRegisterMicroservice.requestToMicroservice({
+                uri: '/' + pResource.type + pResource.id,
+                method: 'GET',
+                json: true
+            });
+        }
+        catch(err){
+            throw err;
+        }
+        if(!resource){
+            logger.error('Error getting resource from microservice');
+            throw new ResourceNotFound(`REAL Resource ${pResource.type} - ${pResource.id} and dataset: ${dataset} doesn't exist`);
+        }
+        let appPermission = resource.applications.find(function(resourceApp){
+            return user.extraUserData.apps.find(function(app){
+                return app === resourceApp;
+            });
+        });
+        if(!appPermission){
+            permission = false;
+        }
+        if ((user.role === 'MANAGER') && (!resource.userId || resource.userId !== user.id)){
+            permission = false;
+        }
+        return permission;
     }
 
 }

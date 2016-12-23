@@ -216,22 +216,44 @@ class VocabularyRouter {
 }
 
 // Negative checking
-const authorizationMiddleware = function*(next) {
-    this.request.body.loggedUser = {
-      'id': '5810d796e97e7b2d6a1fdab7',
-      'provider': 'local',
-      'providerId': null,
-      'email': 'prueba@vizzuality.com',
-      'role': 'ADMIN',
-      'createdAt': '2016-10-26T16:19:34.728Z',
-      'extraUserData': {
-        'apps': [
-          'gfw',
-          'prep'
-        ]
-      },
-      'iat': 1480526868
-    };
+const relationshipAuthorizationMiddleware = function*(next) {
+    // Get user from query (delete) or body (post-patch)
+    let user = Object.assign({}, this.request.query.loggedUser? JSON.parse(this.request.query.loggedUser): {}, this.request.body.loggedUser);
+    if(!user || USER_ROLES.indexOf(user.role) === -1){
+        this.throw(401, 'Unauthorized'); //if not logged or invalid ROLE-> out
+        return;
+    }
+    if(user.role === 'USER'){
+        this.throw(403, 'Forbidden'); // if USER -> out
+        return;
+    }
+    if(user.role === 'MANAGER' || user.role === 'ADMIN'){
+        let resource = VocabularyRouter.getResource(this.params);
+        try {
+            let permission = yield ResourceService.hasPermission(user, this.params.dataset, resource);
+            if(!permission){
+                this.throw(403, 'Forbidden');
+                return;
+            }
+        }catch(err) {
+            throw err;
+        }
+    }
+    yield next; // SUPERADMIN are included here
+};
+
+// Negative checking
+const vocabularyAuthorizationMiddleware = function*(next) {
+    // Get user from query (delete) or body (post-patch)
+    let user = Object.assign({}, this.request.query.loggedUser? JSON.parse(this.request.query.loggedUser): {}, this.request.body.loggedUser);
+    if(!user || USER_ROLES.indexOf(user.role) === -1){
+        this.throw(401, 'Unauthorized'); //if not logged or invalid ROLE -> out
+        return;
+    }
+    if(user.role !== 'SUPERADMIN'){
+        this.throw(403, 'Forbidden'); // Only SUPERADMIN
+        return;
+    }
     yield next; // SUPERADMIN is included here
 };
 
@@ -263,37 +285,36 @@ const vocabularyValidationMiddleware = function*(next){
     yield next;
 };
 
-
 // dataset
 router.get('/dataset/:dataset/vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/:dataset/vocabulary/:vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/vocabulary', VocabularyRouter.get);
-router.post('/dataset/:dataset/vocabulary/:vocabulary', relationshipValidationMiddleware, authorizationMiddleware, VocabularyRouter.createRelationship);
-router.patch('/dataset/:dataset/vocabulary/:vocabulary', relationshipValidationMiddleware, authorizationMiddleware, VocabularyRouter.updateRelationshipTags);
-router.delete('/dataset/:dataset/vocabulary/:vocabulary', authorizationMiddleware, VocabularyRouter.deleteRelationship);
+router.post('/dataset/:dataset/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationship);
+router.patch('/dataset/:dataset/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.updateRelationshipTags);
+router.delete('/dataset/:dataset/vocabulary/:vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationship);
 
 // widget
 router.get('/dataset/:dataset/widget/:widget/vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/:dataset/widget/vocabulary', VocabularyRouter.get);
-router.post('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', relationshipValidationMiddleware, authorizationMiddleware, VocabularyRouter.createRelationship);
-router.patch('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', relationshipValidationMiddleware, authorizationMiddleware, VocabularyRouter.updateRelationshipTags);
-router.delete('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', authorizationMiddleware, VocabularyRouter.deleteRelationship);
+router.post('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationship);
+router.patch('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.updateRelationshipTags);
+router.delete('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationship);
 
 // layer
 router.get('/dataset/:dataset/layer/:layer/vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/:dataset/layer/vocabulary', VocabularyRouter.get);
-router.post('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', relationshipValidationMiddleware, authorizationMiddleware, VocabularyRouter.createRelationship);
-router.patch('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', relationshipValidationMiddleware, authorizationMiddleware, VocabularyRouter.updateRelationshipTags);
-router.delete('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', authorizationMiddleware, VocabularyRouter.deleteRelationship);
+router.post('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationship);
+router.patch('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.updateRelationshipTags);
+router.delete('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationship);
 
 // vocabulary (not the commmon use case)
 router.get('/vocabulary', VocabularyRouter.getAll);
 router.get('/vocabulary/:vocabulary', VocabularyRouter.getById);
-router.post('/vocabulary/:vocabulary', vocabularyValidationMiddleware, authorizationMiddleware, VocabularyRouter.create);
-router.patch('/vocabulary/:vocabulary', vocabularyValidationMiddleware, authorizationMiddleware, VocabularyRouter.update);
-router.delete('/vocabulary/:vocabulary', authorizationMiddleware, VocabularyRouter.delete);
+router.post('/vocabulary/:vocabulary', vocabularyValidationMiddleware, vocabularyAuthorizationMiddleware, VocabularyRouter.create);
+router.patch('/vocabulary/:vocabulary', vocabularyValidationMiddleware, vocabularyAuthorizationMiddleware, VocabularyRouter.update);
+router.delete('/vocabulary/:vocabulary', vocabularyAuthorizationMiddleware, VocabularyRouter.delete);
 
 // get by ids (to include queries)
 router.post('/dataset/vocabulary/get-by-ids', VocabularyRouter.getByIds);

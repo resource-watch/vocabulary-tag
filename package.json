@@ -44,7 +44,8 @@
     "koa-validate": "^1.0.7",
     "lodash": "4.2.0",
     "mongoose": "4.4.6",
-    "newrelic": "1.27.1"
+    "newrelic": "1.27.1",
+    "request": "^2.79.0"
   },
   "devDependencies": {
     "co-mocha": "1.1.2",
