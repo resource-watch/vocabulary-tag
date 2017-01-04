@@ -11,8 +11,18 @@ const ConsistencyViolation = require('errors/consistencyViolation');
 
 class VocabularyService {
 
-    static * get(resource, query){
+    static getQuery(query){
+        Object.keys(query).forEach(function(key){
+            if(key === 'loggedUser' || query[key] === '' || query[key] === null || query[key] === undefined){
+                delete query[key];
+            }
+        });
+        return query;
+    }
+
+    static * get(resource, pQuery){
         logger.debug(`Getting resources by vocabulary-tag`);
+        let query = VocabularyService.getQuery(pQuery);
         let vocabularies = yield Object.keys(query).map(function(vocabularyName){
             return Vocabulary.aggregate([
                 {$match: {
@@ -35,19 +45,21 @@ class VocabularyService {
                 }}
             ]).exec();
         });
-        vocabularies = vocabularies.reduce(function(a,b){
-            return a.concat(b).reduce(function(a,b){
-                b.resources.forEach(function(nextResource){
-                    let alreadyIn = a.resources.find(function(currentResource){
-                        return (nextResource.type === currentResource.type) && (nextResource.id === currentResource.id) && (nextResource.dataset === currentResource.dataset);
+        if(vocabularies && vocabularies.length > 0){
+            vocabularies = vocabularies.reduce(function(a,b){
+                return a.concat(b).reduce(function(a,b){
+                    b.resources.forEach(function(nextResource){
+                        let alreadyIn = a.resources.find(function(currentResource){
+                            return (nextResource.type === currentResource.type) && (nextResource.id === currentResource.id) && (nextResource.dataset === currentResource.dataset);
+                        });
+                        if(!alreadyIn){
+                            a.resources.push(nextResource);
+                        }
                     });
-                    if(!alreadyIn){
-                        a.resources.push(nextResource);
-                    }
+                    return a;
                 });
-                return a;
             });
-        });
+        }
         let limit = (isNaN(parseInt(query.limit))) ? 0:parseInt(query.limit);
         if(limit > 0){
             return vocabularies.slice(0, limit-1);
