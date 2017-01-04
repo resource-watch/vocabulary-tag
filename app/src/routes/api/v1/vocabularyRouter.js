@@ -288,7 +288,7 @@ const vocabularyValidationMiddleware = function*(next){
 // dataset
 router.get('/dataset/:dataset/vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/:dataset/vocabulary/:vocabulary', VocabularyRouter.getByResource);
-router.get('/dataset/vocabulary', VocabularyRouter.get);
+router.get('/dataset_/vocabulary', VocabularyRouter.get);
 router.post('/dataset/:dataset/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationship);
 router.patch('/dataset/:dataset/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.updateRelationshipTags);
 router.delete('/dataset/:dataset/vocabulary/:vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationship);

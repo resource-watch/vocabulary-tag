@@ -40,12 +40,12 @@
             "path": "/api/v1/dataset/:dataset/vocabulary/:vocabulary"
         }
     }, {
-        "path": "/dataset/vocabulary",
+        "path": "/dataset_/vocabulary",
         "method": "GET",
         "authenticated": false,
         "redirect": {
             "method": "GET",
-            "path": "/api/v1/dataset/vocabulary"
+            "path": "/api/v1/dataset_/vocabulary"
         }
     }, {
         "path": "/dataset/:dataset/widget/:widget/vocabulary",
