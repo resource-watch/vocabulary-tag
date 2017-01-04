@@ -114,7 +114,7 @@ class ResourceService {
         let resource;
         try{
             resource = yield ctRegisterMicroservice.requestToMicroservice({
-                uri: '/' + pResource.type + pResource.id,
+                uri: '/' + pResource.type + '/' +pResource.id,
                 method: 'GET',
                 json: true
             });
