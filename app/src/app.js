@@ -67,21 +67,21 @@ var onDbReady = function(err) {
 
     server.listen(port, () => {
 
-        // ctRegisterMicroservice.register({
-        //     info: require('../microservice/register.json'),
-        //     swagger: require('../microservice/public-swagger.json'),
-        //     mode: process.env.NODE_ENV === 'dev' ? ctRegisterMicroservice.MODE_AUTOREGISTER : ctRegisterMicroservice.MODE_NORMAL,
-        //     framework: ctRegisterMicroservice.KOA1,
-        //     app,
-        //     logger,
-        //     name: config.get('service.name'),
-        //     ctUrl: process.env.CT_URL,
-        //     url: process.env.LOCAL_URL,
-        //     active: true,
-        // }).then(() => {}, (err) => {
-        //     logger.error(err);
-        //     process.exit(1);
-        // });
+        ctRegisterMicroservice.register({
+            info: require('../microservice/register.json'),
+            swagger: require('../microservice/public-swagger.json'),
+            mode: process.env.NODE_ENV === 'dev' ? ctRegisterMicroservice.MODE_AUTOREGISTER : ctRegisterMicroservice.MODE_NORMAL,
+            framework: ctRegisterMicroservice.KOA1,
+            app,
+            logger,
+            name: config.get('service.name'),
+            ctUrl: process.env.CT_URL,
+            url: process.env.LOCAL_URL,
+            active: true,
+        }).then(() => {}, (err) => {
+            logger.error(err);
+            process.exit(1);
+        });
 
     });
 

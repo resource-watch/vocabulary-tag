@@ -50,7 +50,7 @@ class VocabularyRouter {
 
     static * get(){
         let query = this.request.query;
-        if(Object.keys(query).length === 0){
+        if(Object.keys(query).length === 1){ //@TODO redo again
             this.throw(400, 'Vocabulary and Tags are required in the queryParams');
             return;
         }

@@ -1,12 +1,20 @@
 'use strict';
 
 const logger = require('logger');
+const JSONAPIDeserializer = require('jsonapi-serializer').Deserializer;
 const config = require('config');
 const Resource = require('models/resource');
 const ResourceUpdateFailed = require('errors/resourceUpdateFailed');
 const ResourceNotFound = require('errors/resourceNotFound');
 const VocabularyNotFound = require('errors/vocabularyNotFound');
 const ctRegisterMicroservice = require('ct-register-microservice-node');
+const request = require('request');
+
+const deserializer = function(obj){
+    return function(callback){
+        new JSONAPIDeserializer({keyForAttribute: 'camelCase'}).deserialize(obj, callback);
+    };
+};
 
 class ResourceService {
 
@@ -114,11 +122,12 @@ class ResourceService {
         catch(err){
             throw err;
         }
+        resource = yield deserializer(resource);
         if(!resource){
             logger.error('Error getting resource from microservice');
             throw new ResourceNotFound(`REAL Resource ${pResource.type} - ${pResource.id} and dataset: ${dataset} doesn't exist`);
         }
-        let appPermission = resource.applications.find(function(resourceApp){
+        let appPermission = resource.application.find(function(resourceApp){
             return user.extraUserData.apps.find(function(app){
                 return app === resourceApp;
             });
