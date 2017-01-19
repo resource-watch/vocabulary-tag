@@ -58,6 +58,12 @@ class RelationshipService {
         return resource.save();
     }
 
+    static * createSome(user, vocabularies, dataset, pResource){
+        return yield vocabularies.map(function(vocabulary){
+            return RelationshipService.create(user, vocabulary, dataset, pResource, vocabulary);
+        });
+    }
+
     static * delete(user, pVocabulary, dataset, pResource){
         logger.debug(`Checking entities`);
         let vocabulary = yield VocabularyService.getById(pVocabulary);

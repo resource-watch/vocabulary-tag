@@ -13,8 +13,10 @@ const VocabularyNotFound = require('errors/vocabularyNotFound');
 const VocabularyDuplicated = require('errors/vocabularyDuplicated');
 const VocabularyNotValid = require('errors/vocabularyNotValid');
 const RelationshipValidator = require('validators/relationshipValidator');
+const RelationshipsValidator = require('validators/relationshipsValidator');
 const RelationshipDuplicated = require('errors/relationshipDuplicated');
 const RelationshipNotValid = require('errors/relationshipNotValid');
+const RelationshipsNotValid = require('errors/relationshipsNotValid');
 const RelationshipNotFound = require('errors/relationshipNotFound');
 const ConsistencyViolation = require('errors/consistencyViolation');
 const ResourceNotFound = require('errors/resourceNotFound');
@@ -176,6 +178,36 @@ class VocabularyRouter {
         }
     }
 
+    static * createRelationships(){
+        let dataset = this.params.dataset;
+        let resource = VocabularyRouter.getResource(this.params);
+        let body = this.request.body;
+        let vocabularies = [];
+        Object.keys(body).forEach(function(key){
+            if(key !== 'loggedUser'){
+                vocabularies.push({
+                    'name': key,
+                    'tags': body[key].tags
+                });
+            }
+        });
+        logger.debug(vocabularies);
+        vocabularies.forEach(function(vocabulary){
+            logger.info(`Creating realtionships between vocabulary: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
+        });
+        try{
+            let user = this.request.body.loggedUser;
+            let result = yield RelationshipService.createSome(user, vocabularies, dataset, resource);
+            this.body = ResourceSerializer.serialize(result);
+        } catch(err) {
+            if(err instanceof RelationshipDuplicated){
+                this.throw(400, err.message);
+                return;
+            }
+            throw err;
+        }
+    }
+
     static * deleteRelationship(){
         let dataset = this.params.dataset;
         let vocabulary = {name: this.params.vocabulary};
@@ -271,6 +303,20 @@ const relationshipValidationMiddleware = function*(next){
     yield next;
 };
 
+// RelationshipsValidator Wrapper
+const relationshipsValidationMiddleware = function*(next){
+    try{
+        yield RelationshipsValidator.validate(this);
+    } catch(err) {
+        if(err instanceof RelationshipsNotValid){
+            this.throw(400, err.getMessages());
+            return;
+        }
+        throw err;
+    }
+    yield next;
+};
+
 // Vocabulary Validator Wrapper
 const vocabularyValidationMiddleware = function*(next){
     try{
@@ -288,7 +334,8 @@ const vocabularyValidationMiddleware = function*(next){
 // dataset
 router.get('/dataset/:dataset/vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/:dataset/vocabulary/:vocabulary', VocabularyRouter.getByResource);
-router.get('/dataset_/vocabulary', VocabularyRouter.get);
+router.get('/dataset/vocabulary/find', VocabularyRouter.get);
+router.post('/dataset/:dataset/vocabulary', relationshipsValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationships);
 router.post('/dataset/:dataset/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationship);
 router.patch('/dataset/:dataset/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.updateRelationshipTags);
 router.delete('/dataset/:dataset/vocabulary/:vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationship);
@@ -296,7 +343,8 @@ router.delete('/dataset/:dataset/vocabulary/:vocabulary', relationshipAuthorizat
 // widget
 router.get('/dataset/:dataset/widget/:widget/vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', VocabularyRouter.getByResource);
-router.get('/dataset/:dataset/widget/vocabulary', VocabularyRouter.get);
+router.get('/dataset/:dataset/widget/vocabulary/find', VocabularyRouter.get);
+router.post('/dataset/:dataset/widget/:widget/vocabulary/', relationshipsValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationships);
 router.post('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationship);
 router.patch('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.updateRelationshipTags);
 router.delete('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationship);
@@ -304,7 +352,8 @@ router.delete('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', relatio
 // layer
 router.get('/dataset/:dataset/layer/:layer/vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', VocabularyRouter.getByResource);
-router.get('/dataset/:dataset/layer/vocabulary', VocabularyRouter.get);
+router.get('/dataset/:dataset/layer/vocabulary/find', VocabularyRouter.get);
+router.post('/dataset/:dataset/layer/:layer/vocabulary', relationshipsValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationships);
 router.post('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationship);
 router.patch('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.updateRelationshipTags);
 router.delete('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationship);

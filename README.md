@@ -24,18 +24,17 @@ resources: <Array:Object>
 ```
 GET: /dataset/:dataset/vocabulary/:vocabulary
 POST: /dataset/:dataset/vocabulary/:vocabulary
+POST: /dataset/:dataset/vocabulary
 PATCH: /dataset/:dataset/vocabulary/:vocabulary
 DELETE: /dataset/:dataset/vocabulary/:vocabulary
 ```
 
 ### Dataset Vocabulary (Other getters)
 
-It's important to notice the provisional path of the endpoint GET: /dataset_/vocabulary
-(UNDERSCORE AFTER THE WORD DATASET)
 
 ```
 GET: /dataset/:dataset/vocabulary
-GET: /dataset_/vocabulary
+GET: /dataset/vocabulary/find
 ```
 
 ### Widget Vocabulary CRUD
@@ -43,6 +42,7 @@ GET: /dataset_/vocabulary
 ```
 GET: /dataset/:dataset/widget/:widget/vocabulary/:vocabulary
 POST: /dataset/:dataset/widget/:widget/vocabulary/:vocabulary
+POST: /dataset/:dataset/widget/:widget/vocabulary
 PATCH: /dataset/:dataset/widget/:widget/vocabulary/:vocabulary
 DELETE: /dataset/:dataset/widget/:widget/vocabulary/:vocabulary
 ```
@@ -51,7 +51,7 @@ DELETE: /dataset/:dataset/widget/:widget/vocabulary/:vocabulary
 
 ```
 GET: /dataset/:dataset/widget/:widget/vocabulary
-GET: /dataset/:dataset/widget/vocabulary
+GET: /dataset/:dataset/widget/vocabulary/find
 ```
 
 ### Layer Vocabulary CRUD
@@ -59,6 +59,7 @@ GET: /dataset/:dataset/widget/vocabulary
 ```
 GET: /dataset/:dataset/layer/:layer/vocabulary/:vocabulary
 POST: /dataset/:dataset/layer/:layer/vocabulary/:vocabulary
+POST: /dataset/:dataset/layer/:layer/vocabulary
 PATCH: /dataset/:dataset/layer/:layer/vocabulary/:vocabulary
 DELETE: /dataset/:dataset/layer/:layer/vocabulary/:vocabulary
 ```
@@ -67,7 +68,7 @@ DELETE: /dataset/:dataset/layer/:layer/vocabulary/:vocabulary
 
 ```
 GET: /dataset/:dataset/layer/:layer/vocabulary
-GET: /dataset/:dataset/layer/vocabulary
+GET: /dataset/:dataset/layer/vocabulary/find
 ```
 
 ### Vocabulary CRUD
@@ -117,9 +118,9 @@ GET: /dataset/111123/widget/134599/vocabulary
 GET: /dataset/111123/layer/134599/vocabulary
 
 // All resources by resource type and vocabulary-tag
-GET: /dataset_/vocabulary?vocabularyOne=tag1,tag2&vocabularyTwo=tagA,tagB
-GET: /dataset/111123/widget/vocabulary?vocabularyOne=tag1,tag2&vocabularyTwo=tagA,tagB
-GET: /dataset/111123/layer/vocabulary?vocabularyOne=tag1,tag2&vocabularyTwo=tagA,tagB
+GET: /dataset/vocabulary/find?vocabularyOne=tag1,tag2&vocabularyTwo=tagA,tagB
+GET: /dataset/111123/widget/vocabulary/find?vocabularyOne=tag1,tag2&vocabularyTwo=tagA,tagB
+GET: /dataset/111123/layer/vocabularyfind?vocabularyOne=tag1,tag2&vocabularyTwo=tagA,tagB
 ```
 
 #### Creating Relationship (Weak Relationship)
@@ -128,6 +129,14 @@ GET: /dataset/111123/layer/vocabulary?vocabularyOne=tag1,tag2&vocabularyTwo=tagA
 POST: /dataset/111123/vocabulary/vocabularyName -> payload: {"tags": ["tag1", "tag2", "tag3"]}
 POST: /dataset/111123/widget/134599/vocabulary/vocabularyName -> payload: {"tags": ["tag1", "tag2", "tag3"]}
 POST: /dataset/111123/layer/134599/vocabulary/vocabularyName -> payload: {"tags": ["tag1", "tag2", "tag3"]}
+```
+
+#### Creating Several Relationships (Weak Relationship)
+
+```
+POST: /dataset/111123/vocabulary -> payload: {"vocabularyNameOne": {"tags": ["tag1", "tag2", "tag3"]}, "vocabularyNameTwo": {"tags": ["tag1", "tag2", "tag3"]}}
+POST: /dataset/111123/widget/134599/vocabulary -> payload: {"vocabularyNameOne": {"tags": ["tag1", "tag2", "tag3"]}, "vocabularyNameTwo": {"tags": ["tag1", "tag2", "tag3"]}}
+POST: /dataset/111123/layer/134599/vocabulary -> payload: {"vocabularyNameOne": {"tags": ["tag1", "tag2", "tag3"]}, "vocabularyNameTwo": {"tags": ["tag1", "tag2", "tag3"]}}
 ```
 
 #### Updating (partial)

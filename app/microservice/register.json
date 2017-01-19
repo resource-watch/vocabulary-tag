@@ -17,6 +17,14 @@
             "path": "/api/v1/dataset/:dataset/vocabulary/:vocabulary"
         }
     }, {
+        "path": "/dataset/:dataset/vocabulary",
+        "method": "POST",
+        "authenticated": true,
+        "redirect": {
+            "method": "POST",
+            "path": "/api/v1/dataset/:dataset/vocabulary"
+        }
+    }, {
         "path": "/dataset/:dataset/vocabulary/:vocabulary",
         "method": "PATCH",
         "authenticated": true,
@@ -40,12 +48,12 @@
             "path": "/api/v1/dataset/:dataset/vocabulary/:vocabulary"
         }
     }, {
-        "path": "/dataset_/vocabulary",
+        "path": "/dataset/vocabulary/find",
         "method": "GET",
         "authenticated": false,
         "redirect": {
             "method": "GET",
-            "path": "/api/v1/dataset_/vocabulary"
+            "path": "/api/v1/dataset/vocabulary/find"
         }
     }, {
         "path": "/dataset/:dataset/widget/:widget/vocabulary",
@@ -63,6 +71,14 @@
             "path": "/api/v1/dataset/:dataset/widget/:widget/vocabulary/:vocabulary"
         }
     }, {
+        "path": "/dataset/:dataset/widget/:widget/vocabulary",
+        "method": "POST",
+        "authenticated": true,
+        "redirect": {
+            "method": "POST",
+            "path": "/api/v1/dataset/:dataset/widget/:widget/vocabulary"
+        }
+    }, {
         "path": "/dataset/:dataset/widget/:widget/vocabulary/:vocabulary",
         "method": "PATCH",
         "authenticated": true,
@@ -86,11 +102,11 @@
             "path": "/api/v1/dataset/:dataset/widget/:widget/vocabulary/:vocabulary"
         }
     }, {
-        "path": "/dataset/:dataset/widget/vocabulary",
+        "path": "/dataset/:dataset/widget/vocabulary/find",
         "method": "GET",
         "redirect": {
             "method": "GET",
-            "path": "/api/v1/dataset/:dataset/widget/vocabulary"
+            "path": "/api/v1/dataset/:dataset/widget/vocabulary/find"
         }
     }, {
         "path": "/dataset/:dataset/layer/:layer/vocabulary",
@@ -108,6 +124,14 @@
             "path": "/api/v1/dataset/:dataset/layer/:layer/vocabulary/:vocabulary"
         }
     }, {
+        "path": "/dataset/:dataset/layer/:layer/vocabulary",
+        "method": "POST",
+        "authenticated": true,
+        "redirect": {
+            "method": "POST",
+            "path": "/api/v1/dataset/:dataset/layer/:layer/vocabulary"
+        }
+    }, {
         "path": "/dataset/:dataset/layer/:layer/vocabulary/:vocabulary",
         "method": "PATCH",
         "authenticated": true,
@@ -131,11 +155,11 @@
             "path": "/api/v1/dataset/:dataset/layer/:layer/vocabulary/:vocabulary"
         }
     }, {
-        "path": "/dataset/:dataset/layer/vocabulary",
+        "path": "/dataset/:dataset/layer/vocabulary/find",
         "method": "GET",
         "redirect": {
             "method": "GET",
-            "path": "/api/v1/dataset/:dataset/layer/vocabulary"
+            "path": "/api/v1/dataset/:dataset/layer/vocabulary/find"
         }
     }, {
         "path": "/vocabulary",
