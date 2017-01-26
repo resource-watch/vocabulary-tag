@@ -191,7 +191,6 @@ class VocabularyRouter {
                 });
             }
         });
-        logger.debug(vocabularies);
         vocabularies.forEach(function(vocabulary){
             logger.info(`Creating realtionships between vocabulary: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
         });
@@ -216,6 +215,36 @@ class VocabularyRouter {
         try{
             let user = this.request.body.loggedUser;
             let result = yield RelationshipService.delete(user, vocabulary, dataset, resource);
+            this.body = ResourceSerializer.serialize(result);
+        } catch(err) {
+            if(err instanceof VocabularyNotFound || err instanceof ResourceNotFound || err instanceof RelationshipNotFound){
+                this.throw(404, err.message);
+                return;
+            }
+            throw err;
+        }
+    }
+
+    static * deleteRelationships(){
+        let dataset = this.params.dataset;
+        let resource = VocabularyRouter.getResource(this.params);
+        // let vocabularies = this.request.query.vocabulary.split(',').map(function(vocabulary){
+        //     return {
+        //         name: vocabulary
+        //     };
+        // });
+        // if (!vocabularies){
+        //     this.throw(400, 'vocabularies are required in the queryParams');
+        //     return;
+        // }
+        // vocabularies.forEach(function(vocabulary){
+        //     logger.info(`Deleting Relationship between: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
+        // });
+        logger.info(`Deleting All Vocabularies of resource: ${resource.type} - ${resource.id}`);
+        try{
+            let user = this.request.body.loggedUser;
+            //let result = yield RelationshipService.deleteSome(user, vocabularies, dataset, resource);
+            let result = yield RelationshipService.deleteAll(user, dataset, resource);
             this.body = ResourceSerializer.serialize(result);
         } catch(err) {
             if(err instanceof VocabularyNotFound || err instanceof ResourceNotFound || err instanceof RelationshipNotFound){
@@ -251,6 +280,9 @@ class VocabularyRouter {
 const relationshipAuthorizationMiddleware = function*(next) {
     // Get user from query (delete) or body (post-patch)
     let user = Object.assign({}, this.request.query.loggedUser? JSON.parse(this.request.query.loggedUser): {}, this.request.body.loggedUser);
+    if(user.id === 'microservice'){
+        yield next;
+    }
     if(!user || USER_ROLES.indexOf(user.role) === -1){
         this.throw(401, 'Unauthorized'); //if not logged or invalid ROLE-> out
         return;
@@ -278,6 +310,9 @@ const relationshipAuthorizationMiddleware = function*(next) {
 const vocabularyAuthorizationMiddleware = function*(next) {
     // Get user from query (delete) or body (post-patch)
     let user = Object.assign({}, this.request.query.loggedUser? JSON.parse(this.request.query.loggedUser): {}, this.request.body.loggedUser);
+    if(user.id === 'microservice'){
+        yield next;
+    }
     if(!user || USER_ROLES.indexOf(user.role) === -1){
         this.throw(401, 'Unauthorized'); //if not logged or invalid ROLE -> out
         return;
@@ -339,6 +374,7 @@ router.post('/dataset/:dataset/vocabulary', relationshipsValidationMiddleware, r
 router.post('/dataset/:dataset/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationship);
 router.patch('/dataset/:dataset/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.updateRelationshipTags);
 router.delete('/dataset/:dataset/vocabulary/:vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationship);
+router.delete('/dataset/:dataset/vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationships);
 
 // widget
 router.get('/dataset/:dataset/widget/:widget/vocabulary', VocabularyRouter.getByResource);
@@ -348,6 +384,7 @@ router.post('/dataset/:dataset/widget/:widget/vocabulary/', relationshipsValidat
 router.post('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationship);
 router.patch('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.updateRelationshipTags);
 router.delete('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationship);
+router.delete('/dataset/:dataset/widget/:widget/vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationships);
 
 // layer
 router.get('/dataset/:dataset/layer/:layer/vocabulary', VocabularyRouter.getByResource);
@@ -357,6 +394,7 @@ router.post('/dataset/:dataset/layer/:layer/vocabulary', relationshipsValidation
 router.post('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationship);
 router.patch('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.updateRelationshipTags);
 router.delete('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationship);
+router.delete('/dataset/:dataset/layer/:layer/vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationships);
 
 // vocabulary (not the commmon use case)
 router.get('/vocabulary', VocabularyRouter.getAll);

@@ -55,13 +55,14 @@ class RelationshipService {
             id: vocabulary.id,
             tags: body.tags
         });
-        return resource.save();
+        return yield resource.save();
     }
 
     static * createSome(user, vocabularies, dataset, pResource){
-        return yield vocabularies.map(function(vocabulary){
-            return RelationshipService.create(user, vocabulary, dataset, pResource, vocabulary);
-        });
+        for(let i = 0; i < vocabularies.length; i++){
+            yield RelationshipService.create(user, vocabularies[i], dataset, pResource, vocabularies[i]);
+        }
+        return yield ResourceService.get(dataset, pResource);
     }
 
     static * delete(user, pVocabulary, dataset, pResource){
@@ -108,6 +109,29 @@ class RelationshipService {
         return resource;
     }
 
+    static * deleteSome(user, vocabularies, dataset, pResource){
+        for(let i = 0; i < vocabularies.length; i++){
+            yield RelationshipService.delete(user, vocabularies[i], dataset, pResource);
+        }
+        return yield ResourceService.get(dataset, pResource);
+    }
+
+    static * deleteAll(user, dataset, pResource){
+        let resource = yield ResourceService.get(dataset, pResource);
+        if(!resource || !resource.vocabularies || resource.vocabularies.length === 0){
+            logger.debug(`This resource doesn't have Relationships`);
+            throw new RelationshipNotFound(`This resource doesn't have Relationships`);
+        }
+        let vocabularies = resource.vocabularies.map(function(vocabulary){
+            return {
+                name: vocabulary.id
+            };
+        });
+        for(let i = 0; i < vocabularies.length; i++){
+            yield RelationshipService.delete(user, vocabularies[i], dataset, pResource);
+        }
+        return yield ResourceService.get(dataset, pResource);
+    }
 
     static * updateTagsFromRelationship(user, pVocabulary, dataset, pResource, body){
         logger.debug(`Checking entities`);

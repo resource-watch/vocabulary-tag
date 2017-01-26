@@ -41,6 +41,14 @@
             "path": "/api/v1/dataset/:dataset/vocabulary/:vocabulary"
         }
     }, {
+        "path": "/dataset/:dataset/vocabulary",
+        "method": "DELETE",
+        "authenticated": true,
+        "redirect": {
+            "method": "DELETE",
+            "path": "/api/v1/dataset/:dataset/vocabulary"
+        }
+    }, {
         "path": "/dataset/:dataset/vocabulary/:vocabulary",
         "method": "GET",
         "redirect": {
@@ -95,6 +103,14 @@
             "path": "/api/v1/dataset/:dataset/widget/:widget/vocabulary/:vocabulary"
         }
     }, {
+        "path": "/dataset/:dataset/widget/:widget/vocabulary",
+        "method": "DELETE",
+        "authenticated": true,
+        "redirect": {
+            "method": "DELETE",
+            "path": "/api/v1/dataset/:dataset/widget/:widget/vocabulary"
+        }
+    }, {
         "path": "/dataset/:dataset/widget/:widget/vocabulary/:vocabulary",
         "method": "GET",
         "redirect": {
@@ -146,6 +162,14 @@
         "redirect": {
             "method": "DELETE",
             "path": "/api/v1/dataset/:dataset/layer/:layer/vocabulary/:vocabulary"
+        }
+    }, {
+        "path": "/dataset/:dataset/layer/:layer/vocabulary",
+        "method": "DELETE",
+        "authenticated": true,
+        "redirect": {
+            "method": "DELETE",
+            "path": "/api/v1/dataset/:dataset/layer/:layer/vocabulary"
         }
     }, {
         "path": "/dataset/:dataset/layer/:layer/vocabulary/:vocabulary",

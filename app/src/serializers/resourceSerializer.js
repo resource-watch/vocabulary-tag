@@ -25,7 +25,8 @@ class ResourceSerializer {
                         id: vocabulary.id,
                         type: 'vocabulary',
                         attributes:{
-                            tags: vocabulary.tags
+                            tags: vocabulary.tags,
+                            name: vocabulary.id
                         }
                     });
                 });
@@ -50,7 +51,8 @@ class ResourceSerializer {
                     attributes: {}
                 };
                 el.vocabularies.forEach(function(vocabulary){
-                    obj.attributes[vocabulary.id] = vocabulary.tags;
+                    obj.attributes.name = vocabulary.id;
+                    obj.attributes.tags = vocabulary.tags;
                 });
                 result.data.push(obj);
             });
