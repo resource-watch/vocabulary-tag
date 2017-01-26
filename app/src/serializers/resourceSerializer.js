@@ -45,17 +45,32 @@ class ResourceSerializer {
                 data = [data];
             }
             data.forEach(function(el){
-                let obj = {
-                    type: 'resource',
-                    id: el.id,
-                    attributes: {}
-                };
                 el.vocabularies.forEach(function(vocabulary){
-                    obj.attributes.name = vocabulary.id;
-                    obj.attributes.tags = vocabulary.tags;
+                    result.data.push({
+                        id: vocabulary.id,
+                        type: 'vocabulary',
+                        attributes:{
+                            id: el.id,
+                            dataset: el.dataset,
+                            type: el.type,
+                            tags: vocabulary.tags,
+                            name: vocabulary.id
+                        }
+                    });
                 });
-                result.data.push(obj);
             });
+            // data.forEach(function(el){
+            //     let obj = {
+            //         type: 'vocabulary',
+            //         id: el.id,
+            //         attributes: {}
+            //     };
+            //     el.vocabularies.forEach(function(vocabulary){
+            //         obj.attributes.name = vocabulary.id;
+            //         obj.attributes.tags = vocabulary.tags;
+            //     });
+            //     result.data.push(obj);
+            // });
         }
         return result;
     }
