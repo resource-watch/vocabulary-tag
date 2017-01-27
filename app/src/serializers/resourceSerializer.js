@@ -50,9 +50,11 @@ class ResourceSerializer {
                         id: vocabulary.id,
                         type: 'vocabulary',
                         attributes:{
-                            id: el.id,
                             dataset: el.dataset,
-                            type: el.type,
+                            resource: {
+                                id: el.id,
+                                type: el.type
+                            },
                             tags: vocabulary.tags,
                             name: vocabulary.id
                         }
