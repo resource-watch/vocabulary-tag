@@ -47,10 +47,8 @@ class ResourceSerializer {
             data.forEach(function(el){
                 el.vocabularies.forEach(function(vocabulary){
                     result.data.push({
-                        id: vocabulary.id,
                         type: 'vocabulary',
                         attributes:{
-                            dataset: el.dataset,
                             resource: {
                                 id: el.id,
                                 type: el.type
