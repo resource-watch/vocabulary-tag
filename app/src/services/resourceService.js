@@ -30,14 +30,13 @@ class ResourceService {
                     dataset: dataset,
                     id: resource.id,
                     type: resource.type,
-                    'vocabularies.id': { $in: [vocabulary.name] }
+                    'vocabularies.id': vocabulary.name
                 }},
 
                 {$unwind: '$vocabularies'},
-                {$unwind: '$vocabularies.id'},
 
                 {$match: {
-                    'vocabularies.id': { $in: [vocabulary.name] }
+                    'vocabularies.id': vocabulary.name
                 }},
 
                 {$group: {

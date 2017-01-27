@@ -280,8 +280,10 @@ class VocabularyRouter {
 const relationshipAuthorizationMiddleware = function*(next) {
     // Get user from query (delete) or body (post-patch)
     let user = Object.assign({}, this.request.query.loggedUser? JSON.parse(this.request.query.loggedUser): {}, this.request.body.loggedUser);
+    logger.debug('USERRRR',user);
     if(user.id === 'microservice'){
         yield next;
+        return;
     }
     if(!user || USER_ROLES.indexOf(user.role) === -1){
         this.throw(401, 'Unauthorized'); //if not logged or invalid ROLE-> out
@@ -312,6 +314,7 @@ const vocabularyAuthorizationMiddleware = function*(next) {
     let user = Object.assign({}, this.request.query.loggedUser? JSON.parse(this.request.query.loggedUser): {}, this.request.body.loggedUser);
     if(user.id === 'microservice'){
         yield next;
+        return;
     }
     if(!user || USER_ROLES.indexOf(user.role) === -1){
         this.throw(401, 'Unauthorized'); //if not logged or invalid ROLE -> out
