@@ -37,7 +37,7 @@ class ResourceService {
                 {$unwind: '$vocabularies.id'},
 
                 {$match: {
-                    'vocabularies.id': vocabulary.name
+                    'vocabularies.id': [vocabulary.name]
                 }},
 
                 {$group: {

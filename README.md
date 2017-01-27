@@ -27,6 +27,7 @@ POST: /dataset/:dataset/vocabulary/:vocabulary
 POST: /dataset/:dataset/vocabulary
 PATCH: /dataset/:dataset/vocabulary/:vocabulary
 DELETE: /dataset/:dataset/vocabulary/:vocabulary
+DELETE: /dataset/:dataset/vocabulary
 ```
 
 ### Dataset Vocabulary (Other getters)
@@ -45,6 +46,7 @@ POST: /dataset/:dataset/widget/:widget/vocabulary/:vocabulary
 POST: /dataset/:dataset/widget/:widget/vocabulary
 PATCH: /dataset/:dataset/widget/:widget/vocabulary/:vocabulary
 DELETE: /dataset/:dataset/widget/:widget/vocabulary/:vocabulary
+DELETE: /dataset/:dataset/widget/:widget/vocabulary
 ```
 
 ### Widget Vocabulary (Other getters)
@@ -62,6 +64,7 @@ POST: /dataset/:dataset/layer/:layer/vocabulary/:vocabulary
 POST: /dataset/:dataset/layer/:layer/vocabulary
 PATCH: /dataset/:dataset/layer/:layer/vocabulary/:vocabulary
 DELETE: /dataset/:dataset/layer/:layer/vocabulary/:vocabulary
+DELETE: /dataset/:dataset/layer/:layer/vocabulary
 ```
 
 ### Widget Vocabulary (Other getters)
@@ -107,7 +110,7 @@ Auth required:
 #### Getting
 
 ```
-// By resource and vocabulary
+// By resource and vocabulary 
 GET: /dataset/111123/vocabulary/vocabularyName
 GET: /dataset/111123/widget/134599/vocabulary/vocabularyName
 GET: /dataset/111123/layer/134599/vocabulary/vocabularyName
