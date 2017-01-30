@@ -4,23 +4,199 @@ This repository implements the Vocabulary Tag services that are available in the
 
 If you are looking for the API Doc (Info and Usage) please go to the next link:
 [View the documentation for this
-API]()
+API]()(NOT YET)
 
 ## Quick Overview
+
+### Vocabulary Entity
+
+```
+name: <String>, required
+resources: <Array:Object>
+    id: <String>
+    dataset: <String>
+    type <String>, [dataset, widget, layer]
+    tags: <Array:String>
+```
+
+### Dataset Vocabulary CRUD
+
+```
+GET: /dataset/:dataset/vocabulary/:vocabulary
+POST: /dataset/:dataset/vocabulary/:vocabulary
+POST: /dataset/:dataset/vocabulary
+PATCH: /dataset/:dataset/vocabulary/:vocabulary
+DELETE: /dataset/:dataset/vocabulary/:vocabulary
+DELETE: /dataset/:dataset/vocabulary
+```
+
+### Dataset Vocabulary (Other getters)
+
+
+```
+GET: /dataset/:dataset/vocabulary
+GET: /dataset/vocabulary/find
+```
+
+### Widget Vocabulary CRUD
+
+```
+GET: /dataset/:dataset/widget/:widget/vocabulary/:vocabulary
+POST: /dataset/:dataset/widget/:widget/vocabulary/:vocabulary
+POST: /dataset/:dataset/widget/:widget/vocabulary
+PATCH: /dataset/:dataset/widget/:widget/vocabulary/:vocabulary
+DELETE: /dataset/:dataset/widget/:widget/vocabulary/:vocabulary
+DELETE: /dataset/:dataset/widget/:widget/vocabulary
+```
+
+### Widget Vocabulary (Other getters)
+
+```
+GET: /dataset/:dataset/widget/:widget/vocabulary
+GET: /dataset/:dataset/widget/vocabulary/find
+```
+
+### Layer Vocabulary CRUD
+
+```
+GET: /dataset/:dataset/layer/:layer/vocabulary/:vocabulary
+POST: /dataset/:dataset/layer/:layer/vocabulary/:vocabulary
+POST: /dataset/:dataset/layer/:layer/vocabulary
+PATCH: /dataset/:dataset/layer/:layer/vocabulary/:vocabulary
+DELETE: /dataset/:dataset/layer/:layer/vocabulary/:vocabulary
+DELETE: /dataset/:dataset/layer/:layer/vocabulary
+```
+
+### Widget Vocabulary (Other getters)
+
+```
+GET: /dataset/:dataset/layer/:layer/vocabulary
+GET: /dataset/:dataset/layer/vocabulary/find
+```
+
+### Vocabulary CRUD
+
+```
+GET: /vocabulary/:vocabulary
+POST: /vocabulary/:vocabulary
+PATCH: /vocabulary/:vocabulary
+DELETE: /vocabulary/:vocabulary
+```
+
+### Vocabulary GetAll
+
+```
+GET: /vocabulary
+```
+
+### Finding By Ids
+
+```
+POST: /dataset/vocabulary/find-by-ids
+POST: /dataset/:dataset/widget/vocabulary/find-by-ids
+POST: /dataset/:dataset/layer/vocabulary/find-by-ids
+```
+
+### POST, PATCH, DELETE
+
+Auth required:
+
+- Generic USERs are forbidden
+- A MANAGER is allowed if it's the owner of the resource
+- ADMINs and SUPERADMINs are allowed
 
 ### CRUD Examples
 
 #### Getting
 
-#### Creating
+```
+// By resource and vocabulary 
+GET: /dataset/111123/vocabulary/vocabularyName
+GET: /dataset/111123/widget/134599/vocabulary/vocabularyName
+GET: /dataset/111123/layer/134599/vocabulary/vocabularyName
+
+// All vocabularies by resource
+GET: /dataset/111123/vocabulary
+GET: /dataset/111123/widget/134599/vocabulary
+GET: /dataset/111123/layer/134599/vocabulary
+
+// All resources by resource type and vocabulary-tag
+GET: /dataset/vocabulary/find?vocabularyOne=tag1,tag2&vocabularyTwo=tagA,tagB
+GET: /dataset/111123/widget/vocabulary/find?vocabularyOne=tag1,tag2&vocabularyTwo=tagA,tagB
+GET: /dataset/111123/layer/vocabularyfind?vocabularyOne=tag1,tag2&vocabularyTwo=tagA,tagB
+```
+
+#### Creating Relationship (Weak Relationship)
+
+```
+POST: /dataset/111123/vocabulary/vocabularyName -> payload: {"tags": ["tag1", "tag2", "tag3"]}
+POST: /dataset/111123/widget/134599/vocabulary/vocabularyName -> payload: {"tags": ["tag1", "tag2", "tag3"]}
+POST: /dataset/111123/layer/134599/vocabulary/vocabularyName -> payload: {"tags": ["tag1", "tag2", "tag3"]}
+```
+
+#### Creating Several Relationships (Weak Relationship)
+
+```
+POST: /dataset/111123/vocabulary -> payload: {"vocabularyNameOne": {"tags": ["tag1", "tag2", "tag3"]}, "vocabularyNameTwo": {"tags": ["tag1", "tag2", "tag3"]}}
+POST: /dataset/111123/widget/134599/vocabulary -> payload: {"vocabularyNameOne": {"tags": ["tag1", "tag2", "tag3"]}, "vocabularyNameTwo": {"tags": ["tag1", "tag2", "tag3"]}}
+POST: /dataset/111123/layer/134599/vocabulary -> payload: {"vocabularyNameOne": {"tags": ["tag1", "tag2", "tag3"]}, "vocabularyNameTwo": {"tags": ["tag1", "tag2", "tag3"]}}
+```
 
 #### Updating (partial)
 
+```
+PATCH: /dataset/111123/vocabulary/vocabularyName -> payload: {"tags": ["tagA"]}
+PATCH: /dataset/111123/widget/134599/vocabulary/vocabularyName -> payload: {"tags": ["tagX", "tagY"]}
+PATCH: /dataset/111123/layer/134599/vocabulary/vocabularyName -> payload: {"tags": ["tag10", "tag20", "tag30"]}
+```
+
 #### Deleting
+
+```
+DELETE: /dataset/111123/vocabulary/vocabularyName
+DELETE: /dataset/111123/widget/134599/vocabulary/vocabularyName
+DELETE: /dataset/111123/layer/134599/vocabulary/vocabularyName
+```
+
+#### Vocabulary Entity (Get, GetAll, Creation)
+
+```
+GET: /vocabulary/vocabularyName
+GET: /vocabulary/vocabularyName
+POST: /vocabulary/vocabularyName -> payload: {"name": "vocabularyName"}
+```
 
 #### Getting All
 
+```
+GET: /vocabulary
+```
+
+#### Vocabulary Entity (Update, Delete) (THEY VALIDATE CONSISTENCY - ONLY FOR SUPERADMINS)
+
+```
+PATCH: /vocabulary/vocabularyName -> payload: {"name": "vocabularyName"}
+DELETE: /vocabulary/vocabularyName
+```
+
+#### Getting All
+
+```
+GET: /vocabulary
+```
+
 #### Finding By Ids
+
+"ids" property is required in the payload, in other case the endpoint responds a 400 HTTP ERROR (Bad Request)
+This property can be an Array or a String (comma-separated)
+payload -> {"ids": ["112313", "111123"]}
+payload -> {"ids": "112313, 111123"}
+
+```
+POST: /dataset/vocabulary/find-by-ids -> payload: {"ids": ["112313", "111123"]}
+POST: /dataset/:dataset/widget/vocabulary/find-by-ids -> payload: {"ids": ["112313", "111123"]}
+POST: /dataset/:dataset/layer/vocabulary/find-by-ids -> payload: {"ids": ["112313", "111123"]}
+```
 
 Ir order to contribute to this repo:
 
