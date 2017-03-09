@@ -1,5 +1,5 @@
 prod:
-  image: vizzuality/vocabulary-tag:1.0.0${STAGING}
+  image: vizzuality/vocabulary-tag:1.1.0${STAGING}
   ports:
     - "4100"
   env_file:
