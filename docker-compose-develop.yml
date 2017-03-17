@@ -10,6 +10,7 @@ develop:
     CT_URL: http://mymachine:9000
     LOCAL_URL: http://mymachine:4100
     DEBUG: "*"
+    API_VERSION: v1
   command: develop
   links:
     - mongo
