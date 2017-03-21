@@ -274,6 +274,25 @@ class VocabularyRouter {
         }
     }
 
+    static * concatTags(){
+        let dataset = this.params.dataset;
+        let vocabulary = {name: this.params.vocabulary};
+        let resource = VocabularyRouter.getResource(this.params);
+        let body = this.request.body; //@TODO VALIDATE if body.tags > 0 in other case validation erro
+        logger.info(`Updating tags of relationship: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
+        try{
+            let user = this.request.body.loggedUser;
+            let result = yield RelationshipService.concatTags(user, vocabulary, dataset, resource, body);
+            this.body = ResourceSerializer.serialize(result);
+        } catch(err) {
+            if(err instanceof VocabularyNotFound || err instanceof ResourceNotFound || err instanceof RelationshipNotFound){
+                this.throw(404, err.message);
+                return;
+            }
+            throw err;
+        }
+    }
+
 }
 
 // Negative checking
@@ -376,6 +395,7 @@ router.get('/dataset/vocabulary/find', VocabularyRouter.get);
 router.post('/dataset/:dataset/vocabulary', relationshipsValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationships);
 router.post('/dataset/:dataset/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationship);
 router.patch('/dataset/:dataset/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.updateRelationshipTags);
+router.post('/dataset/:dataset/vocabulary/:vocabulary/concat', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.concatTags);
 router.delete('/dataset/:dataset/vocabulary/:vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationship);
 router.delete('/dataset/:dataset/vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationships);
 

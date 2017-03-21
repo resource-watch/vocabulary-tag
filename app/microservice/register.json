@@ -33,6 +33,14 @@
             "path": "/api/v1/dataset/:dataset/vocabulary/:vocabulary"
         }
     }, {
+        "path": "/v1/dataset/:dataset/vocabulary/:vocabulary/concat",
+        "method": "POST",
+        "authenticated": true,
+        "redirect": {
+            "method": "POST",
+            "path": "/api/v1/dataset/:dataset/vocabulary/:vocabulary/concat"
+        }
+    }, {
         "path": "/v1/dataset/:dataset/vocabulary/:vocabulary",
         "method": "DELETE",
         "authenticated": true,
