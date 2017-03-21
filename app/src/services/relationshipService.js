@@ -172,6 +172,35 @@ class RelationshipService {
         return resource.save();
     }
 
+    static * concatTags(user, pVocabulary, dataset, pResource, body){
+        logger.debug(`Checking entities`);
+        let vocabulary = yield VocabularyService.getById(pVocabulary);
+        if(!vocabulary){
+            logger.debug(`This Vocabulary doesn't exist, let's create it`);
+            vocabulary = yield VocabularyService.create(user, pVocabulary);
+        }
+        let resource = yield ResourceService.get(dataset, pResource);
+        if(!resource){
+            logger.debug(`This resource doesnt' exist, let's create it`);
+            resource = yield ResourceService.create(dataset, pResource);
+        }
+        logger.debug(`Checking if relationship doesn't exist yet`);
+        let relationship = RelationshipService.checkRelationship(resource, vocabulary);
+        if(!relationship){
+            return yield RelationshipService.create(user, pVocabulary, dataset, pResource, body);
+        }
+        try{
+            body.tags.forEach(function(el){
+                if(relationship.tags.indexOf(el) < 0){
+                    relationship.tags.push(el);
+                }
+            });
+            return yield RelationshipService.updateTagsFromRelationship(user, pVocabulary, dataset, pResource, relationship);
+        } catch(err){
+            throw err;
+        }
+    }
+
 }
 
 module.exports = RelationshipService;

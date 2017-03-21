@@ -17,6 +17,7 @@ module.exports = (function() {
     }
     var logger = bunyan.createLogger({
         name: config.get('logger.name'),
+        src: true,
         streams: streams
     });
     return logger;
