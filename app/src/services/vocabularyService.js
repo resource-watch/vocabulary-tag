@@ -1,6 +1,5 @@
 
 const logger = require('logger');
-const config = require('config');
 const Vocabulary = require('models/vocabulary');
 const ResourceService = require('services/resourceService');
 const VocabularyNotFound = require('errors/vocabularyNotFound');
@@ -21,62 +20,62 @@ class VocabularyService {
 
     static * get(resource, pQuery) {
         logger.debug(`Getting resources by vocabulary-tag`);
-        let query = VocabularyService.getQuery(pQuery);
+        const query = VocabularyService.getQuery(pQuery);
         let vocabularies = yield Object.keys(query).map(function (vocabularyName) {
             return Vocabulary.aggregate([
                 { $match: {
                     id: vocabularyName,
                     'resources.type': resource.type,
-                    'resources.tags': { $in: query[vocabularyName].split(',').map(function(elem){return elem.trim();}) }
+                    'resources.tags': { $in: query[vocabularyName].split(',').map(function (elem) { return elem.trim(); }) }
                 } },
 
-                {$unwind: '$resources'},
-                {$unwind: '$resources.tags'},
+                { $unwind: '$resources' },
+                { $unwind: '$resources.tags' },
 
-                {$match: {
+                { $match: {
                     'resources.type': resource.type,
-                    'resources.tags': { $in: query[vocabularyName].split(',').map(function(elem){return elem.trim();}) }
-                }},
+                    'resources.tags': { $in: query[vocabularyName].split(',').map(function (elem) { return elem.trim(); }) }
+                } },
 
-                {$group: {
-                    '_id': 0,
-                    'resources': { $push: '$resources' }
-                }}
+                { $group: {
+                    _id: 0,
+                    resources: { $push: '$resources' }
+                } }
             ]).exec();
         });
         if (!vocabularies || vocabularies.length === 0 || vocabularies[0].length === 0) {
             return null;
         } else {
             // just one vocabulary mathching? force to at least 2 arrays
-            let validVocabularies = [];
-            vocabularies.forEach(function(vocabulary){
-                if(vocabulary.length !== 0){
+            const validVocabularies = [];
+            vocabularies.forEach(function (vocabulary) {
+                if (vocabulary.length !== 0) {
                     validVocabularies.push(vocabulary);
                 }
             });
             vocabularies = validVocabularies;
-            if(vocabularies.length === 1){
+            if (vocabularies.length === 1) {
                 vocabularies.push(vocabularies[0]);
             }
-            vocabularies = vocabularies.reduce(function(a,b) {
-                return a.concat(b).reduce(function(a,b){
+            vocabularies = vocabularies.reduce(function (a, b) {
+                return a.concat(b).reduce(function (a, b) {
                     // Unique a.resources
-                    let aUniqueResources = [];
-                    a.resources.forEach(function(nextResource){
-                        let alreadyIn = aUniqueResources.find(function(currentResource){
+                    const aUniqueResources = [];
+                    a.resources.forEach(function (nextResource) {
+                        const alreadyIn = aUniqueResources.find(function (currentResource) {
                             return (nextResource.type === currentResource.type) && (nextResource.id === currentResource.id) && (nextResource.dataset === currentResource.dataset);
                         });
-                        if(!alreadyIn){
+                        if (!alreadyIn) {
                             aUniqueResources.push(nextResource);
                         }
                     });
                     a.resources = aUniqueResources;
                     // B in a unique resorces
-                    b.resources.forEach(function(nextResource){
-                        let alreadyIn = a.resources.find(function(currentResource){
+                    b.resources.forEach(function (nextResource) {
+                        const alreadyIn = a.resources.find(function (currentResource) {
                             return (nextResource.type === currentResource.type) && (nextResource.id === currentResource.id) && (nextResource.dataset === currentResource.dataset);
                         });
-                        if(!alreadyIn){
+                        if (!alreadyIn) {
                             a.resources.push(nextResource);
                         }
                     });
@@ -85,25 +84,24 @@ class VocabularyService {
             });
         }
         // deleting tags from resource
-        vocabularies.resources = vocabularies.resources.map(function(resource){
+        vocabularies.resources = vocabularies.resources.map(function(resource) {
             delete resource.tags;
             return resource;
         });
-        let limit = (isNaN(parseInt(query.limit))) ? 0:parseInt(query.limit);
-        if(limit > 0){
-            return vocabularies.slice(0, limit-1);
-        }
-        else{
+        const limit = (isNaN(parseInt(query.limit, 10))) ? 0 : parseInt(query.limit, 10);
+        if (limit > 0) {
+            return vocabularies.slice(0, limit - 1);
+        } else {
             return vocabularies;
         }
     }
 
-    static * create(user, pVocabulary){
+    static * create(user, pVocabulary) {
         logger.debug('Checking if vocabulary already exists');
         let vocabulary = yield Vocabulary.findOne({
             id: pVocabulary.name
         }).exec();
-        if(vocabulary){
+        if (vocabulary) {
             logger.error('Error creating vocabulary');
             throw new VocabularyDuplicated(`Vocabulary of with name: ${pVocabulary.name}: already exists`);
         }
@@ -114,23 +112,22 @@ class VocabularyService {
         return vocabulary.save();
     }
 
-    static * update(pVocabulary){
+    static * update(pVocabulary) {
         logger.debug('Checking if vocabulary doesnt exist');
-        let vocabulary = yield Vocabulary.findOne({
+        const vocabulary = yield Vocabulary.findOne({
             id: pVocabulary.name
         }).exec();
-        if(!vocabulary){
+        if (!vocabulary) {
             logger.error('Error updating vocabulary');
             throw new VocabularyNotFound(`Vocabulary with name: ${pVocabulary.name} doesn't exist`);
         }
-        vocabulary.name = pVocabulary.name ? pVocabulary.name:vocabulary.name;
+        vocabulary.name = pVocabulary.name ? pVocabulary.name : vocabulary.name;
         vocabulary.updatedAt = new Date();
         logger.debug('Updating resources');
-        try{
-            let resource = yield ResourceService.updateVocabulary(vocabulary);
-        }
-        catch(err){
-            if(err instanceof ResourceUpdateFailed){
+        try {
+            const resource = yield ResourceService.updateVocabulary(vocabulary);
+        } catch (err) {
+            if (err instanceof ResourceUpdateFailed) {
                 throw new ConsistencyViolation(`Consistency Violation: References cannot be updated`);
             }
         }
@@ -138,22 +135,21 @@ class VocabularyService {
         return vocabulary.save();
     }
 
-    static * delete(pVocabulary){
+    static * delete(pVocabulary) {
         logger.debug('Checking if vocabulary doesnt exists');
-        let query = {
+        const query = {
             id: pVocabulary.name
         };
-        let vocabulary = yield Vocabulary.findOne(query).exec();
-        if(!vocabulary){
+        const vocabulary = yield Vocabulary.findOne(query).exec();
+        if (!vocabulary) {
             logger.error('Error deleting vocabulary');
             throw new VocabularyNotFound(`Vocabulary with name: ${pVocabulary.name} doesn't exist`);
         }
         logger.debug('Updating resources');
-        try{
-            let resource = yield ResourceService.deleteVocabulary(vocabulary);
-        }
-        catch(err){
-            if(err instanceof ResourceUpdateFailed){
+        try {
+            const resource = yield ResourceService.deleteVocabulary(vocabulary);
+        } catch (err) {
+            if (err instanceof ResourceUpdateFailed) {
                 throw new ConsistencyViolation(`Consistency Violation: References cannot be deleted`);
             }
         }
@@ -162,15 +158,15 @@ class VocabularyService {
         return vocabulary;
     }
 
-    static * getAll(filter){
-        let limit = (isNaN(parseInt(filter.limit))) ? 0:parseInt(filter.limit);
+    static * getAll(filter) {
+        const limit = (isNaN(parseInt(filter.limit, 10))) ? 0 : parseInt(filter.limit, 10);
         logger.debug('Getting vocabularies');
         return yield Vocabulary.find({}).limit(limit).exec();
     }
 
-    static * getById(vocabulary){
+    static * getById(vocabulary) {
         logger.debug(`Getting vocabulary with id ${vocabulary.name}`);
-        let query = {
+        const query = {
             id: vocabulary.name
         };
         logger.debug('Getting vocabulary');
@@ -180,7 +176,7 @@ class VocabularyService {
     /*
     * @returns: hasPermission: <Boolean>
     */
-    static * hasPermission(user, vocabulary){
+    static * hasPermission() {
         return true;
     }
 

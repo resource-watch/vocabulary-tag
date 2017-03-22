@@ -1,82 +1,77 @@
-'use strict';
 
 const logger = require('logger');
 const JSONAPIDeserializer = require('jsonapi-serializer').Deserializer;
-const config = require('config');
 const Resource = require('models/resource');
-const ResourceUpdateFailed = require('errors/resourceUpdateFailed');
 const ResourceNotFound = require('errors/resourceNotFound');
-const VocabularyNotFound = require('errors/vocabularyNotFound');
 const ctRegisterMicroservice = require('ct-register-microservice-node');
-const request = require('request');
 
-const deserializer = function(obj){
-    return function(callback){
-        new JSONAPIDeserializer({keyForAttribute: 'camelCase'}).deserialize(obj, callback);
+const deserializer = function (obj) {
+    return function (callback) {
+        new JSONAPIDeserializer({ keyForAttribute: 'camelCase' }).deserialize(obj, callback);
     };
 };
 
 class ResourceService {
 
-    static * get(dataset, resource, vocabulary){
-        let query = {
-            dataset: dataset,
+    static * get(dataset, resource, vocabulary) {
+        const query = {
+            dataset,
             id: resource.id,
             type: resource.type
         };
-        if (vocabulary && vocabulary.name){
+        if (vocabulary && vocabulary.name) {
             return Resource.aggregate([
-                {$match: {
-                    dataset: dataset,
+                { $match: {
+                    dataset,
                     id: resource.id,
                     type: resource.type,
                     'vocabularies.id': vocabulary.name
-                }},
+                } },
 
-                {$unwind: '$vocabularies'},
+                { $unwind: '$vocabularies' },
 
-                {$match: {
+                { $match: {
                     'vocabularies.id': vocabulary.name
-                }},
+                } },
 
-                {$group: {
-                    '_id': 0,
-                    'vocabularies': { $push: '$vocabularies'}
-                }}
+                { $group: {
+                    _id: 0,
+                    vocabularies: { $push: '$vocabularies' }
+                } }
             ]).exec();
         }
         logger.debug('Getting resource by resource');
         return yield Resource.findOne(query).exec();
     }
 
-    static * create(dataset, pResource){
+    static * create(dataset, pResource) {
         logger.debug('Checking if resource doesnt exist');
-        let resource = yield Resource.findOne({
+        const resource = yield Resource.findOne({
             id: pResource.id,
-            dataset: dataset,
+            dataset,
             type: pResource.type
         }).exec();
-        if(resource){
+        if (resource) {
             return resource;
         }
         logger.debug('Creating resource');
-        let nResource = new Resource({
+        const nResource = new Resource({
             id: pResource.id,
-            dataset: dataset,
+            dataset,
             type: pResource.type
         });
         return nResource.save();
     }
 
-    static * delete(dataset, pResource){
+    static * delete(dataset, pResource) {
         logger.debug('Checking if resource doesnt exists');
-        let query ={
+        const query = {
             id: pResource.id,
-            dataset: dataset,
+            dataset,
             type: pResource.type
         };
-        let resource = yield Resource.findOne(query).exec();
-        if(!resource){
+        const resource = yield Resource.findOne(query).exec();
+        if (!resource) {
             logger.error('Error deleting resource');
             throw new ResourceNotFound(`Resource ${pResource.type} - ${resource.id} and dataset: ${dataset} doesn't exist`);
         }
@@ -85,19 +80,19 @@ class ResourceService {
         return resource;
     }
 
-    /* Updating vocabularies from Resources -> Just a superadmin can modify vocabularies */
-    static * updateVocabulary(vocabulary){
-        return true; // @TODO
+    /* @TODO Updating vocabularies from Resources -> Just a superadmin can modify vocabularies */
+    static * updateVocabulary(vocabulary) {
+        return vocabulary;
     }
 
-    /* Removing vocabularies from Resources -> Just a superadmin can delete vocabularies */
-    static * deleteVocabulary(vocabulary){
-        return true; // @TODO
+    /* @TODO Removing vocabularies from Resources -> Just a superadmin can delete vocabularies */
+    static * deleteVocabulary(vocabulary) {
+        return vocabulary;
     }
 
-    static * getByIds(resource){
+    static * getByIds(resource) {
         logger.debug(`Getting resources with ids ${resource.ids}`);
-        let query = {
+        const query = {
             id: { $in: resource.ids },
             type: resource.type
         };
@@ -108,33 +103,32 @@ class ResourceService {
     /*
     * @returns: hasPermission: <Boolean>
     */
-    static * hasPermission(user, dataset, pResource){
+    static * hasPermission(user, dataset, pResource) {
         let permission = true;
         let resource;
-        try{
+        try {
             resource = yield ctRegisterMicroservice.requestToMicroservice({
-                uri: '/' + pResource.type + '/' +pResource.id,
+                uri: `/${pResource.type}/${pResource.id}`,
                 method: 'GET',
                 json: true
             });
-        }
-        catch(err){
+        } catch (err) {
             throw err;
         }
         resource = yield deserializer(resource);
-        if(!resource){
+        if (!resource) {
             logger.error('Error getting resource from microservice');
             throw new ResourceNotFound(`REAL Resource ${pResource.type} - ${pResource.id} and dataset: ${dataset} doesn't exist`);
         }
-        let appPermission = resource.application.find(function(resourceApp){
-            return user.extraUserData.apps.find(function(app){
+        const appPermission = resource.application.find(function (resourceApp) {
+            return user.extraUserData.apps.find(function (app) {
                 return app === resourceApp;
             });
         });
-        if(!appPermission){
+        if (!appPermission) {
             permission = false;
         }
-        if ((user.role === 'MANAGER') && (!resource.userId || resource.userId !== user.id)){
+        if ((user.role === 'MANAGER') && (!resource.userId || resource.userId !== user.id)) {
             permission = false;
         }
         return permission;
