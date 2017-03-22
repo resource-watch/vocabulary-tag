@@ -1,15 +1,13 @@
-'use strict';
 
 const logger = require('logger');
-const config = require('config');
 const VocabularyNotValid = require('errors/vocabularyNotValid');
 
-class VocabularyValidator{
+class VocabularyValidator {
 
-    static * validate(koaObj){
+    static * validate(koaObj) {
         logger.info('Validating Vocabulary Creation');
         koaObj.checkBody('name').notEmpty().toLow();
-        if(koaObj.errors){
+        if (koaObj.errors) {
             logger.error('Error validating vocabulary creation');
             throw new VocabularyNotValid(koaObj.errors);
         }

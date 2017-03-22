@@ -1,11 +1,12 @@
-'use strict';
 
-class VocabularyNotFound extends Error{
+class VocabularyNotFound extends Error {
 
-    constructor(message){
+    constructor(message) {
         super(message);
         this.name = 'VocabularyNotFound';
         this.message = message;
     }
+
 }
+
 module.exports = VocabularyNotFound;

@@ -1,11 +1,12 @@
-'use strict';
 
-class RelationshipNotFound extends Error{
+class RelationshipNotFound extends Error {
 
-    constructor(message){
+    constructor(message) {
         super(message);
         this.name = 'RelationshipNotFound';
         this.message = message;
     }
+
 }
+
 module.exports = RelationshipNotFound;
