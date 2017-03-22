@@ -11,9 +11,11 @@ const VocabularyNotFound = require('errors/vocabularyNotFound');
 const VocabularyDuplicated = require('errors/vocabularyDuplicated');
 const VocabularyNotValid = require('errors/vocabularyNotValid');
 const RelationshipValidator = require('validators/relationshipValidator');
+const CloneValidator = require('validators/cloneValidator');
 const RelationshipsValidator = require('validators/relationshipsValidator');
 const RelationshipDuplicated = require('errors/relationshipDuplicated');
 const RelationshipNotValid = require('errors/relationshipNotValid');
+const CloneNotValid = require('errors/cloneNotValid');
 const RelationshipsNotValid = require('errors/relationshipsNotValid');
 const RelationshipNotFound = require('errors/relationshipNotFound');
 const ConsistencyViolation = require('errors/consistencyViolation');
@@ -270,10 +272,29 @@ class VocabularyRouter {
         const vocabulary = { name: this.params.vocabulary };
         const resource = VocabularyRouter.getResource(this.params);
         const body = this.request.body;
-        logger.info(`Updating tags of relationship: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
+        logger.info(`Conacatenating more tags in relationship: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
         try {
             const user = this.request.body.loggedUser;
             const result = yield RelationshipService.concatTags(user, vocabulary, dataset, resource, body);
+            this.body = ResourceSerializer.serialize(result);
+        } catch (err) {
+            if (err instanceof VocabularyNotFound || err instanceof ResourceNotFound || err instanceof RelationshipNotFound) {
+                this.throw(404, err.message);
+                return;
+            }
+            throw err;
+        }
+    }
+
+    static * cloneVocabularyTags() {
+        const dataset = this.params.dataset;
+        const resource = VocabularyRouter.getResource(this.params);
+        const body = this.request.body;
+        const newDataset = body.newDataset;
+        logger.info(`Cloning relationships: of resource ${resource.type} - ${resource.id} in ${newDataset}`);
+        try {
+            const user = this.request.body.loggedUser;
+            const result = yield RelationshipService.cloneVocabularyTags(user, dataset, resource, body);
             this.body = ResourceSerializer.serialize(result);
         } catch (err) {
             if (err instanceof VocabularyNotFound || err instanceof ResourceNotFound || err instanceof RelationshipNotFound) {
@@ -379,6 +400,20 @@ const vocabularyValidationMiddleware = function*(next) {
     yield next;
 };
 
+// Clone Validator Wrapper
+const cloneValidationMiddleware = function*(next) {
+    try {
+        yield CloneValidator.validate(this);
+    } catch (err) {
+        if (err instanceof CloneNotValid) {
+            this.throw(400, err.getMessages());
+            return;
+        }
+        throw err;
+    }
+    yield next;
+};
+
 // dataset
 router.get('/dataset/:dataset/vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/:dataset/vocabulary/:vocabulary', VocabularyRouter.getByResource);
@@ -387,6 +422,7 @@ router.post('/dataset/:dataset/vocabulary', relationshipsValidationMiddleware, r
 router.post('/dataset/:dataset/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationship);
 router.patch('/dataset/:dataset/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.updateRelationshipTags);
 router.post('/dataset/:dataset/vocabulary/:vocabulary/concat', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.concatTags);
+router.post('/dataset/:dataset/vocabulary/clone/dataset', cloneValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.cloneVocabularyTags);
 router.delete('/dataset/:dataset/vocabulary/:vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationship);
 router.delete('/dataset/:dataset/vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationships);
 
