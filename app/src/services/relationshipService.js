@@ -32,6 +32,7 @@ class RelationshipService {
         if (relationship) {
             throw new RelationshipDuplicated(`This relationship already exists`);
         }
+        body.tags = Array.from(new Set(body.tags));
         try {
             logger.debug(`Relationship in vocabulary`);
             vocabulary.resources.push({
