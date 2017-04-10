@@ -32,6 +32,7 @@ class RelationshipService {
         if (relationship) {
             throw new RelationshipDuplicated(`This relationship already exists`);
         }
+        body.tags = Array.from(new Set(body.tags));
         try {
             logger.debug(`Relationship in vocabulary`);
             vocabulary.resources.push({
@@ -188,6 +189,33 @@ class RelationshipService {
                 }
             });
             return yield RelationshipService.updateTagsFromRelationship(user, pVocabulary, dataset, pResource, relationship);
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static * cloneVocabularyTags(user, dataset, pResource, body) {
+        logger.debug(`Checking entities`);
+        let resource = yield ResourceService.get(dataset, pResource);
+        if (!resource) {
+            throw new ResourceNotFound(`Resource ${pResource.type} - ${pResource.id} and dataset: ${dataset} doesn't exist`);
+        }
+        const vocabularies = resource.toObject().vocabularies;
+        vocabularies.map(vocabulary => {
+            vocabulary.name = vocabulary.id;
+            delete vocabulary.id;
+            return vocabulary;
+        });
+        // vocabularies.unshift({});
+        // vocabularies = vocabularies.reduce((acc, next) => {
+        //     acc[next.id] = {
+        //         tags: next.tags
+        //     };
+        //     return acc;
+        // });
+        logger.debug('New Vocabularies', vocabularies);
+        try {
+            return yield RelationshipService.createSome(user, vocabularies, body.newDataset, { type: 'dataset', id: body.newDataset });
         } catch (err) {
             throw err;
         }

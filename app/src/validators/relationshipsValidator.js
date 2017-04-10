@@ -8,7 +8,7 @@ class RelationshipsValidator {
         logger.info('Validating Relationships Creation');
         Object.keys(koaObj.request.body).forEach(function (key) {
             if (key !== 'loggedUser') {
-                koaObj.checkBody(key).check(function() {
+                koaObj.checkBody(key).check(function () {
                     if (this[key] instanceof Object && this[key].length === undefined) {
                         if (this[key].tags instanceof Array && this[key].tags.length > 0) {
                             return true;

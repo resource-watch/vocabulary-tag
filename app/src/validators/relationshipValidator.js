@@ -6,7 +6,7 @@ class RelationshipValidator {
 
     static * validate(koaObj) {
         logger.info('Validating Relationship Creation');
-        koaObj.checkBody('tags').notEmpty().check(function() {
+        koaObj.checkBody('tags').notEmpty().check(function () {
             if (this.tags instanceof Array && this.tags.length > 0) {
                 return true;
             }

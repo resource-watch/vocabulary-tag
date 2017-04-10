@@ -25,6 +25,14 @@
             "path": "/api/v1/dataset/:dataset/vocabulary"
         }
     }, {
+        "path": "/v1/dataset/:dataset/vocabulary",
+        "method": "PUT",
+        "authenticated": true,
+        "redirect": {
+            "method": "PUT",
+            "path": "/api/v1/dataset/:dataset/vocabulary"
+        }
+    }, {
         "path": "/v1/dataset/:dataset/vocabulary/:vocabulary",
         "method": "PATCH",
         "authenticated": true,
@@ -39,6 +47,14 @@
         "redirect": {
             "method": "POST",
             "path": "/api/v1/dataset/:dataset/vocabulary/:vocabulary/concat"
+        }
+    }, {
+        "path": "/v1/dataset/:dataset/vocabulary/clone/dataset",
+        "method": "POST",
+        "authenticated": true,
+        "redirect": {
+            "method": "POST",
+            "path": "/api/v1/dataset/:dataset/vocabulary/clone/dataset"
         }
     }, {
         "path": "/v1/dataset/:dataset/vocabulary/:vocabulary",
