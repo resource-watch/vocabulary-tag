@@ -224,12 +224,12 @@
             "path": "/api/v1/vocabulary/:vocabulary"
         }
     }, {
-        "path": "/v1/vocabulary/:vocabulary",
+        "path": "/v1/vocabulary",
         "method": "POST",
         "authenticated": true,
         "redirect": {
             "method": "POST",
-            "path": "/api/v1/vocabulary/:vocabulary"
+            "path": "/api/v1/vocabulary"
         }
     }, {
         "path": "/v1/vocabulary/:vocabulary",

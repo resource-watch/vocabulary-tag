@@ -355,7 +355,6 @@ class VocabularyRouter {
 const relationshipAuthorizationMiddleware = function*(next) {
     // Get user from query (delete) or body (post-patch)
     const user = Object.assign({}, this.request.query.loggedUser ? JSON.parse(this.request.query.loggedUser) : {}, this.request.body.loggedUser);
-    logger.debug('USERRRR', user);
     if (user.id === 'microservice') {
         yield next;
         return;
@@ -393,6 +392,10 @@ const vocabularyAuthorizationMiddleware = function*(next) {
     }
     if (!user || USER_ROLES.indexOf(user.role) === -1) {
         this.throw(401, 'Unauthorized'); // if not logged or invalid ROLE -> out
+        return;
+    }
+    if (this.request.method === 'POST' && user.role === 'ADMIN') {
+        yield next;
         return;
     }
     if (user.role !== 'SUPERADMIN') {
@@ -494,7 +497,7 @@ router.delete('/dataset/:dataset/layer/:layer/vocabulary', relationshipAuthoriza
 // vocabulary (not the commmon use case)
 router.get('/vocabulary', VocabularyRouter.getAll);
 router.get('/vocabulary/:vocabulary', VocabularyRouter.getById);
-router.post('/vocabulary/:vocabulary', vocabularyValidationMiddleware, vocabularyAuthorizationMiddleware, VocabularyRouter.create);
+router.post('/vocabulary', vocabularyValidationMiddleware, vocabularyAuthorizationMiddleware, VocabularyRouter.create);
 router.patch('/vocabulary/:vocabulary', vocabularyValidationMiddleware, vocabularyAuthorizationMiddleware, VocabularyRouter.update);
 router.delete('/vocabulary/:vocabulary', vocabularyAuthorizationMiddleware, VocabularyRouter.delete);
 
