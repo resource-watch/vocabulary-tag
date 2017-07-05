@@ -268,5 +268,37 @@
             "method": "POST",
             "path": "/api/v1/dataset/:dataset/layer/vocabulary/get-by-ids"
         }
+    }, {
+        "path": "/v1/favourite",
+        "method": "GET",
+        "authenticated": true,
+        "redirect": {
+            "method": "GET",
+            "path": "/api/v1/favourite"
+        }
+    }, {
+        "path": "/v1/favourite",
+        "method": "POST",
+        "authenticated": true,
+        "redirect": {
+            "method": "POST",
+            "path": "/api/v1/favourite"
+        }
+    }, {
+        "path": "/v1/favourite/:id",
+        "method": "GET",
+        "authenticated": true,
+        "redirect": {
+            "method": "GET",
+            "path": "/api/v1/favourite/:id"
+        }
+    }, {
+        "path": "/v1/favourite/:id",
+        "method": "DELETE",
+        "authenticated": true,
+        "redirect": {
+            "method": "DELETE",
+            "path": "/api/v1/favourite/:id"
+        }
     }]
 }
