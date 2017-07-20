@@ -58,16 +58,19 @@ class FavouriteRouter {
                         }
                     }                    
                 }
+                logger.debug('Loading widgets', widgets);
                 if (widgets.length > 0){
-                    logger.debug('Loading widgets');
+                    logger.debug('Loading widgets', widgets);
                     const widgetResources = yield ctRegisterMicroservice.requestToMicroservice({
-                        uri: `/widget/findByIds`,
+                        uri: `/widget/find-by-ids`,
                         method: 'POST',
                         json: true,
                         body: {
                             ids: widgets
                         }
                     });
+                    logger.info('Obtained', widgetResources);
+
                     for (let i = 0, length = widgetResources.data.length; i < length; i++) {
                         const widget = widgetResources.data[i];
                         for (let j = 0, lengthData = data.length; j < lengthData; j++) {
@@ -79,9 +82,9 @@ class FavouriteRouter {
                         }
                     }                    
                 }
-
+                logger.info('Loading layers', layers);
                 if (layers.length > 0){
-                    logger.debug('Loading layers');
+                    logger.info('Loading layers', layers);
                     const layerResources = yield ctRegisterMicroservice.requestToMicroservice({
                         uri: `/layer/find-by-ids`,
                         method: 'POST',
@@ -92,6 +95,7 @@ class FavouriteRouter {
                             }
                         }
                     });
+                    logger.info('Obtained', layerResources);
                     for (let i = 0, length = layerResources.data.length; i < length; i++) {
                         const layer = layerResources.data[i];
                         for (let j = 0, lengthData = data.length; j < lengthData; j++) {
