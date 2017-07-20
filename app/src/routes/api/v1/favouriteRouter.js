@@ -62,12 +62,9 @@ class FavouriteRouter {
                 if (widgets.length > 0){
                     logger.debug('Loading widgets', widgets);
                     const widgetResources = yield ctRegisterMicroservice.requestToMicroservice({
-                        uri: `/widget/find-by-ids`,
-                        method: 'POST',
-                        json: true,
-                        body: {
-                            ids: widgets
-                        }
+                        uri: `/widget?ids=${widgets.join(',')}`,
+                        method: 'GET',
+                        json: true
                     });
                     logger.info('Obtained', widgetResources);
 
@@ -85,30 +82,28 @@ class FavouriteRouter {
                 logger.info('Loading layers', layers);
                 if (layers.length > 0){
                     logger.info('Loading layers', layers);
-                    const layerResources = yield ctRegisterMicroservice.requestToMicroservice({
-                        uri: `/layer/find-by-ids`,
-                        method: 'POST',
-                        json: true,
-                        body: {
-                            layer: {
-                                ids: layers
+                    for(let i = 0, length = layers.length; i < length; i++) {
+                        try {
+                            const layerResource = yield ctRegisterMicroservice.requestToMicroservice({
+                                uri: `/layer/${layers[i]}`,
+                                method: 'GET',
+                                json: true
+                            });
+                            for (let j = 0, lengthData = data.length; j < lengthData; j++) {
+                                if (data[j].resourceType === 'layer' && data[j].resourceId === layers[i]) {
+                                    data[j] = data[j].toObject();
+                                    data[j].resource = layerResource.data;
+                                    break;
+                                }
                             }
+                        } catch(err) {
+                            logger.error(err);
                         }
-                    });
-                    logger.info('Obtained', layerResources);
-                    for (let i = 0, length = layerResources.data.length; i < length; i++) {
-                        const layer = layerResources.data[i];
-                        for (let j = 0, lengthData = data.length; j < lengthData; j++) {
-                            if (data[j].resourceType === 'layer' && data[j].resourceId === layer.id) {
-                                data[j] = data[j].toObject();
-                                data[j].resource = layer;
-                                break;
-                            }
-                        }
-                    }                    
+                    }                
                 }
             } catch (err) {
                 logger.error(err);
+                ctx.throw(400, 'Error obtaining include');
             }
         }
 
