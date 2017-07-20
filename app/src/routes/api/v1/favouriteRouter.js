@@ -3,6 +3,7 @@ const logger = require('logger');
 const FavouriteSerializer = require('serializers/favouriteSerializer');
 const FavouriteModel = require('models/favourite');
 const FavouriteValidator = require('validators/favouriteValidator');
+const ctRegisterMicroservice = require('ct-register-microservice-node');
 
 const router = new Router({
     prefix: '/favourite'
@@ -22,6 +23,89 @@ class FavouriteRouter {
         }
 
         const data = yield FavouriteModel.find(filters);
+
+        if (this.query.include && this.query.include === 'true') {
+            logger.debug('including resources');
+            let widgets = [];
+            let datasets = [];
+            let layers = [];
+            data.map(resource => {
+                if (resource.resourceType === 'dataset') {
+                    datasets.push(resource.resourceId);
+                } else if (resource.resourceType === 'layer') {
+                    layers.push(resource.resourceId);
+                } else {
+                    widgets.push(resource.resourceId);
+                }
+            });
+            
+            try {
+                if (datasets.length > 0){
+                    logger.debug('Loading datasets');
+                    const datasetResources = yield ctRegisterMicroservice.requestToMicroservice({
+                        uri: `/dataset?ids=${datasets.join(',')}`,
+                        method: 'GET',
+                        json: true
+                    });
+                    for (let i = 0, length = datasetResources.data.length; i < length; i++) {
+                        const dataset = datasetResources.data[i];
+                        for (let j = 0, lengthData = data.length; j < lengthData; j++) {
+                            if (data[j].resourceType === 'dataset' && data[j].resourceId === dataset.id) {
+                                data[j] = data[j].toObject();
+                                data[j].resource = dataset;
+                                break;
+                            }
+                        }
+                    }                    
+                }
+                logger.debug('Loading widgets', widgets);
+                if (widgets.length > 0){
+                    logger.debug('Loading widgets', widgets);
+                    const widgetResources = yield ctRegisterMicroservice.requestToMicroservice({
+                        uri: `/widget?ids=${widgets.join(',')}`,
+                        method: 'GET',
+                        json: true
+                    });
+                    logger.info('Obtained', widgetResources);
+
+                    for (let i = 0, length = widgetResources.data.length; i < length; i++) {
+                        const widget = widgetResources.data[i];
+                        for (let j = 0, lengthData = data.length; j < lengthData; j++) {
+                            if (data[j].resourceType === 'widget' && data[j].resourceId === widget.id) {
+                                data[j] = data[j].toObject();
+                                data[j].resource = widget;
+                                break;
+                            }
+                        }
+                    }                    
+                }
+                logger.info('Loading layers', layers);
+                if (layers.length > 0){
+                    logger.info('Loading layers', layers);
+                    for(let i = 0, length = layers.length; i < length; i++) {
+                        try {
+                            const layerResource = yield ctRegisterMicroservice.requestToMicroservice({
+                                uri: `/layer/${layers[i]}`,
+                                method: 'GET',
+                                json: true
+                            });
+                            for (let j = 0, lengthData = data.length; j < lengthData; j++) {
+                                if (data[j].resourceType === 'layer' && data[j].resourceId === layers[i]) {
+                                    data[j] = data[j].toObject();
+                                    data[j].resource = layerResource.data;
+                                    break;
+                                }
+                            }
+                        } catch(err) {
+                            logger.error(err);
+                        }
+                    }                
+                }
+            } catch (err) {
+                logger.error(err);
+                ctx.throw(400, 'Error obtaining include');
+            }
+        }
 
         this.body = FavouriteSerializer.serialize(data);
 

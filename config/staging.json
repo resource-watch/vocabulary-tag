@@ -1,7 +1,7 @@
 {
     "logger": {
         "name": "vocabulary-tag-STAGING",
-        "level": "info",
+        "level": "debug",
         "toFile": false,
         "dirLogFile": null
     }
