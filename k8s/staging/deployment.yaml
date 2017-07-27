@@ -65,3 +65,4 @@ spec:
           - containerPort: 4100
 
       restartPolicy: Always
+      revisionHistoryLimit: "0"
