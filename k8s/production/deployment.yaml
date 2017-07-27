@@ -5,6 +5,7 @@ metadata:
     name: {name}
   name: {name}
 spec:
+  revisionHistoryLimit: "2"
   template:
     metadata:
       annotations:
@@ -67,4 +68,3 @@ spec:
           - containerPort: 4100
 
       restartPolicy: Always
-      revisionHistoryLimit: "2"
