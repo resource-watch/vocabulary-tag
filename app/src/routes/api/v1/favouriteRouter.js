@@ -103,7 +103,7 @@ class FavouriteRouter {
                 }
             } catch (err) {
                 logger.error(err);
-                ctx.throw(400, 'Error obtaining include');
+                this.throw(400, 'Error obtaining include');
             }
         }
 
