@@ -8,6 +8,7 @@ develop:
   environment:
     NODE_ENV: dev
     CT_URL: http://mymachine:9000
+    CT_TOKEN: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1pY3Jvc2VydmljZSIsImNyZWF0ZWRBdCI6IjIwMTYtMDktMTQifQ.IRCIRm1nfIQTfda_Wb6Pg-341zhV8soAgzw7dd5HxxQ
     LOCAL_URL: http://mymachine:4100
     DEBUG: "*"
     API_VERSION: v1
