@@ -2,6 +2,7 @@
 const logger = require('logger');
 const VocabularyService = require('services/vocabularyService');
 const ResourceService = require('services/resourceService');
+const GraphService = require('services/graphService');
 const RelationshipDuplicated = require('errors/relationshipDuplicated');
 const RelationshipNotFound = require('errors/relationshipNotFound');
 const ResourceNotFound = require('errors/resourceNotFound');
@@ -50,6 +51,9 @@ class RelationshipService {
             id: vocabulary.id,
             tags: body.tags
         });
+        // CREATE GRAPH ASSOCIATION
+        logger.info('Creating graph association');
+        yield GraphService.associateTags(resource, body.tags);
         return yield resource.save();
     }
 
@@ -162,6 +166,9 @@ class RelationshipService {
         });
         logger.debug(`Tags to resource`);
         resource.vocabularies[position].tags = body.tags;
+        // CREATE GRAPH ASSOCIATION
+        logger.info('Creating graph association');
+        yield GraphService.associateTags(resource, body.tags);
         return resource.save();
     }
 
