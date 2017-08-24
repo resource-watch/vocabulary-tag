@@ -76,6 +76,7 @@ var onDbReady = function(err) {
             logger,
             name: config.get('service.name'),
             ctUrl: process.env.CT_URL,
+            token: process.env.CT_TOKEN,
             url: process.env.LOCAL_URL,
             active: true,
         }).then(() => {}, (err) => {
