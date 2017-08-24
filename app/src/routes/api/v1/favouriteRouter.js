@@ -116,6 +116,7 @@ class FavouriteRouter {
         this.body = FavouriteSerializer.serialize(this.state.fav);
     }
 
+
     static* create() {
         logger.info('Creating favourite with body ', this.request.body);
         const body = {
@@ -124,11 +125,30 @@ class FavouriteRouter {
             resourceId: this.request.body.resourceId
         };
         const data = yield new FavouriteModel(body).save();
+
+        try {
+            yield ctRegisterMicroservice.requestToMicroservice({
+                uri: `/favourite/${this.request.body.resourceType}/${this.request.body.resourceId}/${this.request.body.loggedUser.id}`,
+                method: 'POST',
+                json: true
+            });
+        } catch (err) {
+            throw err;
+        }
         this.body = FavouriteSerializer.serialize(data);
     }
 
     static* delete() {
         logger.info('Deleting favourite with id ', this.params.id);
+        try {
+            yield ctRegisterMicroservice.requestToMicroservice({
+                uri: `/favourite/${this.state.fav.resourceType}/${this.state.fav.resourceId}/${this.state.fav.id}`,
+                method: 'DELETE',
+                json: true
+            });
+        } catch (err) {
+            throw err;
+        }
         yield this.state.fav.remove();
         this.body = FavouriteSerializer.serialize(this.state.fav);
     }
