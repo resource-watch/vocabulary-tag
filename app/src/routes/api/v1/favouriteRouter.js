@@ -128,12 +128,12 @@ class FavouriteRouter {
 
         try {
             yield ctRegisterMicroservice.requestToMicroservice({
-                uri: `/favourite/${this.request.body.resourceType}/${this.request.body.resourceId}/${this.request.body.loggedUser.id}`,
+                uri: `/graph/favourite/${this.request.body.resourceType}/${this.request.body.resourceId}/${this.request.body.loggedUser.id}`,
                 method: 'POST',
                 json: true
             });
         } catch (err) {
-            throw err;
+            logger.error(err);
         }
         this.body = FavouriteSerializer.serialize(data);
     }
@@ -142,7 +142,7 @@ class FavouriteRouter {
         logger.info('Deleting favourite with id ', this.params.id);
         try {
             yield ctRegisterMicroservice.requestToMicroservice({
-                uri: `/favourite/${this.state.fav.resourceType}/${this.state.fav.resourceId}/${this.state.fav.id}`,
+                uri: `/graph/favourite/${this.state.fav.resourceType}/${this.state.fav.resourceId}/${this.state.fav.id}`,
                 method: 'DELETE',
                 json: true
             });
