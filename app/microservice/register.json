@@ -300,5 +300,69 @@
             "method": "DELETE",
             "path": "/api/v1/favourite/:id"
         }
-    }]
+    },
+    {
+        "path": "/v1/collection",
+        "method": "GET",
+        "authenticated": true,
+        "redirect": {
+            "method": "GET",
+            "path": "/api/v1/collection"
+        }
+    },
+    {
+        "path": "/v1/collection/:id",
+        "method": "GET",
+        "authenticated": true,
+        "redirect": {
+            "method": "GET",
+            "path": "/api/v1/collection/:id"
+        }
+    },
+    {
+        "path": "/v1/collection",
+        "method": "POST",
+        "authenticated": true,
+        "redirect": {
+            "method": "POST",
+            "path": "/api/v1/collection"
+        }
+    },
+    {
+        "path": "/v1/collection/:id/resource",
+        "method": "POST",
+        "authenticated": true,
+        "redirect": {
+            "method": "POST",
+            "path": "/api/v1/collection/:id/resource"
+        }
+    },
+    {
+        "path": "/v1/collection/:id",
+        "method": "PATCH",
+        "authenticated": true,
+        "redirect": {
+            "method": "PATCH",
+            "path": "/api/v1/collection/:id"
+        }
+    },
+    {
+        "path": "/v1/collection/:id",
+        "method": "DELETE",
+        "authenticated": true,
+        "redirect": {
+            "method": "DELETE",
+            "path": "/api/v1/collection/:id"
+        }
+    },
+    {
+        "path": "/v1/collection/:id/resource/:resourceType/:resourceId",
+        "method": "DELETE",
+        "authenticated": true,
+        "redirect": {
+            "method": "DELETE",
+            "path": "/api/v1/collection/:id/resource/:resourceType/:resourceId"
+        }
+    }
+]
 }
