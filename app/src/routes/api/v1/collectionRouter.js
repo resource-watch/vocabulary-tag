@@ -164,7 +164,7 @@ class CollectionRouter {
 
     static* deleteResource () {
 
-        logger.debug('here!', this.state.col);
+        logger.debug('Deleting resource from collection.', this.state.col);
 
         this.state.col.resources = this.state.col.resources
             .filter(res => res.id !== this.params.resourceId)
