@@ -7,7 +7,7 @@ const CollectionValidator = require('validators/collectionValidator');
 
 
 const router = new Router({
-    prefix: '/collection' //endpoint prefix for requests
+    prefix: '/collection'
 });
 
 class CollectionRouter {
@@ -120,7 +120,7 @@ class CollectionRouter {
         logger.info('Creating collection with body ', this.request.body);
         const body = {
             name: this.request.body.name,
-            ownerId: this.request.body.loggedUser.id,  //.loggedUser       
+            ownerId: this.request.body.loggedUser.id,  
             resources: this.request.body.resources || []
         };
 
@@ -145,7 +145,7 @@ class CollectionRouter {
 
         logger.info('Updating collection by id ', this.params.id);
         
-        this.state.col.name = this.request.body.name; //change name
+        this.state.col.name = this.request.body.name;
 
         yield this.state.col.save();   
 
@@ -166,7 +166,7 @@ class CollectionRouter {
 
         logger.debug('here!', this.state.col);
 
-        this.state.col.resources = this.state.col.resources  //because exists function saves the state!
+        this.state.col.resources = this.state.col.resources
             .filter(res => res.id !== this.params.resourceId)
             .filter(res => res.type !== this.params.resourceType); 
         
@@ -179,11 +179,11 @@ class CollectionRouter {
 }
 
 
-const existCollection = function* (next) {          //check the collection exists!
+const existCollection = function* (next) {
     logger.debug('Checking if collection exists');
     let loggedUser;
     if(this.method === 'GET' || this.method === 'DELETE') {
-        loggedUser = JSON.parse(this.query.loggedUser); //IN THE QUERY OR IN THE BODY
+        loggedUser = JSON.parse(this.query.loggedUser);
     }
     else {
         loggedUser = this.request.body.loggedUser;
@@ -198,7 +198,7 @@ const existCollection = function* (next) {          //check the collection exist
 };
 
 
-const existResourceInCollection = function* (next) {          //check the collection exists!
+const existResourceInCollection = function* (next) {
     logger.debug('Checking if resource exists in collection');
     const exist = this.state.col.resources.find(res => res.id === this.request.body.id && res.type === this.request.body.type);
     if (exist) {

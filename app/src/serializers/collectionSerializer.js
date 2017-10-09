@@ -1,6 +1,6 @@
 class CollectionSerializer {
 
-    static serializeElement(el) {   //  EDIT
+    static serializeElement(el) {
         return {
             id: el._id,
             type: 'collection',

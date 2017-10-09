@@ -1,6 +1,5 @@
 const logger = require('logger');
 const ErrorSerializer = require('serializers/errorSerializer');
-const RESOURCES = require('appConstants').RESOURCES;
 const CollectionModel = require('models/collection');
 
 class CollectionValidator {
@@ -8,10 +7,9 @@ class CollectionValidator {
     static * validate(next) {
         logger.info('Validating Collection Creation');
 
-        this.checkBody('name').notEmpty();                                  // must contain name
+        this.checkBody('name').notEmpty();
         this.checkBody('resources').optional().check(data => {
 
-            //if it exists, iterate, check id and type and return true
             logger.debug('entering validation', data.resources);
             if (data.resources) {
                 for (let i = 0; i < data.resources.length; i++) {
