@@ -147,7 +147,7 @@ class FavouriteRouter {
                 json: true
             });
         } catch (err) {
-            throw err;
+            logger.error('error removing of graph', err);
         }
         yield this.state.fav.remove();
         this.body = FavouriteSerializer.serialize(this.state.fav);
