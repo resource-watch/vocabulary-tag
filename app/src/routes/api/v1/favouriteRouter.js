@@ -140,7 +140,7 @@ class FavouriteRouter {
 
     static* delete() {
         logger.info('Deleting favourite with id ', this.params.id);
-        this.assert(this.params.id.length !== 24, 400, 'Id not valid');
+        this.assert(this.params.id.length === 24, 400, 'Id not valid');
         try {
             yield ctRegisterMicroservice.requestToMicroservice({
                 uri: `/graph/favourite/${this.state.fav.resourceType}/${this.state.fav.resourceId}/${this.state.fav.id}`,
