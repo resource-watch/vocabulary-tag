@@ -10,14 +10,15 @@ class ResourceSerializer {
             if (!Array.isArray(data)) {
                 data = [data];
             }
-            data.forEach(function (el) {
-                el.vocabularies.forEach(function (vocabulary) {
+            data.forEach((el) => {
+                el.vocabularies.forEach((vocabulary) => {
                     result.data.push({
                         id: vocabulary.id,
                         type: 'vocabulary',
                         attributes: {
                             tags: vocabulary.tags,
-                            name: vocabulary.id
+                            name: vocabulary.id,
+                            application: vocabulary.application
                         }
                     });
                 });
@@ -35,8 +36,8 @@ class ResourceSerializer {
             if (!Array.isArray(data)) {
                 data = [data];
             }
-            data.forEach(function (el) {
-                el.vocabularies.forEach(function (vocabulary) {
+            data.forEach((el) => {
+                el.vocabularies.forEach((vocabulary) => {
                     result.data.push({
                         type: 'vocabulary',
                         attributes: {
@@ -45,7 +46,8 @@ class ResourceSerializer {
                                 type: el.type
                             },
                             tags: vocabulary.tags,
-                            name: vocabulary.id
+                            name: vocabulary.id,
+                            application: vocabulary.application
                         }
                     });
                 });

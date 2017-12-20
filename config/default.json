@@ -11,7 +11,7 @@
         "port": 4100
     },
     "mongodb":{
-        "database": "vocabulary_tag_db",
+        "database": "vocabularytagdb",
         "host": "http://mymachine",
         "port": 27017
     }

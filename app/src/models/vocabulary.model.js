@@ -1,10 +1,12 @@
 const mongoose = require('mongoose');
+
 const Schema = mongoose.Schema;
-const RESOURCES = require('appConstants').RESOURCES;
-const STATUS = require('appConstants').STATUS;
+const RESOURCES = require('app.constants').RESOURCES;
+const STATUS = require('app.constants').STATUS;
 
 const Vocabulary = new Schema({
     id: { type: String, required: true, trim: true },
+    application: { type: String, required: true, trim: true, default: 'rw' },
     resources: [{
         _id: false,
         id: { type: String, required: true, trim: true },
