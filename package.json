@@ -5,7 +5,7 @@
 	"main": "app/index.js",
 	"scripts": {
 		"start": "NODE_PATH=app/src node app/index.js",
-		"test": "NODE_PATH=app/src NODE_ENV=test grunt --gruntfile app/Gruntfile.js test"
+		"test": "NODE_PATH=app/src NODE_ENV=test grunt --gruntfile app/Gruntfile.js e2eTest"
 	},
 	"repository": {
 		"type": "git",
