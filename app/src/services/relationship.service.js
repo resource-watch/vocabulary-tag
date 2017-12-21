@@ -52,10 +52,12 @@ class RelationshipService {
             application: vocabulary.application,
             tags: body.tags
         });
-        // CREATE GRAPH ASSOCIATION
-        logger.info('Creating graph association');
-        await GraphService.associateTags(resource, body.tags, pVocabulary.application);
         resource = await resource.save();
+        // CREATE GRAPH ASSOCIATION
+        if (vocabulary.id === 'knowledge_graph') {
+            logger.info('Creating graph association');
+            await GraphService.associateTags(resource, body.tags, pVocabulary.application);
+        }
         return resource;
     }
 
@@ -132,7 +134,7 @@ class RelationshipService {
             logger.debug(`This Vocabulary doesn't exist`);
             throw new VocabularyNotFound(`Vocabulary with name ${pVocabulary.name} doesn't exist`);
         }
-        const resource = await ResourceService.get(dataset, pResource);
+        let resource = await ResourceService.get(dataset, pResource);
         if (!resource) {
             logger.debug(`This resource doesnt' exist`);
             throw new ResourceNotFound(`Resource ${pResource.type} - ${pResource.id} and dataset: ${dataset} doesn't exist`);
@@ -152,10 +154,13 @@ class RelationshipService {
         }
         logger.debug(`Tags to resource`);
         resource.vocabularies[position].tags = body.tags;
+        resource = await resource.save();
         // CREATE GRAPH ASSOCIATION
-        logger.info('Creating graph association');
-        await GraphService.associateTags(resource, body.tags, pVocabulary.application);
-        return resource.save();
+        if (vocabulary.id === 'knowledge_graph') {
+            logger.info('Creating graph association');
+            await GraphService.associateTags(resource, body.tags, pVocabulary.application);
+        }
+        return resource;
     }
 
     static async concatTags(user, pVocabulary, dataset, pResource, body) {
