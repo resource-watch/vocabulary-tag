@@ -13,8 +13,10 @@ class FavouriteRouter {
 
     static async get(ctx) {
         logger.info('Obtaining favourites by user');
+        const application = ctx.query.application || ctx.query.app || 'rw';
         const filters = {
-            userId: JSON.parse(ctx.query.loggedUser).id
+            userId: JSON.parse(ctx.query.loggedUser).id,
+            application
         };
         if (ctx.query['resource-type']) {
             filters.resourceType = {
