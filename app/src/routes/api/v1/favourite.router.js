@@ -1,9 +1,9 @@
 const Router = require('koa-router');
 const logger = require('logger');
-const FavouriteSerializer = require('serializers/favouriteSerializer');
-const FavouriteModel = require('models/favourite');
-const FavouriteValidator = require('validators/favouriteValidator');
 const ctRegisterMicroservice = require('ct-register-microservice-node');
+const FavouriteSerializer = require('serializers/favourite.serializer');
+const FavouriteModel = require('models/favourite.model');
+const FavouriteValidator = require('validators/favourite.validator');
 
 const router = new Router({
     prefix: '/favourite'
@@ -11,25 +11,27 @@ const router = new Router({
 
 class FavouriteRouter {
 
-    static* get() {
+    static async get(ctx) {
         logger.info('Obtaining favourites by user');
+        const application = ctx.query.application || ctx.query.app || 'rw';
         const filters = {
-            userId: JSON.parse(this.query.loggedUser).id
+            userId: JSON.parse(ctx.query.loggedUser).id,
+            application
         };
-        if (this.query['resource-type']) {
+        if (ctx.query['resource-type']) {
             filters.resourceType = {
-                $in: this.query['resource-type'].split(',')
+                $in: ctx.query['resource-type'].split(',')
             };
         }
 
-        const data = yield FavouriteModel.find(filters);
+        const data = await FavouriteModel.find(filters);
 
-        if (this.query.include && this.query.include === 'true') {
+        if (ctx.query.include && ctx.query.include === 'true') {
             logger.debug('including resources');
-            let widgets = [];
-            let datasets = [];
-            let layers = [];
-            data.map(resource => {
+            const widgets = [];
+            const datasets = [];
+            const layers = [];
+            data.forEach((resource) => {
                 if (resource.resourceType === 'dataset') {
                     datasets.push(resource.resourceId);
                 } else if (resource.resourceType === 'layer') {
@@ -38,11 +40,11 @@ class FavouriteRouter {
                     widgets.push(resource.resourceId);
                 }
             });
-            
+
             try {
-                if (datasets.length > 0){
+                if (datasets.length > 0) {
                     logger.debug('Loading datasets');
-                    const datasetResources = yield ctRegisterMicroservice.requestToMicroservice({
+                    const datasetResources = await ctRegisterMicroservice.requestToMicroservice({
                         uri: `/dataset?ids=${datasets.join(',')}`,
                         method: 'GET',
                         json: true
@@ -56,18 +58,17 @@ class FavouriteRouter {
                                 break;
                             }
                         }
-                    }                    
+                    }
                 }
                 logger.debug('Loading widgets', widgets);
-                if (widgets.length > 0){
+                if (widgets.length > 0) {
                     logger.debug('Loading widgets', widgets);
-                    const widgetResources = yield ctRegisterMicroservice.requestToMicroservice({
+                    const widgetResources = await ctRegisterMicroservice.requestToMicroservice({
                         uri: `/widget?ids=${widgets.join(',')}`,
                         method: 'GET',
                         json: true
                     });
                     logger.info('Obtained', widgetResources);
-
                     for (let i = 0, length = widgetResources.data.length; i < length; i++) {
                         const widget = widgetResources.data[i];
                         for (let j = 0, lengthData = data.length; j < lengthData; j++) {
@@ -77,14 +78,14 @@ class FavouriteRouter {
                                 break;
                             }
                         }
-                    }                    
+                    }
                 }
                 logger.info('Loading layers', layers);
-                if (layers.length > 0){
+                if (layers.length > 0) {
                     logger.info('Loading layers', layers);
-                    for(let i = 0, length = layers.length; i < length; i++) {
+                    for (let i = 0, length = layers.length; i < length; i++) {
                         try {
-                            const layerResource = yield ctRegisterMicroservice.requestToMicroservice({
+                            const layerResource = await ctRegisterMicroservice.requestToMicroservice({
                                 uri: `/layer/${layers[i]}`,
                                 method: 'GET',
                                 json: true
@@ -96,82 +97,91 @@ class FavouriteRouter {
                                     break;
                                 }
                             }
-                        } catch(err) {
+                        } catch (err) {
                             logger.error(err);
                         }
-                    }                
+                    }
                 }
             } catch (err) {
                 logger.error(err);
-                this.throw(400, 'Error obtaining include');
+                ctx.throw(400, 'Error obtaining include');
             }
         }
 
-        this.body = FavouriteSerializer.serialize(data);
+        ctx.body = FavouriteSerializer.serialize(data);
 
     }
 
-    static* getById() {
-        logger.info('Obtaining favourite by id', this.params.id);
-        this.body = FavouriteSerializer.serialize(this.state.fav);
+    static async getById(ctx) {
+        logger.info('Obtaining favourite by id', ctx.params.id);
+        ctx.body = FavouriteSerializer.serialize(ctx.state.fav);
     }
 
-
-    static* create() {
-        logger.info('Creating favourite with body ', this.request.body);
+    static async create(ctx) {
+        logger.info('Creating favourite with body ', ctx.request.body);
         const body = {
-            userId: this.request.body.loggedUser.id,
-            resourceType: this.request.body.resourceType,
-            resourceId: this.request.body.resourceId
+            userId: ctx.request.body.loggedUser.id,
+            resourceType: ctx.request.body.resourceType,
+            resourceId: ctx.request.body.resourceId,
+            application: ctx.request.body.application
         };
-        const data = yield new FavouriteModel(body).save();
-
+        const data = await new FavouriteModel(body).save();
         try {
-            yield ctRegisterMicroservice.requestToMicroservice({
-                uri: `/graph/favourite/${this.request.body.resourceType}/${this.request.body.resourceId}/${this.request.body.loggedUser.id}`,
+            await ctRegisterMicroservice.requestToMicroservice({
+                uri: `/graph/favourite/${ctx.request.body.resourceType}/${ctx.request.body.resourceId}/${ctx.request.body.loggedUser.id}`,
                 method: 'POST',
                 json: true
             });
         } catch (err) {
             logger.error(err);
         }
-        this.body = FavouriteSerializer.serialize(data);
+        ctx.body = FavouriteSerializer.serialize(data);
     }
 
-    static* delete() {
-        logger.info('Deleting favourite with id ', this.params.id);
-        this.assert(this.params.id.length === 24, 400, 'Id not valid');
+    static async delete(ctx) {
+        logger.info('Deleting favourite with id ', ctx.params.id);
+        ctx.assert(ctx.params.id.length === 24, 400, 'Id not valid');
         try {
-            yield ctRegisterMicroservice.requestToMicroservice({
-                uri: `/graph/favourite/${this.state.fav.resourceType}/${this.state.fav.resourceId}/${this.state.fav.id}`,
+            await ctRegisterMicroservice.requestToMicroservice({
+                uri: `/graph/favourite/${ctx.state.fav.resourceType}/${ctx.state.fav.resourceId}/${ctx.state.fav.id}`,
                 method: 'DELETE',
                 json: true
             });
         } catch (err) {
             logger.error('error removing of graph', err);
         }
-        yield this.state.fav.remove();
-        this.body = FavouriteSerializer.serialize(this.state.fav);
+        await ctx.state.fav.remove();
+        ctx.body = FavouriteSerializer.serialize(ctx.state.fav);
     }
 
 }
 
-const existFavourite = function* (next) {
+const existFavourite = async (ctx, next) => {
     logger.debug('Checking if exist favourite');
-    const loggedUser = JSON.parse(this.query.loggedUser);
-    const fav = yield FavouriteModel.findById(this.params.id);
+    const loggedUser = JSON.parse(ctx.query.loggedUser);
+    const fav = await FavouriteModel.findById(ctx.params.id);
     if (!fav || ((loggedUser.id !== fav.userId) && loggedUser.role !== 'ADMIN')) {
-        this.throw(404, 'Favourite not found');
+        ctx.throw(404, 'Favourite not found');
         return;
     }
-    this.state.fav = fav;
-    yield next;
+    ctx.state.fav = fav;
+    await next();
 };
 
 
+const validationMiddleware = async (ctx, next) => {
+    logger.info(`[DatasetRouter] Validating`);
+    try {
+        await FavouriteValidator.validate(ctx);
+    } catch (err) {
+        ctx.throw(400, err);
+    }
+    await next();
+};
+
 router.get('/', FavouriteRouter.get);
 router.get('/:id', existFavourite, FavouriteRouter.getById);
-router.post('/', FavouriteValidator.validate, FavouriteRouter.create);
+router.post('/', validationMiddleware, FavouriteRouter.create);
 router.delete('/:id', existFavourite, FavouriteRouter.delete);
 
 module.exports = router;

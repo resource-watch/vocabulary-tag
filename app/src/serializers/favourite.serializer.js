@@ -1,5 +1,3 @@
-const JSONAPISerializer = require('jsonapi-serializer').Serializer;
-
 
 class FavouriteSerializer {
 
@@ -12,7 +10,8 @@ class FavouriteSerializer {
                 resourceType: el.resourceType,
                 resourceId: el.resourceId,
                 createdAt: el.createdAt,
-                resource: el.resource
+                resource: el.resource,
+                application: el.application
             }
         };
     }
@@ -21,7 +20,6 @@ class FavouriteSerializer {
         const result = {};
         if (data) {
             if (Array.isArray(data)) {
-                
                 result.data = data.map(el => FavouriteSerializer.serializeElement(el));
             } else {
                 result.data = FavouriteSerializer.serializeElement(data);

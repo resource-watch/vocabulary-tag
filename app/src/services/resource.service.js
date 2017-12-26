@@ -1,37 +1,41 @@
 
 const logger = require('logger');
-const JSONAPIDeserializer = require('jsonapi-serializer').Deserializer;
-const Resource = require('models/resource');
-const ResourceNotFound = require('errors/resourceNotFound');
+const Resource = require('models/resource.model');
+const ResourceNotFound = require('errors/resource-not-found.error');
 const ctRegisterMicroservice = require('ct-register-microservice-node');
 
-const deserializer = function (obj) {
-    return function (callback) {
-        new JSONAPIDeserializer({ keyForAttribute: 'camelCase' }).deserialize(obj, callback);
-    };
+const deserializer = (obj) => {
+    if (obj instanceof Array) {
+        return obj.data[0].attributes;
+    } else if (obj instanceof Object) {
+        return obj.data.attributes;
+    }
+    return obj;
 };
 
 class ResourceService {
 
-    static * get(dataset, resource, vocabulary) {
+    static async get(dataset, resource, vocabulary) {
         const query = {
             dataset,
             id: resource.id,
             type: resource.type
         };
-        if (vocabulary && vocabulary.name) {
+        if (vocabulary) {
             return Resource.aggregate([
                 { $match: {
                     dataset,
                     id: resource.id,
                     type: resource.type,
-                    'vocabularies.id': vocabulary.name
+                    'vocabularies.id': vocabulary.name || { $ne: null },
+                    'vocabularies.application': vocabulary.application || { $ne: null }
                 } },
 
                 { $unwind: '$vocabularies' },
 
                 { $match: {
-                    'vocabularies.id': vocabulary.name
+                    'vocabularies.id': vocabulary.name || { $ne: null },
+                    'vocabularies.application': vocabulary.application || { $ne: null }
                 } },
 
                 { $group: {
@@ -41,12 +45,12 @@ class ResourceService {
             ]).exec();
         }
         logger.debug('Getting resource by resource');
-        return yield Resource.findOne(query).exec();
+        return await Resource.findOne(query).exec();
     }
 
-    static * create(dataset, pResource) {
+    static async create(dataset, pResource) {
         logger.debug('Checking if resource doesnt exist');
-        const resource = yield Resource.findOne({
+        const resource = await Resource.findOne({
             id: pResource.id,
             dataset,
             type: pResource.type
@@ -55,59 +59,49 @@ class ResourceService {
             return resource;
         }
         logger.debug('Creating resource');
-        const nResource = new Resource({
+        const nResource = await new Resource({
             id: pResource.id,
             dataset,
             type: pResource.type
-        });
-        return nResource.save();
+        }).save();
+        return nResource;
     }
 
-    static * delete(dataset, pResource) {
+    static async delete(dataset, pResource) {
         logger.debug('Checking if resource doesnt exists');
         const query = {
             id: pResource.id,
             dataset,
             type: pResource.type
         };
-        const resource = yield Resource.findOne(query).exec();
+        const resource = await Resource.findOne(query).exec();
         if (!resource) {
             logger.error('Error deleting resource');
             throw new ResourceNotFound(`Resource ${pResource.type} - ${resource.id} and dataset: ${dataset} doesn't exist`);
         }
         logger.debug('Deleting resource');
-        yield Resource.remove(query).exec();
+        await Resource.remove(query).exec();
         return resource;
     }
 
-    /* @TODO Updating vocabularies from Resources -> Just a superadmin can modify vocabularies */
-    static * updateVocabulary(vocabulary) {
-        return vocabulary;
-    }
-
-    /* @TODO Removing vocabularies from Resources -> Just a superadmin can delete vocabularies */
-    static * deleteVocabulary(vocabulary) {
-        return vocabulary;
-    }
-
-    static * getByIds(resource) {
+    static async getByIds(resource) {
         logger.debug(`Getting resources with ids ${resource.ids}`);
         const query = {
             id: { $in: resource.ids },
             type: resource.type
         };
         logger.debug('Getting resources');
-        return yield Resource.find(query).exec();
+        return await Resource.find(query).exec();
     }
 
     /*
     * @returns: hasPermission: <Boolean>
     */
-    static * hasPermission(user, dataset, pResource) {
+    static async hasPermission(user, dataset, pResource) {
         let permission = true;
         let resource;
         try {
-            resource = yield ctRegisterMicroservice.requestToMicroservice({
+            resource = await ctRegisterMicroservice.requestToMicroservice({
                 uri: `/${pResource.type}/${pResource.id}`,
                 method: 'GET',
                 json: true
@@ -115,13 +109,13 @@ class ResourceService {
         } catch (err) {
             throw err;
         }
-        resource = yield deserializer(resource);
+        resource = deserializer(resource);
         if (!resource) {
             logger.error('Error getting resource from microservice');
             throw new ResourceNotFound(`REAL Resource ${pResource.type} - ${pResource.id} and dataset: ${dataset} doesn't exist`);
         }
-        const appPermission = resource.application.find(function (resourceApp) {
-            return user.extraUserData.apps.find(function (app) {
+        const appPermission = resource.application.find((resourceApp) => {
+            return user.extraUserData.apps.find((app) => {
                 return app === resourceApp;
             });
         });

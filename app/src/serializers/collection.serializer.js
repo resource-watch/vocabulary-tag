@@ -1,3 +1,4 @@
+
 class CollectionSerializer {
 
     static serializeElement(el) {

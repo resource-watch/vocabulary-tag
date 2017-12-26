@@ -9,8 +9,8 @@ class RelationshipNotValid extends Error {
 
     getMessages() {
         let messages = '- ';
-        this.messages.forEach(function (message) {
-            messages += Object.keys(message)[0] + ': ' + message[Object.keys(message)[0]] + ' - ';
+        this.messages.forEach((message) => {
+            messages += `${Object.keys(message)[0]}: ${message[Object.keys(message)[0]]} - `;
         });
         return messages;
     }

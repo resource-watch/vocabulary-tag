@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
+
 const Schema = mongoose.Schema;
-const RESOURCES = require('appConstants').RESOURCES;
+const RESOURCES = require('app.constants').RESOURCES;
 
 const Resource = new Schema({
     id: { type: String, required: true, trim: true },
@@ -9,6 +10,7 @@ const Resource = new Schema({
     vocabularies: [{
         _id: false,
         id: { type: String, required: true, trim: true },
+        application: { type: String, required: true, trim: true, default: 'rw' },
         tags: [{ type: String, required: true, trim: true }]
     }]
 });

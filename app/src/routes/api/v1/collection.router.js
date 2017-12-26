@@ -1,10 +1,9 @@
 const Router = require('koa-router');
 const logger = require('logger');
-const CollectionModel = require('models/collection');
-const CollectionSerializer = require('serializers/collectionSerializer');
 const ctRegisterMicroservice = require('ct-register-microservice-node');
-const CollectionValidator = require('validators/collectionValidator');
-
+const CollectionModel = require('models/collection.model');
+const CollectionSerializer = require('serializers/collection.serializer');
+const CollectionValidator = require('validators/collection.validator');
 
 const router = new Router({
     prefix: '/collection'
@@ -12,21 +11,21 @@ const router = new Router({
 
 class CollectionRouter {
 
-    static* getAll () {
+    static async getAll(ctx) {
 
         logger.info('Obtaining collection by user');
         const filters = {
-            ownerId: JSON.parse(this.query.loggedUser).id
+            ownerId: JSON.parse(ctx.query.loggedUser).id
         };
-        
-        const data = yield CollectionModel.find(filters);
 
-        if (this.query.include && this.query.include === 'true') {
+        const data = await CollectionModel.find(filters);
+
+        if (ctx.query.include && ctx.query.include === 'true') {
             logger.debug('including resources');
-            let widgets = [];
-            let datasets = [];
-            let layers = [];
-            data.map(resource => {
+            const widgets = [];
+            const datasets = [];
+            const layers = [];
+            data.forEach((resource) => {
                 if (resource.resourceType === 'dataset') {
                     datasets.push(resource.resourceId);
                 } else if (resource.resourceType === 'layer') {
@@ -35,11 +34,11 @@ class CollectionRouter {
                     widgets.push(resource.resourceId);
                 }
             });
-            
+
             try {
-                if (datasets.length > 0){
+                if (datasets.length > 0) {
                     logger.debug('Loading datasets');
-                    const datasetResources = yield ctRegisterMicroservice.requestToMicroservice({
+                    const datasetResources = await ctRegisterMicroservice.requestToMicroservice({
                         uri: `/dataset?ids=${datasets.join(',')}`,
                         method: 'GET',
                         json: true
@@ -53,12 +52,12 @@ class CollectionRouter {
                                 break;
                             }
                         }
-                    }                    
+                    }
                 }
                 logger.debug('Loading widgets', widgets);
-                if (widgets.length > 0){
+                if (widgets.length > 0) {
                     logger.debug('Loading widgets', widgets);
-                    const widgetResources = yield ctRegisterMicroservice.requestToMicroservice({
+                    const widgetResources = await ctRegisterMicroservice.requestToMicroservice({
                         uri: `/widget?ids=${widgets.join(',')}`,
                         method: 'GET',
                         json: true
@@ -74,14 +73,14 @@ class CollectionRouter {
                                 break;
                             }
                         }
-                    }                    
+                    }
                 }
                 logger.info('Loading layers', layers);
-                if (layers.length > 0){
+                if (layers.length > 0) {
                     logger.info('Loading layers', layers);
-                    for(let i = 0, length = layers.length; i < length; i++) {
+                    for (let i = 0, length = layers.length; i < length; i++) {
                         try {
-                            const layerResource = yield ctRegisterMicroservice.requestToMicroservice({
+                            const layerResource = await ctRegisterMicroservice.requestToMicroservice({
                                 uri: `/layer/${layers[i]}`,
                                 method: 'GET',
                                 json: true
@@ -93,126 +92,107 @@ class CollectionRouter {
                                     break;
                                 }
                             }
-                        } catch(err) {
+                        } catch (err) {
                             logger.error(err);
                         }
-                    }                
+                    }
                 }
             } catch (err) {
                 logger.error(err);
-                this.throw(400, 'Error obtaining include');
+                ctx.throw(400, 'Error obtaining include');
             }
         }
-
-        this.body = CollectionSerializer.serialize(data);
-
-    }
-    
-    static* getById () {
-
-        logger.info('Obtaining collection by id', this.params.id);
-        this.body = CollectionSerializer.serialize(this.state.col);
-
+        ctx.body = CollectionSerializer.serialize(data);
     }
 
-    static* postCollection () {
+    static async getById(ctx) {
+        logger.info('Obtaining collection by id', ctx.params.id);
+        ctx.body = CollectionSerializer.serialize(ctx.state.col);
+    }
 
-        logger.info('Creating collection with body ', this.request.body);
+    static async postCollection(ctx) {
+        logger.info('Creating collection with body ', ctx.request.body);
         const body = {
-            name: this.request.body.name,
-            ownerId: this.request.body.loggedUser.id,  
-            resources: this.request.body.resources || []
+            name: ctx.request.body.name,
+            ownerId: ctx.request.body.loggedUser.id,
+            resources: ctx.request.body.resources || []
         };
-
-        const data = yield new CollectionModel(body).save();
-
-        this.body = CollectionSerializer.serialize(data);
-
+        const data = await new CollectionModel(body).save();
+        ctx.body = CollectionSerializer.serialize(data);
     }
 
-    static* postResource () { 
-
-        logger.info('Creating new resource in collection with id ', this.params.id);
-
-        this.state.col.resources.push(this.request.body);
-
-        yield this.state.col.save(); 
-
-        this.body = CollectionSerializer.serialize(this.state.col);
+    static async postResource(ctx) {
+        logger.info('Creating new resource in collection with id ', ctx.params.id);
+        ctx.state.col.resources.push(ctx.request.body);
+        await ctx.state.col.save();
+        ctx.body = CollectionSerializer.serialize(ctx.state.col);
     }
 
-    static* patchCollection () {
-
-        logger.info('Updating collection by id ', this.params.id);
-        
-        this.state.col.name = this.request.body.name;
-
-        yield this.state.col.save();   
-
-        this.body = CollectionSerializer.serialize(this.state.col);
-
-
+    static async patchCollection(ctx) {
+        logger.info('Updating collection by id ', ctx.params.id);
+        ctx.state.col.name = ctx.request.body.name;
+        await ctx.state.col.save();
+        ctx.body = CollectionSerializer.serialize(ctx.state.col);
     }
 
-    static* deleteCollection () {
-
-        logger.info('Deleting collection by id ', this.params.id);
-        yield this.state.col.remove();
-        this.body = CollectionSerializer.serialize(this.state.col);
-
+    static async deleteCollection(ctx) {
+        logger.info('Deleting collection by id ', ctx.params.id);
+        await ctx.state.col.remove();
+        ctx.body = CollectionSerializer.serialize(ctx.state.col);
     }
 
-    static* deleteResource () {
 
-        logger.debug('Deleting resource from collection.', this.state.col);
-
-        this.state.col.resources = this.state.col.resources
-            .filter(res => res.id !== this.params.resourceId)
-            .filter(res => res.type !== this.params.resourceType); 
-        
-        yield this.state.col.save();        
-
-        this.body = CollectionSerializer.serialize(this.state.col);
-
+    static async deleteResource(ctx) {
+        ctx.state.col.resources = ctx.state.col.resources
+            .filter(res => res.id !== ctx.params.resourceId)
+            .filter(res => res.type !== ctx.params.resourceType);
+        await ctx.state.col.save();
+        ctx.body = CollectionSerializer.serialize(ctx.state.col);
     }
 
 }
 
-
-const existCollection = function* (next) {
+const existCollection = async (ctx, next) => {
     logger.debug('Checking if collection exists');
     let loggedUser;
-    if(this.method === 'GET' || this.method === 'DELETE') {
-        loggedUser = JSON.parse(this.query.loggedUser);
+    if (ctx.method === 'GET' || ctx.method === 'DELETE') {
+        loggedUser = JSON.parse(ctx.query.loggedUser);
+    } else {
+        loggedUser = ctx.request.body.loggedUser;
     }
-    else {
-        loggedUser = this.request.body.loggedUser;
-    }
-    const col = yield CollectionModel.findById(this.params.id);
+    const col = await CollectionModel.findById(ctx.params.id);
     if (!col || ((loggedUser.id !== col.ownerId) && loggedUser.role !== 'ADMIN')) {
-        this.throw(404, 'Collection not found');
+        ctx.throw(404, 'Collection not found');
         return;
     }
-    this.state.col = col;
-    yield next;
+    ctx.state.col = col;
+    await next();
 };
 
-
-const existResourceInCollection = function* (next) {
+const existResourceInCollection = async (ctx, next) => {
     logger.debug('Checking if resource exists in collection');
-    const exist = this.state.col.resources.find(res => res.id === this.request.body.id && res.type === this.request.body.type);
+    const exist = ctx.state.col.resources.find(res => res.id === ctx.request.body.id && res.type === ctx.request.body.type);
     if (exist) {
-        this.throw(400, 'Resource duplicated');
+        ctx.throw(400, 'Resource duplicated');
         return;
     }
-    
-    yield next;
+    await next();
+};
+
+const validationMiddleware = async (ctx, next) => {
+    logger.info(`[DatasetRouter] Validating`);
+    try {
+        await CollectionValidator.validate(ctx);
+    } catch (err) {
+        ctx.throw(400, err);
+    }
+    await next();
 };
 
 router.get('/', CollectionRouter.getAll);
 router.get('/:id', existCollection, CollectionRouter.getById);
 
-router.post('/', CollectionValidator.validate, CollectionRouter.postCollection);
+router.post('/', validationMiddleware, CollectionRouter.postCollection);
 router.post('/:id/resource', existCollection, existResourceInCollection, CollectionRouter.postResource);
 
 router.patch('/:id', existCollection, CollectionRouter.patchCollection);

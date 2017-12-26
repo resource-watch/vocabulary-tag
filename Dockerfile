@@ -1,4 +1,4 @@
-FROM mhart/alpine-node:7.6
+FROM mhart/alpine-node:8.9.3
 MAINTAINER sergio.gordillo@vizzuality.com
 
 ENV NAME vocabulary-tag
