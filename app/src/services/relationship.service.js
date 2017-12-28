@@ -146,8 +146,8 @@ class RelationshipService {
         }
         let position;
         try {
-            for (let i = 0, length = vocabulary.resource.length; i < length; i++) {
-                if (vocabulary.resource[i].type === resource.type && vocabulary.resource[i].id === resource.id) {
+            for (let i = 0, length = vocabulary.resources.length; i < length; i++) {
+                if (vocabulary.resources[i].type === resource.type && vocabulary.resources[i].id === resource.id) {
                     position = i;
                     break;
                 }
