@@ -146,8 +146,8 @@ class RelationshipService {
         }
         let position;
         try {
-            for (let i = 0, length = vocabulary.resource.length; i < length; i++) {
-                if (vocabulary.resource[i].type === resource.type && vocabulary.resource[i].id === resource.id) {
+            for (let i = 0, length = vocabulary.resources.length; i < length; i++) {
+                if (vocabulary.resources[i].type === resource.type && vocabulary.resources[i].id === resource.id) {
                     position = i;
                     break;
                 }
@@ -159,6 +159,13 @@ class RelationshipService {
             throw err;
         }
         logger.debug(`Tags to resource`);
+        position = 0;
+        for (let i = 0, length = resource.vocabularies.length; i < length; i++) {
+            if (resource.vocabularies[i].id === vocabulary.id) {
+                position = i;
+                break;
+            }
+        }
         resource.vocabularies[position].tags = body.tags;
         resource = await resource.save();
         // CREATE GRAPH ASSOCIATION

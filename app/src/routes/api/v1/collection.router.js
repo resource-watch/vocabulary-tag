@@ -141,6 +141,7 @@ class CollectionRouter {
         ctx.body = CollectionSerializer.serialize(ctx.state.col);
     }
 
+
     static async deleteResource(ctx) {
         ctx.state.col.resources = ctx.state.col.resources
             .filter(res => res.id !== ctx.params.resourceId)
