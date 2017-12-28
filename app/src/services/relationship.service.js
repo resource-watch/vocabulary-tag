@@ -146,6 +146,12 @@ class RelationshipService {
         }
         let position;
         try {
+            for (let i = 0, length = vocabulary.resource.length; i < length; i++) {
+                if (vocabulary.resource[i].type === resource.type && vocabulary.resource[i].id === resource.id) {
+                    position = i;
+                    break;
+                }
+            }
             logger.debug(`Tags to vocabulary`);
             vocabulary.resources[position].tags = body.tags;
             vocabulary.save();
