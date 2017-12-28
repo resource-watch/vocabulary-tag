@@ -159,8 +159,9 @@ class RelationshipService {
             throw err;
         }
         logger.debug(`Tags to resource`);
+        position = 0;
         for (let i = 0, length = resource.vocabularies.length; i < length; i++) {
-            if (resource.vocabularies[i] === vocabulary.id) {
+            if (resource.vocabularies[i].id === vocabulary.id) {
                 position = i;
                 break;
             }
