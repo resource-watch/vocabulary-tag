@@ -91,7 +91,7 @@ class ResourceService {
             type: resource.type
         };
         if (resource.application) {
-            query.vocabularies = {application: resource.application };
+            query['vocabularies.application'] = resource.application;
         }
         logger.debug('Getting resources with query' , query);
         return await Resource.find(query).exec();

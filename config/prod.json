@@ -1,7 +1,7 @@
 {
     "logger": {
         "name": "vocabulary-tag",
-        "level": "debug",
+        "level": "warn",
         "toFile": false,
         "dirLogFile": null
     }
