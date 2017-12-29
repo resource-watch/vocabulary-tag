@@ -90,6 +90,9 @@ class ResourceService {
             id: { $in: resource.ids },
             type: resource.type
         };
+        if (resource.application) {
+            query.vocabularies = {application: resource.application };
+        }
         logger.debug('Getting resources');
         return await Resource.find(query).exec();
     }

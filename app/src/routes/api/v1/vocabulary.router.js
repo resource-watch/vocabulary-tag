@@ -144,6 +144,9 @@ class VocabularyRouter {
         const resource = {
             ids: ctx.request.body.ids
         };
+        if (ctx.query.application) {
+            resource.application = ctx.query.application;
+        }
         if (typeof resource.ids === 'string') {
             resource.ids = resource.ids.split(',').map(elem => elem.trim());
         }
