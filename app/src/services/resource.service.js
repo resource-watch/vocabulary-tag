@@ -94,7 +94,13 @@ class ResourceService {
             query['vocabularies.application'] = resource.application;
         }
         logger.debug('Getting resources with query' , query);
-        return await Resource.find(query).exec();
+        const resources = await Resource.find(query).exec();
+        if (resource.application) {
+            return resources.map(resource => {
+                return resource.vocabularies.filter(voc => voc.application = resource.application);
+            }).filter(res => res.vocabularies.length > 0);
+        }
+        return resources;
     }
 
     /*
