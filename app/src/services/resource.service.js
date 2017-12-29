@@ -96,9 +96,9 @@ class ResourceService {
         logger.debug('Getting resources with query' , query);
         const resources = await Resource.find(query).exec();
         if (resource.application) {
-            return resources.map(resource => {
-                resource.vocabularies = resource.vocabularies.filter(voc => voc.application === resource.application);
-                return resource;
+            return resources.map(res => {
+                res.vocabularies = res.vocabularies.filter(voc => voc.application === resource.application);
+                return res;
             }).filter(res => res.vocabularies.length > 0);
         }
         return resources;
