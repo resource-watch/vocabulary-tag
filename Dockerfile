@@ -1,15 +1,15 @@
-FROM mhart/alpine-node:8.9.3
+FROM node:9.2-alpine
 MAINTAINER sergio.gordillo@vizzuality.com
 
 ENV NAME vocabulary-tag
 ENV USER microservice
-USER root
+
 RUN apk update && apk upgrade && \
     apk add --no-cache --update bash git openssh python build-base curl
 
 RUN addgroup $USER && adduser -s /bin/bash -D -G $USER $USER
 
-RUN npm install -g grunt-cli bunyan
+RUN npm install --unsafe-perm -g bunyan  grunt-cli
 
 RUN mkdir -p /opt/$NAME
 COPY package.json /opt/$NAME/package.json
