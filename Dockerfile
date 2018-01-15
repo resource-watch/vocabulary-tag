@@ -3,7 +3,7 @@ MAINTAINER sergio.gordillo@vizzuality.com
 
 ENV NAME vocabulary-tag
 ENV USER microservice
-
+USER root
 RUN apk update && apk upgrade && \
     apk add --no-cache --update bash git openssh python build-base curl
 
