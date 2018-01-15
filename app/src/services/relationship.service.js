@@ -134,7 +134,7 @@ class RelationshipService {
             logger.debug(`This Vocabulary doesn't exist`);
             throw new VocabularyNotFound(`Vocabulary with name ${pVocabulary.name} doesn't exist`);
         }
-        let resource = await ResourceService.get(dataset, pResource, vocabulary);
+        let resource = await ResourceService.get(dataset, pResource);
         if (!resource) {
             logger.debug(`This resource doesnt' exist`);
             throw new ResourceNotFound(`Resource ${pResource.type} - ${pResource.id} and dataset: ${dataset} doesn't exist`);
