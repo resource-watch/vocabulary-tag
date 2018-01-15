@@ -25,6 +25,6 @@ RUN chown $USER:$USER /opt/$NAME
 
 # Tell Docker we are going to use this ports
 EXPOSE 4100
-USER $USER
+
 
 ENTRYPOINT ["./entrypoint.sh"]
