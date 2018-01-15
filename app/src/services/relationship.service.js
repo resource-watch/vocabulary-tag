@@ -134,7 +134,7 @@ class RelationshipService {
             logger.debug(`This Vocabulary doesn't exist`);
             throw new VocabularyNotFound(`Vocabulary with name ${pVocabulary.name} doesn't exist`);
         }
-        let resource = await ResourceService.get(dataset, pResource);
+        let resource = await ResourceService.get(dataset, pResource, vocabulary);
         if (!resource) {
             logger.debug(`This resource doesnt' exist`);
             throw new ResourceNotFound(`Resource ${pResource.type} - ${pResource.id} and dataset: ${dataset} doesn't exist`);
@@ -161,7 +161,7 @@ class RelationshipService {
         logger.debug(`Tags to resource`);
         position = 0;
         for (let i = 0, length = resource.vocabularies.length; i < length; i++) {
-            if (resource.vocabularies[i].id === vocabulary.id) {
+            if (resource.vocabularies[i].id === vocabulary.id && resource.vocabularies[i].application === pVocabulary.application) {
                 position = i;
                 break;
             }
