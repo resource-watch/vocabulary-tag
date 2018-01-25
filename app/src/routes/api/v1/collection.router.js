@@ -14,8 +14,10 @@ class CollectionRouter {
     static async getAll(ctx) {
 
         logger.info('Obtaining collection by user');
+        const application = ctx.query.application || ctx.query.app || 'rw';
         const filters = {
-            ownerId: JSON.parse(ctx.query.loggedUser).id
+            ownerId: JSON.parse(ctx.query.loggedUser).id,
+            application
         };
 
         const data = await CollectionModel.find(filters);
