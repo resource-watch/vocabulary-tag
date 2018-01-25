@@ -1,5 +1,7 @@
 {
-    "name": "#(service.name)",
+    "name": "Vocabulary",
+    "cache": ["vocabulary"],
+	"uncache": ["vocabulary", "dataset", "widget", "layer"],
     "endpoints": [{
         "path": "/v1/dataset/:dataset/vocabulary",
         "method": "GET",
