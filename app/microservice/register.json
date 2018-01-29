@@ -365,6 +365,13 @@
             "method": "DELETE",
             "path": "/api/v1/collection/:id/resource/:resourceType/:resourceId"
         }
-    }
+    },{
+		"path": "/v1/collection/find-by-ids",
+		"method": "POST",
+		"redirect": {
+			"method": "POST",
+			"path": "/api/v1/collection/find-by-ids"
+		}
+	}
 ]
 }
