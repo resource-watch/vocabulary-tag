@@ -106,6 +106,22 @@ class CollectionRouter {
         }
         ctx.body = CollectionSerializer.serialize(data);
     }
+    static async findByIds(ctx) {
+
+        logger.info('Obtaining collection by user');
+        const filters = {
+            _id: {
+                $in: ctx.request.body.ids
+            },
+            ownerId: ctx.request.body.userId
+        };
+        
+
+        const data = await CollectionModel.find(filters);
+
+        
+        ctx.body = CollectionSerializer.serialize(data);
+    }
 
     static async getById(ctx) {
         logger.info('Obtaining collection by id', ctx.params.id);
@@ -196,6 +212,7 @@ router.get('/:id', existCollection, CollectionRouter.getById);
 
 router.post('/', validationMiddleware, CollectionRouter.postCollection);
 router.post('/:id/resource', existCollection, existResourceInCollection, CollectionRouter.postResource);
+router.post('/find-by-ids', CollectionRouter.findByIds);
 
 router.patch('/:id', existCollection, CollectionRouter.patchCollection);
 
