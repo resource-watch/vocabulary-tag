@@ -159,8 +159,7 @@ class CollectionRouter {
 
     static async deleteResource(ctx) {
         ctx.state.col.resources = ctx.state.col.resources
-            .filter(res => res.id !== ctx.params.resourceId)
-            .filter(res => res.type !== ctx.params.resourceType);
+            .filter(res => res.id !== ctx.params.resourceId || res.type !== ctx.params.resourceType);
         await ctx.state.col.save();
         ctx.body = CollectionSerializer.serialize(ctx.state.col);
     }
