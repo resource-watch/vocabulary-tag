@@ -8,6 +8,7 @@ class CollectionValidator {
         logger.info('Validating Collection Creation');
 
         ctx.checkBody('name').notEmpty();
+        ctx.checkBody('application').optional().toLow();
         ctx.checkBody('resources').optional().check((data) => {
 
             logger.debug('entering validation', data.resources);
@@ -26,8 +27,18 @@ class CollectionValidator {
             return;
         }
 
+        // App validation
+        if (ctx.request.body.application) {
+            if (ctx.request.body.loggedUser.extraUserData.apps.indexOf(ctx.request.body.application) <= -1) {
+                ctx.throw(403, 'Forbidden');
+            }
+        } else {
+            ctx.request.body.application = 'rw';
+        }
+
         const data = await CollectionModel.findOne({
             name: ctx.request.body.name,
+            application: ctx.request.body.application,
             ownerId: ctx.request.body.loggedUser.id,
         });
         if (data) {

@@ -115,11 +115,7 @@ class CollectionRouter {
             },
             ownerId: ctx.request.body.userId
         };
-        
-
         const data = await CollectionModel.find(filters);
-
-        
         ctx.body = CollectionSerializer.serialize(data);
     }
 
@@ -132,6 +128,7 @@ class CollectionRouter {
         logger.info('Creating collection with body ', ctx.request.body);
         const body = {
             name: ctx.request.body.name,
+            application: ctx.request.body.application,
             ownerId: ctx.request.body.loggedUser.id,
             resources: ctx.request.body.resources || []
         };
