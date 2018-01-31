@@ -112,6 +112,20 @@ class FavouriteRouter {
 
     }
 
+    static async findByUser(ctx) {
+        logger.info('Obtaining favs by user');
+        if (!ctx.request.body.userId) {
+            ctx.throw(400, 'Bad Request');
+            return;
+        }
+        const filters = {
+            application: ctx.request.body.app || ctx.request.body.application || 'rw',
+            userId: ctx.request.body.userId
+        };
+        const data = await FavouriteModel.find(filters);
+        ctx.body = FavouriteSerializer.serialize(data);
+    }
+
     static async getById(ctx) {
         logger.info('Obtaining favourite by id', ctx.params.id);
         ctx.body = FavouriteSerializer.serialize(ctx.state.fav);
@@ -181,6 +195,7 @@ const validationMiddleware = async (ctx, next) => {
 
 router.get('/', FavouriteRouter.get);
 router.get('/:id', existFavourite, FavouriteRouter.getById);
+router.post('/find-by-user', FavouriteRouter.findByUser);
 router.post('/', validationMiddleware, FavouriteRouter.create);
 router.delete('/:id', existFavourite, FavouriteRouter.delete);
 
