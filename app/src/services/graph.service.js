@@ -44,7 +44,7 @@ class GraphService {
         try {
             let url = `/graph/${resource.type}/${resource.id}/associate`;
             if (application) {
-                url = `${url}/application=${application}`;
+                url = `${url}?application=${application}`;
             }
             return await ctRegisterMicroservice.requestToMicroservice({
                 uri: url,
