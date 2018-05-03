@@ -28,7 +28,7 @@
 	},
 	"homepage": "https://github.com/resource-watch/vocabulary-tag#readme",
 	"dependencies": {
-		"bunyan": "^1.8.5",
+		"bunyan": "^1.8.10",
 		"config": "^1.30.0",
 		"cron-parser": "^2.5.0",
 		"ct-register-microservice-node": "^2.1.6",
