@@ -56,7 +56,7 @@ class RelationshipService {
         // CREATE GRAPH ASSOCIATION
         if (vocabulary.id === 'knowledge_graph') {
             logger.info('Creating graph association');
-            await GraphService.associateTags(resource, body.tags, pVocabulary.application);
+            await GraphService.createAssociation(resource, body.tags, pVocabulary.application);
         }
         return resource;
     }
@@ -99,6 +99,11 @@ class RelationshipService {
         if (resource.vocabularies.length === 0) {
             logger.debug(`Deleting the resource cause it doesnt have any vocabulary`);
             await ResourceService.delete(resource.dataset, resource);
+        }
+        // DELETE GRAPH ASSOCIATION
+        if (vocabulary.id === 'knowledge_graph') {
+            logger.info('Deleting graph association');
+            await GraphService.deleteAssociation(resource, pVocabulary.application);
         }
         return resource;
     }
@@ -171,7 +176,7 @@ class RelationshipService {
         // CREATE GRAPH ASSOCIATION
         if (vocabulary.id === 'knowledge_graph') {
             logger.info('Creating graph association');
-            await GraphService.associateTags(resource, body.tags, pVocabulary.application);
+            await GraphService.updateAssociation(resource, body.tags, pVocabulary.application);
         }
         return resource;
     }

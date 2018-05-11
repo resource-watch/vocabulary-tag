@@ -12,16 +12,13 @@ const router = new Router({
 class CollectionRouter {
 
     static async getAll(ctx) {
-
         logger.info('Obtaining collection by user');
         const application = ctx.query.application || ctx.query.app || 'rw';
         const filters = {
             ownerId: JSON.parse(ctx.query.loggedUser).id,
             application
         };
-
         const data = await CollectionModel.find(filters);
-
         if (ctx.query.include && ctx.query.include === 'true') {
             logger.debug('including resources');
             const widgets = [];
@@ -36,7 +33,6 @@ class CollectionRouter {
                     widgets.push(resource.resourceId);
                 }
             });
-
             try {
                 if (datasets.length > 0) {
                     logger.debug('Loading datasets');
@@ -65,7 +61,6 @@ class CollectionRouter {
                         json: true
                     });
                     logger.info('Obtained', widgetResources);
-
                     for (let i = 0, length = widgetResources.data.length; i < length; i++) {
                         const widget = widgetResources.data[i];
                         for (let j = 0, lengthData = data.length; j < lengthData; j++) {
@@ -107,7 +102,6 @@ class CollectionRouter {
         ctx.body = CollectionSerializer.serialize(data);
     }
     static async findByIds(ctx) {
-
         logger.info('Obtaining collection by user');
         const filters = {
             _id: {
@@ -156,10 +150,9 @@ class CollectionRouter {
         ctx.body = CollectionSerializer.serialize(ctx.state.col);
     }
 
-
     static async deleteResource(ctx) {
         ctx.state.col.resources = ctx.state.col.resources
-            .filter(res => res.id !== ctx.params.resourceId || res.type !== ctx.params.resourceType);
+        .filter(res => res.id !== ctx.params.resourceId || res.type !== ctx.params.resourceType);
         await ctx.state.col.save();
         ctx.body = CollectionSerializer.serialize(ctx.state.col);
     }
