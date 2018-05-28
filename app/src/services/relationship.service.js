@@ -129,7 +129,7 @@ class RelationshipService {
         for (let i = 0; i < vocabularies.length; i++) {
             await RelationshipService.delete(user, vocabularies[i], dataset, pResource);
         }
-        return await ResourceService.get(dataset, pResource);
+        return resource;
     }
 
     static async updateTagsFromRelationship(user, pVocabulary, dataset, pResource, body) {
