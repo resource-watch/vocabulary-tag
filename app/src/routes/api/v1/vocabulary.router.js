@@ -131,6 +131,14 @@ class VocabularyRouter {
         ctx.body = VocabularySerializer.serialize(result);
     }
 
+    static async getTagsById(ctx) {
+        logger.info(`Getting vocabulary tags by name: ${ctx.params.vocabulary}`);
+        const application = VocabularyRouter.getApplication(ctx);
+        const vocabulary = { name: ctx.params.vocabulary };
+        const result = await VocabularyService.getById(application, vocabulary);
+        ctx.body = VocabularySerializer.serializeTags(result);
+    }
+
     /* Using the Resource Service */
     static async getByResource(ctx) {
         const resource = VocabularyRouter.getResource(ctx.params);
@@ -510,6 +518,7 @@ router.delete('/dataset/:dataset/layer/:layer/vocabulary', relationshipAuthoriza
 // vocabulary (not the commmon use case)
 router.get('/vocabulary', VocabularyRouter.getAll);
 router.get('/vocabulary/:vocabulary', VocabularyRouter.getById);
+router.get('/vocabulary/:vocabulary/tags', VocabularyRouter.getTagsById);
 router.post('/vocabulary', vocabularyValidationMiddleware, vocabularyAuthorizationMiddleware, VocabularyRouter.create);
 // router.patch('/vocabulary/:vocabulary', vocabularyValidationMiddleware, vocabularyAuthorizationMiddleware, VocabularyRouter.update);
 // router.delete('/vocabulary/:vocabulary', vocabularyAuthorizationMiddleware, VocabularyRouter.delete);
