@@ -1,6 +1,6 @@
 const Router = require('koa-router');
 const logger = require('logger');
-const ctRegisterMicroservice = require('ct-register-microservice-node');
+const ctRegisterMicroservice = require('sd-ct-register-microservice-node');
 const FavouriteSerializer = require('serializers/favourite.serializer');
 const FavouriteModel = require('models/favourite.model');
 const FavouriteValidator = require('validators/favourite.validator');

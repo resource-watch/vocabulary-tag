@@ -2,7 +2,7 @@
 const logger = require('logger');
 const Resource = require('models/resource.model');
 const ResourceNotFound = require('errors/resource-not-found.error');
-const ctRegisterMicroservice = require('ct-register-microservice-node');
+const ctRegisterMicroservice = require('sd-ct-register-microservice-node');
 
 const deserializer = (obj) => {
     if (obj instanceof Array) {
