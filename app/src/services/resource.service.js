@@ -1,4 +1,3 @@
-
 const logger = require('logger');
 const Resource = require('models/resource.model');
 const ResourceNotFound = require('errors/resource-not-found.error');
@@ -23,25 +22,31 @@ class ResourceService {
         };
         if (vocabulary) {
             return Resource.aggregate([
-                { $match: {
-                    dataset,
-                    id: resource.id,
-                    type: resource.type,
-                    'vocabularies.id': vocabulary.name || { $ne: null },
-                    'vocabularies.application': vocabulary.application || { $ne: null }
-                } },
+                {
+                    $match: {
+                        dataset,
+                        id: resource.id,
+                        type: resource.type,
+                        'vocabularies.id': vocabulary.name || { $ne: null },
+                        'vocabularies.application': vocabulary.application || { $ne: null }
+                    }
+                },
 
                 { $unwind: '$vocabularies' },
 
-                { $match: {
-                    'vocabularies.id': vocabulary.name || { $ne: null },
-                    'vocabularies.application': vocabulary.application || { $ne: null }
-                } },
+                {
+                    $match: {
+                        'vocabularies.id': vocabulary.name || { $ne: null },
+                        'vocabularies.application': vocabulary.application || { $ne: null }
+                    }
+                },
 
-                { $group: {
-                    _id: 0,
-                    vocabularies: { $push: '$vocabularies' }
-                } }
+                {
+                    $group: {
+                        _id: 0,
+                        vocabularies: { $push: '$vocabularies' }
+                    }
+                }
             ]).exec();
         }
         logger.debug('Getting resource by resource');
@@ -93,10 +98,10 @@ class ResourceService {
         if (resource.application) {
             query['vocabularies.application'] = resource.application;
         }
-        logger.debug('Getting resources with query' , query);
+        logger.debug('Getting resources with query', query);
         const resources = await Resource.find(query).exec();
         if (resource.application) {
-            return resources.map(res => {
+            return resources.map((res) => {
                 res.vocabularies = res.vocabularies.filter(voc => voc.application === resource.application);
                 return res;
             }).filter(res => res.vocabularies.length > 0);

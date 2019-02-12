@@ -150,9 +150,9 @@ class VocabularyRouter {
         ctx.body = ResourceSerializer.serialize(result);
     }
 
-    static async getByIds(ctx) {
+    static async findByIds(ctx) {
         if (!ctx.request.body.ids) {
-            ctx.throw(400, 'Bad request');
+            ctx.throw(400, 'Bad request - Missing \'ids\' from request body');
             return;
         }
         logger.info(`Getting vocabularies by ids: ${ctx.request.body.ids}`);
@@ -515,7 +515,7 @@ router.patch('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', relationsh
 router.delete('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationship);
 router.delete('/dataset/:dataset/layer/:layer/vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationships);
 
-// vocabulary (not the commmon use case)
+// vocabulary (not the common use case)
 router.get('/vocabulary', VocabularyRouter.getAll);
 router.get('/vocabulary/:vocabulary', VocabularyRouter.getById);
 router.get('/vocabulary/:vocabulary/tags', VocabularyRouter.getTagsById);
@@ -523,9 +523,9 @@ router.post('/vocabulary', vocabularyValidationMiddleware, vocabularyAuthorizati
 // router.patch('/vocabulary/:vocabulary', vocabularyValidationMiddleware, vocabularyAuthorizationMiddleware, VocabularyRouter.update);
 // router.delete('/vocabulary/:vocabulary', vocabularyAuthorizationMiddleware, VocabularyRouter.delete);
 
-// get by ids (to include queries)
-router.post('/dataset/vocabulary/get-by-ids', VocabularyRouter.getByIds);
-router.post('/dataset/:dataset/widget/vocabulary/get-by-ids', VocabularyRouter.getByIds);
-router.post('/dataset/:dataset/layer/vocabulary/get-by-ids', VocabularyRouter.getByIds);
+// find by ids (to include queries)
+router.post('/dataset/vocabulary/find-by-ids', VocabularyRouter.findByIds);
+router.post('/dataset/:dataset/widget/vocabulary/find-by-ids', VocabularyRouter.findByIds);
+router.post('/dataset/:dataset/layer/vocabulary/find-by-ids', VocabularyRouter.findByIds);
 
 module.exports = router;
