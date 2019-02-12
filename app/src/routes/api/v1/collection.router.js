@@ -1,6 +1,6 @@
 const Router = require('koa-router');
 const logger = require('logger');
-const ctRegisterMicroservice = require('ct-register-microservice-node');
+const ctRegisterMicroservice = require('sd-ct-register-microservice-node');
 const CollectionModel = require('models/collection.model');
 const CollectionSerializer = require('serializers/collection.serializer');
 const CollectionValidator = require('validators/collection.validator');
