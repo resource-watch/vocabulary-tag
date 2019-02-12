@@ -36,6 +36,31 @@ module.exports = (grunt) => {
             }
         },
 
+        watch: {
+            options: {
+                livereload: 35730
+            },
+            jssrc: {
+                files: [
+                    'app/src/**/*.js',
+                ],
+                tasks: ['express:dev'],
+                options: {
+                    spawn: false
+                }
+            },
+            e2eTest: {
+                files: [
+                    'app/test/e2e/**/*.spec.js',
+                ],
+                tasks: ['express:test', 'mochaTest:e2e'],
+                options: {
+                    spawn: true
+                }
+            },
+
+        },
+
         nyc: {
             cover: {
                 options: {
@@ -50,6 +75,8 @@ module.exports = (grunt) => {
             }
         }
     });
+
+    grunt.registerTask('e2eTest-watch', ['watch:e2eTest']);
 
     grunt.registerTask('test', ['mochaTest:e2e', 'mochaTest:unit']);
 
