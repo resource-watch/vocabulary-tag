@@ -2,3 +2,5 @@ node_modules/
 .DS_STORE
 npm-debug.log
 .dev.env
+/.nyc_output/
+/coverage
