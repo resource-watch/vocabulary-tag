@@ -224,6 +224,13 @@
             "path": "/api/v1/vocabulary/:vocabulary"
         }
     }, {
+        "path": "/v1/vocabulary/:vocabulary/tags",
+        "method": "GET",
+        "redirect": {
+            "method": "GET",
+            "path": "/api/v1/vocabulary/:vocabulary/tags"
+        }
+    }, {
         "path": "/v1/vocabulary",
         "method": "POST",
         "authenticated": true,
@@ -252,21 +259,21 @@
         "method": "POST",
         "redirect": {
             "method": "POST",
-            "path": "/api/v1/dataset/vocabulary/get-by-ids"
+            "path": "/api/v1/dataset/vocabulary/find-by-ids"
         }
     }, {
         "path": "/v1/dataset/:dataset/widget/vocabulary/find-by-ids",
         "method": "POST",
         "redirect": {
             "method": "POST",
-            "path": "/api/v1/dataset/:dataset/widget/vocabulary/get-by-ids"
+            "path": "/api/v1/dataset/:dataset/widget/vocabulary/find-by-ids"
         }
     }, {
         "path": "/v1/dataset/:dataset/layer/vocabulary/find-by-ids",
         "method": "POST",
         "redirect": {
             "method": "POST",
-            "path": "/api/v1/dataset/:dataset/layer/vocabulary/get-by-ids"
+            "path": "/api/v1/dataset/:dataset/layer/vocabulary/find-by-ids"
         }
     }, {
         "path": "/v1/favourite",
