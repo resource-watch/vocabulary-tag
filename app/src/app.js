@@ -2,6 +2,7 @@ const Koa = require('koa');
 const logger = require('logger');
 const koaLogger = require('koa-logger');
 const mongoose = require('mongoose');
+const koaSimpleHealthCheck = require('koa-simple-healthcheck');
 const config = require('config');
 const loader = require('loader');
 const ctRegisterMicroservice = require('sd-ct-register-microservice-node');
@@ -89,6 +90,7 @@ async function init() {
             });
 
             app.use(koaLogger());
+            app.use(koaSimpleHealthCheck());
 
             koaValidate(app);
 
