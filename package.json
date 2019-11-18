@@ -89,9 +89,22 @@
     "grunt-mocha-test": "^0.13.3",
     "grunt-notify": "^0.4.5",
     "grunt-simple-nyc": "^1.1.2",
+    "husky": ">=1",
+    "lint-staged": ">=8",
     "mocha": "^5.2.0",
     "nock": "^10.0.6",
     "nyc": "^13.2.0",
     "should": "^13.2.3"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ]
   }
 }
