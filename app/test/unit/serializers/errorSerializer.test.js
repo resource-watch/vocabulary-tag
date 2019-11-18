@@ -1,5 +1,3 @@
-const should = require('should');
-const assert = require('assert');
 const errorSerializer = require('serializers/error.serializer');
 
 describe('Error serializer test', () => {

@@ -21,7 +21,7 @@ const koaBody = require('koa-body')({
 let dbOptions = {};
 
 // KUBE CLUSTER
-if (mongoUri.indexOf('replicaSet') > - 1) {
+if (mongoUri.indexOf('replicaSet') > -1) {
     dbOptions = {
         db: { native_parser: true },
         replset: {
@@ -114,7 +114,7 @@ async function init() {
             });
             logger.info('Server started in ', process.env.PORT);
             resolve({ app, server });
-        };
+        }
 
         logger.info(`Connecting to MongoDB URL ${mongoUri}`);
         mongoose.connect(mongoUri, dbOptions, onDbReady);

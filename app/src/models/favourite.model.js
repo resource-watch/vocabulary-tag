@@ -1,12 +1,16 @@
 const mongoose = require('mongoose');
 
-const Schema = mongoose.Schema;
-const RESOURCES = require('app.constants').RESOURCES;
+const { Schema } = mongoose;
+const { RESOURCES } = require('app.constants');
 
 const Favourite = new Schema({
     resourceId: { type: String, required: true, trim: true },
-    application: { type: String, required: true, trim: true, default: 'rw' },
-    resourceType: { type: String, required: true, trim: true, enum: RESOURCES },
+    application: {
+        type: String, required: true, trim: true, default: 'rw'
+    },
+    resourceType: {
+        type: String, required: true, trim: true, enum: RESOURCES
+    },
     userId: { type: String, required: true, trim: true },
     createdAt: { type: Date, required: true, default: Date.now }
 });

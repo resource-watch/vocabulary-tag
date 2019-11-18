@@ -17,9 +17,8 @@ const RelationshipNotValid = require('errors/relationship-not-valid.error');
 const CloneNotValid = require('errors/clone-not-valid.error');
 const RelationshipsNotValid = require('errors/relationships-not-valid.error');
 const RelationshipNotFound = require('errors/relationship-not-found.error');
-const ConsistencyViolation = require('errors/consistency-violation.error');
 const ResourceNotFound = require('errors/resource-not-found.error');
-const USER_ROLES = require('app.constants').USER_ROLES;
+const { USER_ROLES } = require('app.constants');
 
 const router = new Router();
 
@@ -46,7 +45,7 @@ class VocabularyRouter {
     }
 
     static async get(ctx) {
-        const query = ctx.request.query;
+        const { query } = ctx.request;
         if (Object.keys(query).length === 1) {
             ctx.throw(400, 'Vocabulary and Tags are required in the queryParams');
             return;
@@ -146,7 +145,7 @@ class VocabularyRouter {
         const application = ctx.query.application || ctx.query.app || 'rw';
         const vocabulary = { name: ctx.params.vocabulary, application };
         const result = await ResourceService.get(ctx.params.dataset, resource, vocabulary);
-        ctx.set('cache', `${resource.id}-vocabulary-all`)
+        ctx.set('cache', `${resource.id}-vocabulary-all`);
         ctx.body = ResourceSerializer.serialize(result);
     }
 
@@ -172,11 +171,11 @@ class VocabularyRouter {
     }
 
     static async createRelationship(ctx) {
-        const dataset = ctx.params.dataset;
+        const { dataset } = ctx.params;
         const application = ctx.request.body.application || 'rw';
         const vocabulary = { name: ctx.params.vocabulary, application };
         const resource = VocabularyRouter.getResource(ctx.params);
-        const body = ctx.request.body;
+        const { body } = ctx.request;
         logger.info(`Creating realtionship between vocabulary: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
         try {
             const user = ctx.request.body.loggedUser;
@@ -193,9 +192,9 @@ class VocabularyRouter {
     }
 
     static async createRelationships(ctx) {
-        const dataset = ctx.params.dataset;
+        const { dataset } = ctx.params;
         const resource = VocabularyRouter.getResource(ctx.params);
-        const body = ctx.request.body;
+        const { body } = ctx.request;
         const vocabularies = [];
         Object.keys(body).forEach((key) => {
             if (key !== 'loggedUser') {
@@ -224,9 +223,9 @@ class VocabularyRouter {
     }
 
     static async updateRelationships(ctx) {
-        const dataset = ctx.params.dataset;
+        const { dataset } = ctx.params;
         const resource = VocabularyRouter.getResource(ctx.params);
-        const body = ctx.request.body;
+        const { body } = ctx.request;
         logger.info(`Deleting All Vocabularies of resource: ${resource.type} - ${resource.id}`);
         try {
             const user = ctx.request.body.loggedUser;
@@ -236,7 +235,7 @@ class VocabularyRouter {
             if (err instanceof VocabularyNotFound || err instanceof ResourceNotFound) {
                 ctx.throw(404, err.message);
                 return;
-            } else if (err instanceof RelationshipNotFound) {
+            } if (err instanceof RelationshipNotFound) {
                 // do nothing
             } else {
                 throw err;
@@ -270,7 +269,7 @@ class VocabularyRouter {
     }
 
     static async deleteRelationship(ctx) {
-        const dataset = ctx.params.dataset;
+        const { dataset } = ctx.params;
         const application = ctx.query.application || ctx.query.app || 'rw';
         const vocabulary = { name: ctx.params.vocabulary, application };
         const resource = VocabularyRouter.getResource(ctx.params);
@@ -290,7 +289,7 @@ class VocabularyRouter {
     }
 
     static async deleteRelationships(ctx) {
-        const dataset = ctx.params.dataset;
+        const { dataset } = ctx.params;
         const resource = VocabularyRouter.getResource(ctx.params);
         logger.info(`Deleting All Vocabularies of resource: ${resource.type} - ${resource.id}`);
         try {
@@ -309,11 +308,11 @@ class VocabularyRouter {
     }
 
     static async updateRelationshipTags(ctx) {
-        const dataset = ctx.params.dataset;
+        const { dataset } = ctx.params;
         const application = ctx.request.body.application || 'rw';
         const vocabulary = { name: ctx.params.vocabulary, application };
         const resource = VocabularyRouter.getResource(ctx.params);
-        const body = ctx.request.body;
+        const { body } = ctx.request;
         logger.info(`Updating tags of relationship: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
         try {
             const user = ctx.request.body.loggedUser;
@@ -330,11 +329,11 @@ class VocabularyRouter {
     }
 
     static async concatTags(ctx) {
-        const dataset = ctx.params.dataset;
+        const { dataset } = ctx.params;
         const application = ctx.request.body.application || 'rw';
         const vocabulary = { name: ctx.params.vocabulary, application };
         const resource = VocabularyRouter.getResource(ctx.params);
-        const body = ctx.request.body;
+        const { body } = ctx.request;
         logger.info(`Conacatenating more tags in relationship: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
         try {
             const user = ctx.request.body.loggedUser;
@@ -351,10 +350,10 @@ class VocabularyRouter {
     }
 
     static async cloneVocabularyTags(ctx) {
-        const dataset = ctx.params.dataset;
+        const { dataset } = ctx.params;
         const resource = VocabularyRouter.getResource(ctx.params);
-        const body = ctx.request.body;
-        const newDataset = body.newDataset;
+        const { body } = ctx.request;
+        const { newDataset } = body;
         logger.info(`Cloning relationships: of resource ${resource.type} - ${resource.id} in ${newDataset}`);
         try {
             const user = ctx.request.body.loggedUser;

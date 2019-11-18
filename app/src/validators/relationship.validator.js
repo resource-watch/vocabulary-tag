@@ -1,3 +1,4 @@
+/* eslint-disable func-names */
 
 const logger = require('logger');
 const RelationshipNotValid = require('errors/relationship-not-valid.error');

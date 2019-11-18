@@ -6,7 +6,7 @@ const ctRegisterMicroservice = require('sd-ct-register-microservice-node');
 const deserializer = (obj) => {
     if (obj instanceof Array) {
         return obj.data[0].attributes;
-    } else if (obj instanceof Object) {
+    } if (obj instanceof Object) {
         return obj.data.attributes;
     }
     return obj;
@@ -50,7 +50,7 @@ class ResourceService {
             ]).exec();
         }
         logger.debug('Getting resource by resource');
-        return await Resource.findOne(query).exec();
+        return Resource.findOne(query).exec();
     }
 
     static async create(dataset, pResource) {
@@ -129,11 +129,7 @@ class ResourceService {
             logger.error('Error getting resource from microservice');
             throw new ResourceNotFound(`REAL Resource ${pResource.type} - ${pResource.id} and dataset: ${dataset} doesn't exist`);
         }
-        const appPermission = resource.application.find((resourceApp) => {
-            return user.extraUserData.apps.find((app) => {
-                return app === resourceApp;
-            });
-        });
+        const appPermission = resource.application.find(resourceApp => user.extraUserData.apps.find(app => app === resourceApp));
         if (!appPermission) {
             permission = false;
         }

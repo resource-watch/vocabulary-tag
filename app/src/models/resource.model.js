@@ -1,16 +1,20 @@
 const mongoose = require('mongoose');
 
-const Schema = mongoose.Schema;
-const RESOURCES = require('app.constants').RESOURCES;
+const { Schema } = mongoose;
+const { RESOURCES } = require('app.constants');
 
 const Resource = new Schema({
     id: { type: String, required: true, trim: true },
     dataset: { type: String, required: true, trim: true },
-    type: { type: String, required: true, trim: true, enum: RESOURCES },
+    type: {
+        type: String, required: true, trim: true, enum: RESOURCES
+    },
     vocabularies: [{
         _id: false,
         id: { type: String, required: true, trim: true },
-        application: { type: String, required: true, trim: true, default: 'rw' },
+        application: {
+            type: String, required: true, trim: true, default: 'rw'
+        },
         tags: [{ type: String, required: true, trim: true }]
     }]
 });

@@ -49,7 +49,7 @@ class FavouriteRouter {
                         method: 'GET',
                         json: true
                     });
-                    for (let i = 0, length = datasetResources.data.length; i < length; i++) {
+                    for (let i = 0, { length } = datasetResources.data; i < length; i++) {
                         const dataset = datasetResources.data[i];
                         for (let j = 0, lengthData = data.length; j < lengthData; j++) {
                             if (data[j].resourceType === 'dataset' && data[j].resourceId === dataset.id) {
@@ -69,7 +69,7 @@ class FavouriteRouter {
                         json: true
                     });
                     logger.info('Obtained', widgetResources);
-                    for (let i = 0, length = widgetResources.data.length; i < length; i++) {
+                    for (let i = 0, { length } = widgetResources.data; i < length; i++) {
                         const widget = widgetResources.data[i];
                         for (let j = 0, lengthData = data.length; j < lengthData; j++) {
                             if (data[j].resourceType === 'widget' && data[j].resourceId === widget.id) {
@@ -83,7 +83,7 @@ class FavouriteRouter {
                 logger.info('Loading layers', layers);
                 if (layers.length > 0) {
                     logger.info('Loading layers', layers);
-                    for (let i = 0, length = layers.length; i < length; i++) {
+                    for (let i = 0, { length } = layers; i < length; i++) {
                         try {
                             const layerResource = await ctRegisterMicroservice.requestToMicroservice({
                                 uri: `/layer/${layers[i]}`,
