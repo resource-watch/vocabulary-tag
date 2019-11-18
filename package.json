@@ -40,6 +40,9 @@
       "url": "https://github.com/tiagojsag"
     }
   ],
+  "engines": {
+    "node": "~12"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/resource-watch/vocabulary-tag/issues"

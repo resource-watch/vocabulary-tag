@@ -4,15 +4,15 @@ set -e
 case "$1" in
     develop)
         echo "Running Development Server"
-        exec npm run develop | bunyan
+        exec yarn run develop | bunyan
         ;;
     test)
         echo "Running Test"
-        exec npm run test
+        exec yarn run test
         ;;
     start)
         echo "Running Start"
-        exec npm run start
+        exec yarn run start
         ;;
     *)
         exec "$@"
