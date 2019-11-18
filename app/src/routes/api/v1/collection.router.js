@@ -41,7 +41,7 @@ class CollectionRouter {
                         method: 'GET',
                         json: true
                     });
-                    for (let i = 0, length = datasetResources.data.length; i < length; i++) {
+                    for (let i = 0, { length } = datasetResources.data; i < length; i++) {
                         const dataset = datasetResources.data[i];
                         for (let j = 0, lengthData = data.length; j < lengthData; j++) {
                             if (data[j].resourceType === 'dataset' && data[j].resourceId === dataset.id) {
@@ -61,7 +61,7 @@ class CollectionRouter {
                         json: true
                     });
                     logger.info('Obtained', widgetResources);
-                    for (let i = 0, length = widgetResources.data.length; i < length; i++) {
+                    for (let i = 0, { length } = widgetResources.data; i < length; i++) {
                         const widget = widgetResources.data[i];
                         for (let j = 0, lengthData = data.length; j < lengthData; j++) {
                             if (data[j].resourceType === 'widget' && data[j].resourceId === widget.id) {
@@ -75,7 +75,7 @@ class CollectionRouter {
                 logger.info('Loading layers', layers);
                 if (layers.length > 0) {
                     logger.info('Loading layers', layers);
-                    for (let i = 0, length = layers.length; i < length; i++) {
+                    for (let i = 0, { length } = layers; i < length; i++) {
                         try {
                             const layerResource = await ctRegisterMicroservice.requestToMicroservice({
                                 uri: `/layer/${layers[i]}`,
@@ -101,6 +101,7 @@ class CollectionRouter {
         }
         ctx.body = CollectionSerializer.serialize(data);
     }
+
     static async findByIds(ctx) {
         logger.info('Obtaining collection by user');
         const filters = {
@@ -152,7 +153,7 @@ class CollectionRouter {
 
     static async deleteResource(ctx) {
         ctx.state.col.resources = ctx.state.col.resources
-        .filter(res => res.id !== ctx.params.resourceId || res.type !== ctx.params.resourceType);
+            .filter(res => res.id !== ctx.params.resourceId || res.type !== ctx.params.resourceType);
         await ctx.state.col.save();
         ctx.body = CollectionSerializer.serialize(ctx.state.col);
     }
@@ -165,6 +166,7 @@ const existCollection = async (ctx, next) => {
     if (ctx.method === 'GET' || ctx.method === 'DELETE') {
         loggedUser = JSON.parse(ctx.query.loggedUser);
     } else {
+        // eslint-disable-next-line prefer-destructuring
         loggedUser = ctx.request.body.loggedUser;
     }
     const col = await CollectionModel.findById(ctx.params.id);

@@ -61,17 +61,6 @@ describe('Find vocabularies by IDs', () => {
         response.body.should.have.property('data').and.be.an('array').and.length(0);
     });
 
-    it('Find vocabularies with id list containing vocabulary that does not exist returns an empty list (empty db)', async () => {
-        const response = await requester
-            .post(`/api/v1/dataset/vocabulary/find-by-ids`)
-            .send({
-                ids: ['abcd']
-            });
-
-        response.status.should.equal(200);
-        response.body.should.have.property('data').and.be.an('array').and.length(0);
-    });
-
     it('Find vocabularies with id list containing a vocabulary that exists returns only the listed vocabulary', async () => {
         resourceOne = await new Resource(createResource('rw', 3)).save();
         resourceTwo = await new Resource(createResource('gfw', 4)).save();
