@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars,no-undef */
 const nock = require('nock');
 const chai = require('chai');
 const Resource = require('models/resource.model');
@@ -6,7 +5,7 @@ const { createResource } = require('./utils');
 
 const { getTestServer } = require('./test-server');
 
-const should = chai.should();
+chai.should();
 
 let requester;
 
