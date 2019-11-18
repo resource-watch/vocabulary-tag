@@ -1,5 +1,3 @@
-/* eslint-disable no-restricted-globals */
-
 const logger = require('logger');
 const Vocabulary = require('models/vocabulary.model');
 const VocabularyDuplicated = require('errors/vocabulary-duplicated.error');
@@ -62,8 +60,7 @@ class VocabularyService {
             vocabularies.push(vocabularies[0]);
         }
 
-        // eslint-disable-next-line no-shadow
-        vocabularies = vocabularies.reduce((a, b) => a.concat(b).reduce((a, b) => {
+        vocabularies = vocabularies.reduce((c, d) => c.concat(d).reduce((a, b) => {
             // Unique a.resources
             const aUniqueResources = [];
             a.resources.forEach((nextResource) => {
@@ -75,7 +72,7 @@ class VocabularyService {
                 }
             });
             a.resources = aUniqueResources;
-            // B in a unique resorces
+            // B in a unique resources
             b.resources.forEach((nextResource) => {
                 const alreadyIn = a.resources.find(currentResource => (nextResource.type === currentResource.type)
                     && (nextResource.id === currentResource.id)
@@ -91,7 +88,7 @@ class VocabularyService {
             delete res.tags;
             return res;
         });
-        const limit = (isNaN(parseInt(query.limit, 10))) ? 0 : parseInt(query.limit, 10);
+        const limit = (Number.isNaN(parseInt(query.limit, 10))) ? 0 : parseInt(query.limit, 10);
         if (limit > 0) {
             return vocabularies.slice(0, limit - 1);
         }
@@ -166,7 +163,7 @@ class VocabularyService {
     // }
 
     static async getAll(filter) {
-        const limit = (isNaN(parseInt(filter.limit, 10))) ? 0 : parseInt(filter.limit, 10);
+        const limit = (Number.isNaN(parseInt(filter.limit, 10))) ? 0 : parseInt(filter.limit, 10);
         logger.debug('Getting vocabularies');
         const vocabularies = await Vocabulary.find({}).limit(limit).exec();
         return vocabularies;

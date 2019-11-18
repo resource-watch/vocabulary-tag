@@ -1,4 +1,7 @@
+const chai = require('chai');
 const errorSerializer = require('serializers/error.serializer');
+
+chai.should();
 
 describe('Error serializer test', () => {
     const data = [
