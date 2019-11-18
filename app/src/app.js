@@ -76,11 +76,15 @@ async function init() {
                     try {
                         error = JSON.parse(inErr);
                     } catch (e) {
-                        logger.error('Parsing error');
+                        logger.error('Could not parse error message - is it JSON?: ', inErr);
                         error = inErr;
                     }
                     ctx.status = error.status || ctx.status || 500;
-                    logger.error(error);
+                    if (ctx.status >= 500) {
+                        logger.error(error);
+                    } else {
+                        logger.info(error);
+                    }
                     ctx.body = ErrorSerializer.serializeError(ctx.status, error.message);
                     if (process.env.NODE_ENV === 'prod' && ctx.status === 500) {
                         ctx.body = 'Unexpected error';
