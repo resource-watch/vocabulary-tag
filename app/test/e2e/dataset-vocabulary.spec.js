@@ -112,6 +112,31 @@ describe('Dataset vocabulary test suite', () => {
         response.body.data[1].attributes.should.have.property('tags').and.deep.equal(['countries', 'cities']);
     });
 
+    it('Deleting vocabulary-dataset relationship with authorization should be successful', async () => {
+        // Mock the request for dataset validation
+        const mockDatasetId = mockDataset({ nock });
+
+        // Prepare vocabulary test data
+        const vocabName = 'sciencev2';
+        const vocabData = { application: 'rw', tags: ['biology', 'chemistry'] };
+
+        // Perform POST request for creating the vocabulary-dataset relationship
+        await requester.post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
+            .send({ ...vocabData, loggedUser: USERS.ADMIN });
+
+        // Mock the request for dataset validation
+        mockDataset({ nock, id: mockDatasetId });
+
+        // Perform DELETE request for deleting the vocabulary-dataset relationship
+        const response = await requester
+            .delete(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}?loggedUser=${JSON.stringify(USERS.ADMIN)}`)
+            .send();
+
+        // Assert the response as 200 OK with the created data in the body of the request
+        response.status.should.equal(200);
+        response.body.should.have.property('data').and.be.an('array');
+    });
+
     afterEach(() => {
         if (!nock.isDone()) {
             throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);
