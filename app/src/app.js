@@ -2,6 +2,7 @@ const Koa = require('koa');
 const logger = require('logger');
 const koaLogger = require('koa-logger');
 const mongoose = require('mongoose');
+const koaSimpleHealthCheck = require('koa-simple-healthcheck');
 const config = require('config');
 const loader = require('loader');
 const ctRegisterMicroservice = require('sd-ct-register-microservice-node');
@@ -21,7 +22,7 @@ const koaBody = require('koa-body')({
 let dbOptions = {};
 
 // KUBE CLUSTER
-if (mongoUri.indexOf('replicaSet') > - 1) {
+if (mongoUri.indexOf('replicaSet') > -1) {
     dbOptions = {
         db: { native_parser: true },
         replset: {
@@ -75,11 +76,15 @@ async function init() {
                     try {
                         error = JSON.parse(inErr);
                     } catch (e) {
-                        logger.error('Parsing error');
+                        logger.error('Could not parse error message - is it JSON?: ', inErr);
                         error = inErr;
                     }
                     ctx.status = error.status || ctx.status || 500;
-                    logger.error(error);
+                    if (ctx.status >= 500) {
+                        logger.error(error);
+                    } else {
+                        logger.info(error);
+                    }
                     ctx.body = ErrorSerializer.serializeError(ctx.status, error.message);
                     if (process.env.NODE_ENV === 'prod' && ctx.status === 500) {
                         ctx.body = 'Unexpected error';
@@ -89,6 +94,7 @@ async function init() {
             });
 
             app.use(koaLogger());
+            app.use(koaSimpleHealthCheck());
 
             koaValidate(app);
 
@@ -114,7 +120,7 @@ async function init() {
             });
             logger.info('Server started in ', process.env.PORT);
             resolve({ app, server });
-        };
+        }
 
         logger.info(`Connecting to MongoDB URL ${mongoUri}`);
         mongoose.connect(mongoUri, dbOptions, onDbReady);

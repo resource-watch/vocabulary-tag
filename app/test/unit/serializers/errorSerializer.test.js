@@ -1,6 +1,7 @@
-const should = require('should');
-const assert = require('assert');
+const chai = require('chai');
 const errorSerializer = require('serializers/error.serializer');
+
+chai.should();
 
 describe('Error serializer test', () => {
     const data = [
@@ -15,7 +16,7 @@ describe('Error serializer test', () => {
     it('Generate correct jsonapi response', () => {
         const response = errorSerializer.serializeValidationBodyErrors(data);
 
-        response.should.not.be.a.Array();
+        response.should.not.be.an('array');
         response.should.have.property('errors');
         response.errors.should.have.length(2);
 
@@ -25,11 +26,11 @@ describe('Error serializer test', () => {
         error.should.have.property('title');
         error.should.have.property('detail');
         error.should.have.property('code');
-        error.detail.should.be.a.String();
-        error.title.should.be.a.String();
-        error.code.should.be.a.String();
-        error.source.should.be.a.Object();
+        error.detail.should.be.a('string');
+        error.title.should.be.a('string');
+        error.code.should.be.a('string');
+        error.source.should.be.an('object');
         error.source.should.have.property('parameter');
-        error.source.parameter.should.be.a.String();
+        error.source.parameter.should.be.a('string');
     });
 });

@@ -1,11 +1,6 @@
-
 const logger = require('logger');
 const Vocabulary = require('models/vocabulary.model');
-const ResourceService = require('services/resource.service');
-const VocabularyNotFound = require('errors/vocabulary-not-found.error');
 const VocabularyDuplicated = require('errors/vocabulary-duplicated.error');
-const ResourceUpdateFailed = require('errors/resource-update-failed.error');
-const ConsistencyViolation = require('errors/consistency-violation.error');
 
 class VocabularyService {
 
@@ -22,29 +17,33 @@ class VocabularyService {
         logger.debug(`Getting resources by vocabulary-tag`);
         const application = pQuery.application || pQuery.app;
         const query = VocabularyService.getQuery(pQuery);
-        let vocabularies = Object.keys(query).map((vocabularyName) => {
-            return Vocabulary.aggregate([
-                { $match: {
+        let vocabularies = Object.keys(query).map(vocabularyName => Vocabulary.aggregate([
+            {
+                $match: {
                     id: vocabularyName,
                     application: application || { $ne: null },
                     'resources.type': resource.type,
                     'resources.tags': { $in: query[vocabularyName].split(',').map(elem => elem.trim()) }
-                } },
+                }
+            },
 
-                { $unwind: '$resources' },
-                { $unwind: '$resources.tags' },
+            { $unwind: '$resources' },
+            { $unwind: '$resources.tags' },
 
-                { $match: {
+            {
+                $match: {
                     'resources.type': resource.type,
                     'resources.tags': { $in: query[vocabularyName].split(',').map(elem => elem.trim()) }
-                } },
+                }
+            },
 
-                { $group: {
+            {
+                $group: {
                     _id: 0,
                     resources: { $push: '$resources' }
-                } }
-            ]).exec();
-        });
+                }
+            }
+        ]).exec());
         vocabularies = (await Promise.all(vocabularies)); // [array of promises]
         if (!vocabularies || vocabularies.length === 0 || vocabularies[0].length === 0) {
             return null;
@@ -60,37 +59,36 @@ class VocabularyService {
         if (vocabularies.length === 1) {
             vocabularies.push(vocabularies[0]);
         }
-        vocabularies = vocabularies.reduce((a, b) => {
-            return a.concat(b).reduce((a, b) => {
-                // Unique a.resources
-                const aUniqueResources = [];
-                a.resources.forEach((nextResource) => {
-                    const alreadyIn = aUniqueResources.find((currentResource) => {
-                        return (nextResource.type === currentResource.type) && (nextResource.id === currentResource.id) && (nextResource.dataset === currentResource.dataset);
-                    });
-                    if (!alreadyIn) {
-                        aUniqueResources.push(nextResource);
-                    }
-                });
-                a.resources = aUniqueResources;
-                // B in a unique resorces
-                b.resources.forEach((nextResource) => {
-                    const alreadyIn = a.resources.find((currentResource) => {
-                        return (nextResource.type === currentResource.type) && (nextResource.id === currentResource.id) && (nextResource.dataset === currentResource.dataset);
-                    });
-                    if (!alreadyIn) {
-                        a.resources.push(nextResource);
-                    }
-                });
-                return a;
+
+        vocabularies = vocabularies.reduce((c, d) => c.concat(d).reduce((a, b) => {
+            // Unique a.resources
+            const aUniqueResources = [];
+            a.resources.forEach((nextResource) => {
+                const alreadyIn = aUniqueResources.find(currentResource => (nextResource.type === currentResource.type)
+                    && (nextResource.id === currentResource.id)
+                    && (nextResource.dataset === currentResource.dataset));
+                if (!alreadyIn) {
+                    aUniqueResources.push(nextResource);
+                }
             });
-        });
+            a.resources = aUniqueResources;
+            // B in a unique resources
+            b.resources.forEach((nextResource) => {
+                const alreadyIn = a.resources.find(currentResource => (nextResource.type === currentResource.type)
+                    && (nextResource.id === currentResource.id)
+                    && (nextResource.dataset === currentResource.dataset));
+                if (!alreadyIn) {
+                    a.resources.push(nextResource);
+                }
+            });
+            return a;
+        }));
         // deleting tags from resource
-        vocabularies.resources = vocabularies.resources.map((resource) => {
-            delete resource.tags;
-            return resource;
+        vocabularies.resources = vocabularies.resources.map((res) => {
+            delete res.tags;
+            return res;
         });
-        const limit = (isNaN(parseInt(query.limit, 10))) ? 0 : parseInt(query.limit, 10);
+        const limit = (Number.isNaN(parseInt(query.limit, 10))) ? 0 : parseInt(query.limit, 10);
         if (limit > 0) {
             return vocabularies.slice(0, limit - 1);
         }
@@ -165,7 +163,7 @@ class VocabularyService {
     // }
 
     static async getAll(filter) {
-        const limit = (isNaN(parseInt(filter.limit, 10))) ? 0 : parseInt(filter.limit, 10);
+        const limit = (Number.isNaN(parseInt(filter.limit, 10))) ? 0 : parseInt(filter.limit, 10);
         logger.debug('Getting vocabularies');
         const vocabularies = await Vocabulary.find({}).limit(limit).exec();
         return vocabularies;

@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars,no-undef */
 const nock = require('nock');
 const chai = require('chai');
 const Resource = require('models/resource.model');
@@ -6,7 +5,7 @@ const { createResource } = require('./utils');
 
 const { getTestServer } = require('./test-server');
 
-const should = chai.should();
+chai.should();
 
 let requester;
 
@@ -44,17 +43,6 @@ describe('Find vocabularies by IDs', () => {
             .post(`/api/v1/dataset/vocabulary/find-by-ids`)
             .send({
                 ids: []
-            });
-
-        response.status.should.equal(200);
-        response.body.should.have.property('data').and.be.an('array').and.length(0);
-    });
-
-    it('Find vocabularies with id list containing vocabulary that does not exist returns an empty list (empty db)', async () => {
-        const response = await requester
-            .post(`/api/v1/dataset/vocabulary/find-by-ids`)
-            .send({
-                ids: ['abcd']
             });
 
         response.status.should.equal(200);

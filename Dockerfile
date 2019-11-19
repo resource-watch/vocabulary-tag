@@ -1,5 +1,5 @@
-FROM node:9.2-alpine
-MAINTAINER sergio.gordillo@vizzuality.com
+FROM node:12-alpine
+MAINTAINER info@vizzuality.com
 
 ENV NAME vocabulary-tag
 ENV USER microservice
@@ -9,11 +9,11 @@ RUN apk update && apk upgrade && \
 
 RUN addgroup $USER && adduser -s /bin/bash -D -G $USER $USER
 
-RUN npm install --unsafe-perm -g bunyan  grunt-cli
+RUN yarn global add bunyan  grunt-cli
 
 RUN mkdir -p /opt/$NAME
 COPY package.json /opt/$NAME/package.json
-RUN cd /opt/$NAME && npm install
+RUN cd /opt/$NAME && yarn install
 
 COPY entrypoint.sh /opt/$NAME/entrypoint.sh
 COPY config /opt/$NAME/config

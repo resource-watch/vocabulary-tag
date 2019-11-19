@@ -1,20 +1,26 @@
 const mongoose = require('mongoose');
 
-const Schema = mongoose.Schema;
-const RESOURCES = require('app.constants').RESOURCES;
-const STATUS = require('app.constants').STATUS;
+const { Schema } = mongoose;
+const { RESOURCES } = require('app.constants');
+const { STATUS } = require('app.constants');
 
 const Vocabulary = new Schema({
     id: { type: String, required: true, trim: true },
-    application: { type: String, required: true, trim: true, default: 'rw' },
+    application: {
+        type: String, required: true, trim: true, default: 'rw'
+    },
     resources: [{
         _id: false,
         id: { type: String, required: true, trim: true },
         dataset: { type: String, required: true, trim: true },
-        type: { type: String, required: true, trim: true, enum: RESOURCES },
+        type: {
+            type: String, required: true, trim: true, enum: RESOURCES
+        },
         tags: [{ type: String, required: true, trim: true }]
     }],
-    userId: { type: String, required: false, trim: true, default: 'legacy' },
+    userId: {
+        type: String, required: false, trim: true, default: 'legacy'
+    },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
     status: { type: String, enum: STATUS, default: 'published' }

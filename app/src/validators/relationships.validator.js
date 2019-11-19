@@ -1,4 +1,3 @@
-
 const logger = require('logger');
 const RelationshipsNotValid = require('errors/relationships-not-valid.error');
 
@@ -6,21 +5,18 @@ class RelationshipsValidator {
 
     static async validate(ctx) {
         logger.info('Validating Relationships Creation');
-        Object.keys(ctx.request.body).forEach(function (key) {
+        Object.keys(ctx.request.body).forEach(((key) => {
             if (key !== 'loggedUser') {
-                ctx.checkBody(key).check(function () {
-                    if (this[key] instanceof Object && this[key].length === undefined) {
-                        const matchTags = this[key].tags instanceof Array && this[key].tags.length > 0;
-                        const matchApplication = (typeof this[key].application === 'string') && this[key].application.length;
-                        if (matchTags && matchApplication) {
-                            return true;
-                        }
-                        return false;
+                ctx.checkBody(key).check(() => {
+                    if (ctx.request.body[key] instanceof Object && ctx.request.body[key].length === undefined) {
+                        const matchTags = ctx.request.body[key].tags instanceof Array && ctx.request.body[key].tags.length > 0;
+                        const matchApplication = (typeof ctx.request.body[key].application === 'string') && ctx.request.body[key].application.length;
+                        return (matchTags && matchApplication);
                     }
                     return false;
-                }.bind(ctx.request.body));
+                });
             }
-        }.bind(ctx.request.body));
+        }));
         if (ctx.errors) {
             logger.error('Error validating relationships creation');
             throw new RelationshipsNotValid(ctx.errors);

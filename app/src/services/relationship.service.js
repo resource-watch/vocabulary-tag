@@ -11,9 +11,7 @@ const VocabularyNotFound = require('errors/vocabulary-not-found.error');
 class RelationshipService {
 
     static checkRelationship(resource, vocabulary) {
-        return resource.vocabularies.find((elVocabulary) => {
-            return (vocabulary.id === elVocabulary.id) && (vocabulary.application === elVocabulary.application);
-        });
+        return resource.vocabularies.find(elVocabulary => (vocabulary.id === elVocabulary.id) && (vocabulary.application === elVocabulary.application));
     }
 
     static async create(user, pVocabulary, dataset, pResource, body) {
@@ -65,7 +63,7 @@ class RelationshipService {
         for (let i = 0; i < vocabularies.length; i++) {
             await RelationshipService.create(user, vocabularies[i], dataset, pResource, vocabularies[i]);
         }
-        return await ResourceService.get(dataset, pResource);
+        return ResourceService.get(dataset, pResource);
     }
 
     static async delete(user, pVocabulary, dataset, pResource) {
@@ -112,7 +110,7 @@ class RelationshipService {
         for (let i = 0; i < vocabularies.length; i++) {
             await RelationshipService.delete(user, vocabularies[i], dataset, pResource);
         }
-        return await ResourceService.get(dataset, pResource);
+        return ResourceService.get(dataset, pResource);
     }
 
     static async deleteAll(user, dataset, pResource) {
@@ -121,11 +119,9 @@ class RelationshipService {
             logger.debug(`This resource doesn't have Relationships`);
             throw new RelationshipNotFound(`This resource doesn't have Relationships`);
         }
-        const vocabularies = resource.vocabularies.map((vocabulary) => {
-            return {
-                name: vocabulary.id
-            };
-        });
+        const vocabularies = resource.vocabularies.map(vocabulary => ({
+            name: vocabulary.id
+        }));
         for (let i = 0; i < vocabularies.length; i++) {
             await RelationshipService.delete(user, vocabularies[i], dataset, pResource);
         }
@@ -151,7 +147,7 @@ class RelationshipService {
         }
         let position;
         try {
-            for (let i = 0, length = vocabulary.resources.length; i < length; i++) {
+            for (let i = 0, { length } = vocabulary.resources; i < length; i++) {
                 if (vocabulary.resources[i].type === resource.type && vocabulary.resources[i].id === resource.id) {
                     position = i;
                     break;
@@ -165,7 +161,7 @@ class RelationshipService {
         }
         logger.debug(`Tags to resource`);
         position = 0;
-        for (let i = 0, length = resource.vocabularies.length; i < length; i++) {
+        for (let i = 0, { length } = resource.vocabularies; i < length; i++) {
             if (resource.vocabularies[i].id === vocabulary.id && resource.vocabularies[i].application === pVocabulary.application) {
                 position = i;
                 break;
@@ -196,7 +192,7 @@ class RelationshipService {
         logger.debug(`Checking if relationship doesn't exist yet`);
         const relationship = RelationshipService.checkRelationship(resource, vocabulary);
         if (!relationship) {
-            return await RelationshipService.create(user, pVocabulary, dataset, pResource, body);
+            return RelationshipService.create(user, pVocabulary, dataset, pResource, body);
         }
         try {
             body.tags.forEach((el) => {
@@ -216,7 +212,7 @@ class RelationshipService {
         if (!resource) {
             throw new ResourceNotFound(`Resource ${pResource.type} - ${pResource.id} and dataset: ${dataset} doesn't exist`);
         }
-        const vocabularies = resource.toObject().vocabularies;
+        const { vocabularies } = resource.toObject();
         vocabularies.map((vocabulary) => {
             vocabulary.name = vocabulary.id;
             delete vocabulary.id;

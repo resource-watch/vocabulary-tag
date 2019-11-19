@@ -1,7 +1,7 @@
 const logger = require('logger');
 const ErrorSerializer = require('serializers/error.serializer');
 const FavouriteModel = require('models/favourite.model');
-const RESOURCES = require('app.constants').RESOURCES;
+const { RESOURCES } = require('app.constants');
 
 class FavouriteValidator {
 
