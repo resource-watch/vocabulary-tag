@@ -25,7 +25,7 @@ describe('Find vocabularies by IDs', () => {
 
         requester = await getTestServer();
 
-        Resource.remove({}).exec();
+        await Resource.deleteMany();
     });
 
     it('Find vocabularies without ids in body returns a 400 error', async () => {
@@ -180,7 +180,7 @@ describe('Find vocabularies by IDs', () => {
         }
     });
 
-    after(() => {
-        Resource.remove({}).exec();
+    after(async () => {
+        await Resource.deleteMany();
     });
 });
