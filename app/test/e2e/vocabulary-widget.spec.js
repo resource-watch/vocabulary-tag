@@ -44,7 +44,7 @@ describe('Vocabulary-widget relationships test suite', () => {
 
     it('Creating a vocabulary-widget relationship with authorization should be successful', async () => {
         // Mock the request for widget validation
-        const mockWidgetId = mockWidget({ nock });
+        const mockWidgetId = mockWidget().id;
 
         // Prepare vocabulary test data
         const vocabName = 'science';
@@ -63,7 +63,7 @@ describe('Vocabulary-widget relationships test suite', () => {
 
     it('Updating a vocabulary-widget relationship with authorization should be successful', async () => {
         // Mock the request for widget validation
-        const mockWidgetId = mockWidget({ nock });
+        const mockWidgetId = mockWidget().id;
 
         // Prepare vocabulary test data
         const vocabName = 'fruits';
@@ -75,7 +75,7 @@ describe('Vocabulary-widget relationships test suite', () => {
             .send({ ...vocabData, loggedUser: USERS.ADMIN });
 
         // Mock again the request for widget validation
-        mockWidget({ nock, id: mockWidgetId });
+        mockWidget(mockWidgetId);
 
         // Test the update of vocabulary associated with the mock dataset
         const response = await requester
@@ -92,7 +92,7 @@ describe('Vocabulary-widget relationships test suite', () => {
 
     it('Creating multiple vocabulary-widget relationships with authorization should be successful', async () => {
         // Mock the request for widget validation
-        const mockWidgetId = mockWidget({ nock });
+        const mockWidgetId = mockWidget().id;
 
         // Perform POST request for creating multiple vocabulary-dataset relationships
         const response = await requester
@@ -116,7 +116,7 @@ describe('Vocabulary-widget relationships test suite', () => {
 
     it('Deleting vocabulary-widget relationship with authorization should be successful', async () => {
         // Mock the request for widget validation
-        const mockWidgetId = mockWidget({ nock });
+        const mockWidgetId = mockWidget().id;
 
         // Prepare vocabulary test data
         const vocabName = 'sciencev2';
@@ -127,7 +127,7 @@ describe('Vocabulary-widget relationships test suite', () => {
             .send({ ...vocabData, loggedUser: USERS.ADMIN });
 
         // Mock the request for dataset validation
-        mockWidget({ nock, id: mockWidgetId });
+        mockWidget(mockWidgetId);
 
         // Perform DELETE request for deleting the vocabulary-dataset relationship
         const response = await requester
@@ -151,7 +151,7 @@ describe('Vocabulary-widget relationships test suite', () => {
 
     it('Getting vocabulary-widget relationships with authorization should be successful', async () => {
         // Mock the request for widget validation
-        const mockWidgetId = mockWidget({ nock });
+        const mockWidgetId = mockWidget().id;
 
         // Prepare vocabulary test data
         const vocabName = 'science-widget';
@@ -162,7 +162,7 @@ describe('Vocabulary-widget relationships test suite', () => {
             .send({ ...vocabData, loggedUser: USERS.ADMIN });
 
         // Mock again the request for widget validation
-        mockWidget({ nock, id: mockWidgetId });
+        mockWidget(mockWidgetId);
 
         // Perform GET request for the vocabulary-widget relationships
         const response = await requester
