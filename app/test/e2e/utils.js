@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+
 const getUUID = () => Math.random().toString(36).substring(7);
 
 const createVocabulary = (app = 'rw') => {
@@ -63,13 +65,12 @@ const createResource = (app = 'rw', vocabularyCount = 1) => {
  * @returns {String} The id of the mock dataset.
  */
 const mockDataset = ({ nock, id = undefined }) => {
-    // If id has not been provided, set it as the current timestamp
-    const idToUse = id || new Date().getTime();
+    const idToUse = id || mongoose.Types.ObjectId();
     nock(process.env.CT_URL)
         .get(`/v1/dataset/${idToUse}`)
         .reply(200, {
             data: {
-                id,
+                id: idToUse,
                 type: 'dataset',
                 attributes: {
                     name: 'Uncontrolled Public-Use Airports -- U.S.',
@@ -118,8 +119,7 @@ const mockDataset = ({ nock, id = undefined }) => {
  * @returns {String} The id of the mock widget.
  */
 const mockWidget = ({ nock, id = undefined }) => {
-    // If id has not been provided, set it as the current timestamp
-    const idToUse = id || new Date().getTime();
+    const idToUse = id || mongoose.Types.ObjectId();
     nock(process.env.CT_URL)
         .get(`/v1/widget/${idToUse}`)
         .reply(200, {
@@ -169,13 +169,12 @@ const mockWidget = ({ nock, id = undefined }) => {
  * @returns {String} The id of the mock layer.
  */
 const mockLayer = ({ nock, id = undefined }) => {
-    // If id has not been provided, set it as the current timestamp
-    const idToUse = id || new Date().getTime();
+    const idToUse = id || mongoose.Types.ObjectId();
     nock(process.env.CT_URL)
         .get(`/v1/layer/${idToUse}`)
         .reply(200, {
             data: {
-                id: '01302512-cd51-4a00-a687-080ddd4c8872',
+                id: idToUse,
                 type: 'layer',
                 attributes: {
                     name: 'Heating Degree Days - Divisional',
