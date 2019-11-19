@@ -13,6 +13,6 @@ const Collection = new Schema({
         id: { type: String, required: true, trim: true },
         type: { type: String, required: true, trim: true }
     }]
-});
+}, { usePushEach: true });
 
 module.exports = mongoose.model('Collection', Collection);

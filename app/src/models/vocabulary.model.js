@@ -24,6 +24,6 @@ const Vocabulary = new Schema({
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
     status: { type: String, enum: STATUS, default: 'published' }
-});
+}, { usePushEach: true });
 
 module.exports = mongoose.model('Vocabulary', Vocabulary);
