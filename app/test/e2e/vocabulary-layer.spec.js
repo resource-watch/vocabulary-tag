@@ -44,7 +44,7 @@ describe('Vocabulary-layer relationships test suite', () => {
 
     it('Creating a vocabulary-layer relationship with authorization should be successful', async () => {
         // Mock the request for layer validation
-        const mockLayerId = mockLayer({ nock });
+        const mockLayerId = mockLayer().id;
 
         // Prepare vocabulary test data
         const vocabName = 'science';
@@ -63,7 +63,7 @@ describe('Vocabulary-layer relationships test suite', () => {
 
     it('Updating a vocabulary-layer relationship with authorization should be successful', async () => {
         // Mock the request for layer validation
-        const mockLayerId = mockLayer({ nock });
+        const mockLayerId = mockLayer().id;
 
         // Prepare vocabulary test data
         const vocabName = 'fruits';
@@ -75,7 +75,7 @@ describe('Vocabulary-layer relationships test suite', () => {
             .send({ ...vocabData, loggedUser: USERS.ADMIN });
 
         // Mock again the request for layer validation
-        mockLayer({ nock, id: mockLayerId });
+        mockLayer(mockLayerId);
 
         // Test the update of vocabulary associated with the mock dataset
         const response = await requester
@@ -92,7 +92,7 @@ describe('Vocabulary-layer relationships test suite', () => {
 
     it('Creating multiple vocabulary-layer relationships with authorization should be successful', async () => {
         // Mock the request for layer validation
-        const mockLayerId = mockLayer({ nock });
+        const mockLayerId = mockLayer().id;
 
         // Perform POST request for creating multiple vocabulary-dataset relationships
         const response = await requester
@@ -116,7 +116,7 @@ describe('Vocabulary-layer relationships test suite', () => {
 
     it('Deleting vocabulary-layer relationship with authorization should be successful', async () => {
         // Mock the request for layer validation
-        const mockLayerId = mockLayer({ nock });
+        const mockLayerId = mockLayer().id;
 
         // Prepare vocabulary test data
         const vocabName = 'sciencev2';
@@ -127,7 +127,7 @@ describe('Vocabulary-layer relationships test suite', () => {
             .send({ ...vocabData, loggedUser: USERS.ADMIN });
 
         // Mock the request for dataset validation
-        mockLayer({ nock, id: mockLayerId });
+        mockLayer(mockLayerId);
 
         // Perform DELETE request for deleting the vocabulary-dataset relationship
         const response = await requester
@@ -151,7 +151,7 @@ describe('Vocabulary-layer relationships test suite', () => {
 
     it('Getting vocabulary-layer relationships with authorization should be successful', async () => {
         // Mock the request for layer validation
-        const mockLayerId = mockLayer({ nock });
+        const mockLayerId = mockLayer().id;
 
         // Prepare vocabulary test data
         const vocabName = 'science-layer';
@@ -162,7 +162,7 @@ describe('Vocabulary-layer relationships test suite', () => {
             .send({ ...vocabData, loggedUser: USERS.ADMIN });
 
         // Mock again the request for layer validation
-        mockLayer({ nock, id: mockLayerId });
+        mockLayer(mockLayerId);
 
         // Perform GET request for the vocabulary-layer relationships
         const response = await requester

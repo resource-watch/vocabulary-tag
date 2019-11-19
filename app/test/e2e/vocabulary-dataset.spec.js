@@ -44,7 +44,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
 
     it('Creating a vocabulary-dataset relationship with authorization should be successful', async () => {
         // Mock the request for dataset validation
-        const mockDatasetId = mockDataset({ nock });
+        const mockDatasetId = mockDataset().id;
 
         // Prepare vocabulary test data
         const vocabName = 'science';
@@ -63,7 +63,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
 
     it('Updating a vocabulary-dataset relationship with authorization should be successful', async () => {
         // Mock the request for dataset validation
-        const mockDatasetId = mockDataset({ nock });
+        const mockDatasetId = mockDataset().id;
         const vocabName = 'fruits';
         const vocabData = { application: 'gfw', tags: ['bananas', 'apples'] };
         const vocabData2 = { application: 'gfw', tags: ['pears', 'avocados'] };
@@ -73,7 +73,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
             .send({ ...vocabData, loggedUser: USERS.ADMIN });
 
         // Mock again the request for dataset validation
-        mockDataset({ nock, id: mockDatasetId });
+        mockDataset(mockDatasetId);
 
         // Test the update of vocabulary associated with the mock dataset
         const response = await requester
@@ -90,7 +90,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
 
     it('Creating multiple vocabulary-dataset relationships with authorization should be successful', async () => {
         // Mock the request for dataset validation
-        const mockDatasetId = mockDataset({ nock });
+        const mockDatasetId = mockDataset().id;
 
         // Perform POST request for creating multiple vocabulary-dataset relationships
         const response = await requester
@@ -114,7 +114,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
 
     it('Deleting vocabulary-dataset relationship with authorization should be successful', async () => {
         // Mock the request for dataset validation
-        const mockDatasetId = mockDataset({ nock });
+        const mockDatasetId = mockDataset().id;
 
         // Prepare vocabulary test data
         const vocabName = 'sciencev2';
@@ -125,7 +125,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
             .send({ ...vocabData, loggedUser: USERS.ADMIN });
 
         // Mock the request for dataset validation
-        mockDataset({ nock, id: mockDatasetId });
+        mockDataset(mockDatasetId);
 
         // Perform DELETE request for deleting the vocabulary-dataset relationship
         const response = await requester
@@ -149,7 +149,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
 
     it('Getting vocabulary-dataset relationships with authorization should be successful', async () => {
         // Mock the request for dataset validation
-        const mockDatasetId = mockDataset({ nock });
+        const mockDatasetId = mockDataset().id;
 
         // Prepare vocabulary test data
         const vocabName = 'sciencev3';
@@ -160,7 +160,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
             .send({ ...vocabData, loggedUser: USERS.ADMIN });
 
         // Mock again the request for dataset validation
-        mockDataset({ nock, id: mockDatasetId });
+        mockDataset(mockDatasetId);
 
         // Perform GET request for the vocabulary-dataset relationships
         const response = await requester
