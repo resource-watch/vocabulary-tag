@@ -88,6 +88,30 @@ describe('Dataset vocabulary test suite', () => {
         response.body.data[0].attributes.should.have.property('tags').and.deep.equal(vocabData2.tags);
     });
 
+    it('Creating multiple vocabulary-dataset relationships with authorization should be successful', async () => {
+        // Mock the request for dataset validation
+        const mockDatasetId = mockDataset({ nock });
+
+        // Perform POST request for creating multiple vocabulary-dataset relationships
+        const response = await requester
+            .post(`/api/v1/dataset/${mockDatasetId}/vocabulary`)
+            .send({
+                physics: { application: 'gfw', tags: ['quantum', 'universe'] },
+                geography: { application: 'rw', tags: ['countries', 'cities'] },
+                loggedUser: USERS.ADMIN
+            });
+
+        // Assert the response as 200 OK with the created data in the body of the request
+        response.status.should.equal(200);
+        response.body.should.have.property('data').and.be.an('array');
+        response.body.data[0].attributes.should.have.property('name').and.equal('physics');
+        response.body.data[0].attributes.should.have.property('application').and.equal('gfw');
+        response.body.data[0].attributes.should.have.property('tags').and.deep.equal(['quantum', 'universe']);
+        response.body.data[1].attributes.should.have.property('name').and.equal('geography');
+        response.body.data[1].attributes.should.have.property('application').and.equal('rw');
+        response.body.data[1].attributes.should.have.property('tags').and.deep.equal(['countries', 'cities']);
+    });
+
     afterEach(() => {
         if (!nock.isDone()) {
             throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);
