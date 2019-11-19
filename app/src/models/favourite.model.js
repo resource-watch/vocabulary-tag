@@ -13,6 +13,6 @@ const Favourite = new Schema({
     },
     userId: { type: String, required: true, trim: true },
     createdAt: { type: Date, required: true, default: Date.now }
-});
+}, { usePushEach: true });
 
 module.exports = mongoose.model('Favourite', Favourite);
