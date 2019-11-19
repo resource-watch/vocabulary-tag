@@ -27,34 +27,65 @@ describe('Dataset vocabulary test suite', () => {
     });
 
     it('Creating a vocabulary-dataset relationship requires authorization', async () => {
-        const mockDatasetId = new Date().getTime();
+        // Prepare vocabulary test data
         const vocabName = 'science';
         const vocabData = { application: 'rw', tags: ['biology', 'chemistry'] };
 
+        // Perform POST request for creating the vocabulary-dataset relationship
         const response = await requester
-            .post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
+            .post(`/api/v1/dataset/123/vocabulary/${vocabName}`)
             .send(vocabData);
 
+        // Assert the response as 401 Unauthorized
         response.status.should.equal(401);
         response.body.should.have.property('errors').and.be.an('array');
         response.body.errors[0].should.have.property('detail').and.equal('Unauthorized');
     });
 
     it('Creating a vocabulary-dataset relationship with authorization should be successful', async () => {
-        const mockDatasetId = new Date().getTime();
+        // Mock the request for dataset validation
+        const mockDatasetId = mockDataset({ nock });
+
+        // Prepare vocabulary test data
         const vocabName = 'science';
         const vocabData = { application: 'rw', tags: ['biology', 'chemistry'] };
 
-        mockDataset({ nock, id: mockDatasetId });
-
-        // Test creation of vocabulary associated with the mock dataset
+        // Perform POST request for creating the vocabulary-dataset relationship
         const response = await requester
             .post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
             .send({ ...vocabData, loggedUser: USERS.ADMIN });
 
+        // Assert the response as 200 OK with the created data in the body of the request
         response.status.should.equal(200);
         response.body.should.have.property('data').and.be.an('array');
         response.body.data[0].should.have.property('id').and.equal(vocabName);
+    });
+
+    it('Updating a vocabulary-dataset relationship with authorization should be successful', async () => {
+        // Mock the request for dataset validation
+        const mockDatasetId = mockDataset({ nock });
+        const vocabName = 'fruits';
+        const vocabData = { application: 'gfw', tags: ['bananas', 'apples'] };
+        const vocabData2 = { application: 'gfw', tags: ['pears', 'avocados'] };
+
+        // Test creation of vocabulary associated with the mock dataset
+        await requester.post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
+            .send({ ...vocabData, loggedUser: USERS.ADMIN });
+
+        // Mock again the request for dataset validation
+        mockDataset({ nock, id: mockDatasetId });
+
+        // Test the update of vocabulary associated with the mock dataset
+        const response = await requester
+            .patch(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
+            .send({ ...vocabData2, loggedUser: USERS.ADMIN });
+
+        // Assert the response as 200 OK with the updated data in the body of the request
+        response.status.should.equal(200);
+        response.body.should.have.property('data').and.be.an('array');
+        response.body.data[0].should.have.property('id').and.equal(vocabName);
+        response.body.data[0].attributes.should.have.property('application').and.equal(vocabData2.application);
+        response.body.data[0].attributes.should.have.property('tags').and.deep.equal(vocabData2.tags);
     });
 
     afterEach(() => {
