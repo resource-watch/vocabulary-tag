@@ -22,8 +22,8 @@ describe('Vocabulary-dataset relationships test suite', () => {
 
         requester = await getTestServer();
 
-        Resource.remove({}).exec();
-        Vocabulary.remove({}).exec();
+        await Resource.deleteMany();
+        await Vocabulary.deleteMany();
     });
 
     it('Creating a vocabulary-dataset relationship requires authorization', async () => {
@@ -137,14 +137,52 @@ describe('Vocabulary-dataset relationships test suite', () => {
         response.body.should.have.property('data').and.be.an('array');
     });
 
+    it('Getting vocabulary-dataset relationships without authorization should NOT be successful', async () => {
+        // Perform GET request for the vocabulary-dataset relationships
+        const response = await requester.post(`/api/v1/dataset/123/vocabulary`).send();
+
+        // Assert the response as 401 Unauthorized
+        response.status.should.equal(401);
+        response.body.should.have.property('errors').and.be.an('array');
+        response.body.errors[0].should.have.property('detail').and.equal('Unauthorized');
+    });
+
+    it('Getting vocabulary-dataset relationships with authorization should be successful', async () => {
+        // Mock the request for dataset validation
+        const mockDatasetId = mockDataset({ nock });
+
+        // Prepare vocabulary test data
+        const vocabName = 'sciencev3';
+        const vocabData = { application: 'rw', tags: ['biology', 'chemistry'] };
+
+        // Perform POST request for creating the vocabulary-dataset relationship
+        await requester.post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
+            .send({ ...vocabData, loggedUser: USERS.ADMIN });
+
+        // Mock again the request for dataset validation
+        mockDataset({ nock, id: mockDatasetId });
+
+        // Perform GET request for the vocabulary-dataset relationships
+        const response = await requester
+            .post(`/api/v1/dataset/${mockDatasetId}/vocabulary`)
+            .send({ loggedUser: USERS.ADMIN });
+
+        // Assert the response as 200 OK
+        response.status.should.equal(200);
+        response.body.should.have.property('data').and.be.an('array');
+        response.body.data[0].attributes.should.have.property('name').and.equal('sciencev3');
+        response.body.data[0].attributes.should.have.property('application').and.equal('rw');
+        response.body.data[0].attributes.should.have.property('tags').and.deep.equal(['biology', 'chemistry']);
+    });
+
     afterEach(() => {
         if (!nock.isDone()) {
             throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);
         }
     });
 
-    after(() => {
-        Resource.remove({}).exec();
-        Vocabulary.remove({}).exec();
+    after(async () => {
+        await Resource.deleteMany();
+        await Vocabulary.deleteMany();
     });
 });
