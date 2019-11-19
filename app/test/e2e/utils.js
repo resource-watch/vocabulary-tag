@@ -54,9 +54,20 @@ const createResource = (app = 'rw', vocabularyCount = 1) => {
     };
 };
 
-const mockDataset = ({ nock, id }) => {
+/**
+ * Mocks the requests for validating a dataset.
+ * Returns the id of the mock dataset.
+ *
+ * @param {Object} opts Options object
+ * Should contain the nock instance and optionally an id to use as the mock dataset's id.
+ *
+ * @returns {String} The id of the mock dataset.
+ */
+const mockDataset = ({ nock, id = undefined }) => {
+    // If id has not been provided, set it as the current timestamp
+    const idToUse = id || new Date().getTime();
     nock(process.env.CT_URL)
-        .get(`/v1/dataset/${id}`)
+        .get(`/v1/dataset/${idToUse}`)
         .reply(200, {
             data: {
                 id,
@@ -96,6 +107,7 @@ const mockDataset = ({ nock, id }) => {
                 }
             }
         });
+    return idToUse;
 };
 
 module.exports = {
