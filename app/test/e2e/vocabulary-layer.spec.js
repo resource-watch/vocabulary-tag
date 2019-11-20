@@ -26,7 +26,7 @@ describe('Vocabulary-layer relationships test suite', () => {
         await Vocabulary.deleteMany().exec();
     });
 
-    it('Creating a vocabulary-layer relationship requires authorization', async () => {
+    it('Creating a vocab-layer relationship without auth returns 401 Unauthorized', async () => {
         // Prepare vocabulary test data
         const vocabName = 'science';
         const vocabData = { application: 'rw', tags: ['biology', 'chemistry'] };
@@ -42,7 +42,7 @@ describe('Vocabulary-layer relationships test suite', () => {
         response.body.errors[0].should.have.property('detail').and.equal('Unauthorized');
     });
 
-    it('Creating a vocabulary-layer relationship with authorization should be successful', async () => {
+    it('Creating a vocab-layer relationship with auth returns 200 OK and created data', async () => {
         // Mock the request for layer validation
         const mockLayerId = mockLayer().id;
 
@@ -50,7 +50,7 @@ describe('Vocabulary-layer relationships test suite', () => {
         const vocabName = 'science';
         const vocabData = { application: 'rw', tags: ['biology', 'chemistry'] };
 
-        // Perform POST request for creating the vocabulary-layer relationship
+        // Perform POST request for creating the vocab-layer relationship
         const response = await requester
             .post(`/api/v1/dataset/123/layer/${mockLayerId}/vocabulary/${vocabName}`)
             .send({ ...vocabData, loggedUser: USERS.ADMIN });
@@ -61,7 +61,7 @@ describe('Vocabulary-layer relationships test suite', () => {
         response.body.data[0].should.have.property('id').and.equal(vocabName);
     });
 
-    it('Updating a vocabulary-layer relationship with authorization should be successful', async () => {
+    it('Updating a vocab-layer relationship with auth returns 200 OK and updated data', async () => {
         // Mock the request for layer validation
         const mockLayerId = mockLayer().id;
 
@@ -90,7 +90,7 @@ describe('Vocabulary-layer relationships test suite', () => {
         response.body.data[0].attributes.should.have.property('tags').and.deep.equal(vocabData2.tags);
     });
 
-    it('Creating multiple vocabulary-layer relationships with authorization should be successful', async () => {
+    it('Creating multiple vocab-layer relationships with auth returns 200 OK and created data', async () => {
         // Mock the request for layer validation
         const mockLayerId = mockLayer().id;
 
@@ -114,7 +114,7 @@ describe('Vocabulary-layer relationships test suite', () => {
         response.body.data[1].attributes.should.have.property('tags').and.deep.equal(['countries', 'cities']);
     });
 
-    it('Deleting vocabulary-layer relationship with authorization should be successful', async () => {
+    it('Deleting vocab-layer relationship with auth returns 200 OK', async () => {
         // Mock the request for layer validation
         const mockLayerId = mockLayer().id;
 
@@ -139,8 +139,8 @@ describe('Vocabulary-layer relationships test suite', () => {
         response.body.should.have.property('data').and.be.an('array');
     });
 
-    it('Getting vocabulary-layer relationships without authorization should NOT be successful', async () => {
-        // Perform GET request for the vocabulary-layer relationships
+    it('Getting vocab-layer relationships without auth returns 401 Unauthorized', async () => {
+        // Perform GET request for the vocab-layer relationships
         const response = await requester.post(`/api/v1/dataset/123/layer/123/vocabulary`).send();
 
         // Assert the response as 401 Unauthorized
@@ -149,7 +149,7 @@ describe('Vocabulary-layer relationships test suite', () => {
         response.body.errors[0].should.have.property('detail').and.equal('Unauthorized');
     });
 
-    it('Getting vocabulary-layer relationships with authorization should be successful', async () => {
+    it('Getting vocab-layer relationships with auth returns 200 OK with the requested data', async () => {
         // Mock the request for layer validation
         const mockLayerId = mockLayer().id;
 

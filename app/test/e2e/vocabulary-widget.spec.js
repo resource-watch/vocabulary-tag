@@ -14,7 +14,7 @@ let requester;
 nock.disableNetConnect();
 nock.enableNetConnect(process.env.HOST_IP);
 
-describe('Vocabulary-widget relationships test suite', () => {
+describe('Vocab-widget relationships test suite', () => {
     before(async () => {
         if (process.env.NODE_ENV !== 'test') {
             throw Error(`Running the test suite with NODE_ENV ${process.env.NODE_ENV} may result in permanent data loss. Please use NODE_ENV=test.`);
@@ -26,7 +26,7 @@ describe('Vocabulary-widget relationships test suite', () => {
         await Vocabulary.deleteMany().exec();
     });
 
-    it('Creating a vocabulary-widget relationship requires authorization', async () => {
+    it('Creating a vocab-widget relationship without auth returns 401 Unauthorized', async () => {
         // Prepare vocabulary test data
         const vocabName = 'science';
         const vocabData = { application: 'rw', tags: ['biology', 'chemistry'] };
@@ -42,7 +42,7 @@ describe('Vocabulary-widget relationships test suite', () => {
         response.body.errors[0].should.have.property('detail').and.equal('Unauthorized');
     });
 
-    it('Creating a vocabulary-widget relationship with authorization should be successful', async () => {
+    it('Creating a vocab-widget relationship with auth returns 200 OK and created data', async () => {
         // Mock the request for widget validation
         const mockWidgetId = mockWidget().id;
 
@@ -50,7 +50,7 @@ describe('Vocabulary-widget relationships test suite', () => {
         const vocabName = 'science';
         const vocabData = { application: 'rw', tags: ['biology', 'chemistry'] };
 
-        // Perform POST request for creating the vocabulary-widget relationship
+        // Perform POST request for creating the vocab-widget relationship
         const response = await requester
             .post(`/api/v1/dataset/123/widget/${mockWidgetId}/vocabulary/${vocabName}`)
             .send({ ...vocabData, loggedUser: USERS.ADMIN });
@@ -61,7 +61,7 @@ describe('Vocabulary-widget relationships test suite', () => {
         response.body.data[0].should.have.property('id').and.equal(vocabName);
     });
 
-    it('Updating a vocabulary-widget relationship with authorization should be successful', async () => {
+    it('Updating a vocab-widget relationship with auth returns 200 OK and updated data', async () => {
         // Mock the request for widget validation
         const mockWidgetId = mockWidget().id;
 
@@ -90,7 +90,7 @@ describe('Vocabulary-widget relationships test suite', () => {
         response.body.data[0].attributes.should.have.property('tags').and.deep.equal(vocabData2.tags);
     });
 
-    it('Creating multiple vocabulary-widget relationships with authorization should be successful', async () => {
+    it('Creating multiple vocab-widget relationships with auth returns 200 OK and created data', async () => {
         // Mock the request for widget validation
         const mockWidgetId = mockWidget().id;
 
@@ -114,7 +114,7 @@ describe('Vocabulary-widget relationships test suite', () => {
         response.body.data[1].attributes.should.have.property('tags').and.deep.equal(['countries', 'cities']);
     });
 
-    it('Deleting vocabulary-widget relationship with authorization should be successful', async () => {
+    it('Deleting vocab-widget relationship with auth returns 200 OK', async () => {
         // Mock the request for widget validation
         const mockWidgetId = mockWidget().id;
 
@@ -139,8 +139,8 @@ describe('Vocabulary-widget relationships test suite', () => {
         response.body.should.have.property('data').and.be.an('array');
     });
 
-    it('Getting vocabulary-widget relationships without authorization should NOT be successful', async () => {
-        // Perform GET request for the vocabulary-widget relationships
+    it('Getting vocab-widget relationships without auth returns 401 Unauthorized', async () => {
+        // Perform GET request for the vocab-widget relationships
         const response = await requester.post(`/api/v1/dataset/123/widget/123/vocabulary`).send();
 
         // Assert the response as 401 Unauthorized
@@ -149,7 +149,7 @@ describe('Vocabulary-widget relationships test suite', () => {
         response.body.errors[0].should.have.property('detail').and.equal('Unauthorized');
     });
 
-    it('Getting vocabulary-widget relationships with authorization should be successful', async () => {
+    it('Getting vocab-widget relationships with auth returns 200 OK with the requested data', async () => {
         // Mock the request for widget validation
         const mockWidgetId = mockWidget().id;
 
