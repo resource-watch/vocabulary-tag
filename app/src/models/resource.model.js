@@ -17,6 +17,6 @@ const Resource = new Schema({
         },
         tags: [{ type: String, required: true, trim: true }]
     }]
-}, { usePushEach: true });
+});
 
 module.exports = mongoose.model('Resource', Resource);
