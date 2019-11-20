@@ -26,7 +26,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
         await Vocabulary.deleteMany().exec();
     });
 
-    it('Creating a vocabulary-dataset relationship requires authorization', async () => {
+    it('Creating a vocab-dataset relationship without auth returns 401 Unauthorized', async () => {
         // Prepare vocabulary test data
         const vocabName = 'science';
         const vocabData = { application: 'rw', tags: ['biology', 'chemistry'] };
@@ -42,7 +42,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
         response.body.errors[0].should.have.property('detail').and.equal('Unauthorized');
     });
 
-    it('Creating a vocabulary-dataset relationship with authorization should be successful', async () => {
+    it('Creating a vocab-dataset relationship with auth returns 200 OK and created data', async () => {
         // Mock the request for dataset validation
         const mockDatasetId = mockDataset().id;
 
@@ -61,7 +61,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
         response.body.data[0].should.have.property('id').and.equal(vocabName);
     });
 
-    it('Updating a vocabulary-dataset relationship with authorization should be successful', async () => {
+    it('Updating a vocab-dataset relationship with auth returns 200 OK and updated data', async () => {
         // Mock the request for dataset validation
         const mockDatasetId = mockDataset().id;
         const vocabName = 'fruits';
@@ -88,7 +88,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
         response.body.data[0].attributes.should.have.property('tags').and.deep.equal(vocabData2.tags);
     });
 
-    it('Creating multiple vocabulary-dataset relationships with authorization should be successful', async () => {
+    it('Creating multiple vocab-dataset relationships with auth returns 200 OK and created data', async () => {
         // Mock the request for dataset validation
         const mockDatasetId = mockDataset().id;
 
@@ -112,7 +112,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
         response.body.data[1].attributes.should.have.property('tags').and.deep.equal(['countries', 'cities']);
     });
 
-    it('Deleting vocabulary-dataset relationship with authorization should be successful', async () => {
+    it('Deleting vocab-dataset relationship with auth returns 200 OK', async () => {
         // Mock the request for dataset validation
         const mockDatasetId = mockDataset().id;
 
@@ -137,7 +137,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
         response.body.should.have.property('data').and.be.an('array');
     });
 
-    it('Getting vocabulary-dataset relationships without authorization should NOT be successful', async () => {
+    it('Getting vocab-dataset relationships without auth returns 401 Unauthorized', async () => {
         // Perform GET request for the vocabulary-dataset relationships
         const response = await requester.post(`/api/v1/dataset/123/vocabulary`).send();
 
@@ -147,7 +147,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
         response.body.errors[0].should.have.property('detail').and.equal('Unauthorized');
     });
 
-    it('Getting vocabulary-dataset relationships with authorization should be successful', async () => {
+    it('Getting vocab-dataset relationships with auth returns 200 OK with the requested data', async () => {
         // Mock the request for dataset validation
         const mockDatasetId = mockDataset().id;
 
