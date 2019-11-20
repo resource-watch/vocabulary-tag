@@ -85,7 +85,7 @@ class ResourceService {
             throw new ResourceNotFound(`Resource ${pResource.type} - ${resource.id} and dataset: ${dataset} doesn't exist`);
         }
         logger.debug('Deleting resource');
-        await Resource.remove(query).exec();
+        await Resource.deleteMany(query).exec();
         return resource;
     }
 

@@ -8,8 +8,6 @@ const loader = require('loader');
 const ctRegisterMicroservice = require('sd-ct-register-microservice-node');
 const ErrorSerializer = require('serializers/error.serializer');
 const sleep = require('sleep');
-
-const mongoUri = process.env.MONGO_URI || `mongodb://${config.get('mongodb.host')}:${config.get('mongodb.port')}/${config.get('mongodb.database')}`;
 const koaValidate = require('koa-validate');
 
 const koaBody = require('koa-body')({
@@ -19,11 +17,14 @@ const koaBody = require('koa-body')({
     textLimit: '50mb'
 });
 
-let dbOptions = {};
+let mongooseOptions = require('../../config/mongoose');
+
+const mongoUri = process.env.MONGO_URI || `mongodb://${config.get('mongodb.host')}:${config.get('mongodb.port')}/${config.get('mongodb.database')}`;
 
 // KUBE CLUSTER
 if (mongoUri.indexOf('replicaSet') > -1) {
-    dbOptions = {
+    mongooseOptions = {
+        ...mongooseOptions,
         db: { native_parser: true },
         replset: {
             auto_reconnect: false,
@@ -123,7 +124,7 @@ async function init() {
         }
 
         logger.info(`Connecting to MongoDB URL ${mongoUri}`);
-        mongoose.connect(mongoUri, dbOptions, onDbReady);
+        mongoose.connect(mongoUri, mongooseOptions, onDbReady);
     });
 }
 

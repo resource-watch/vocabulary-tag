@@ -158,7 +158,7 @@ class VocabularyService {
     //         }
     //     }
     //     logger.debug('Deleting vocabulary');
-    //     await Vocabulary.remove(query).exec();
+    //     await Vocabulary.deleteMany(query).exec();
     //     return vocabulary;
     // }
 
