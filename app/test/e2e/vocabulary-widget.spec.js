@@ -22,8 +22,8 @@ describe('Vocabulary-widget relationships test suite', () => {
 
         requester = await getTestServer();
 
-        await Resource.deleteMany();
-        await Vocabulary.deleteMany();
+        await Resource.deleteMany().exec();
+        await Vocabulary.deleteMany().exec();
     });
 
     it('Creating a vocabulary-widget relationship requires authorization', async () => {
@@ -184,7 +184,7 @@ describe('Vocabulary-widget relationships test suite', () => {
     });
 
     after(async () => {
-        await Resource.deleteMany();
-        await Vocabulary.deleteMany();
+        await Resource.deleteMany().exec();
+        await Vocabulary.deleteMany().exec();
     });
 });
