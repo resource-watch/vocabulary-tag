@@ -222,21 +222,21 @@ const mockLayer = (id = undefined, extraData = {}) => {
     return mockData;
 };
 
-const mockPostGraphAssociation = (id, mockSuccess = true) => {
+const mockPostGraphAssociation = (datasetId, mockSuccess = true) => {
     nock(process.env.CT_URL)
-        .post(`/v1/graph/dataset/${id}/associate`)
+        .post(`/v1/graph/dataset/${datasetId}/associate`)
         .reply(mockSuccess ? 200 : 404, { data: {} });
 };
 
-const mockPutGraphAssociation = (id, mockSuccess = true) => {
+const mockPutGraphAssociation = (datasetId, mockSuccess = true) => {
     nock(process.env.CT_URL)
-        .put(`/v1/graph/dataset/${id}/associate`)
+        .put(`/v1/graph/dataset/${datasetId}/associate`)
         .reply(mockSuccess ? 200 : 404, { data: {} });
 };
 
-const mockDeleteGraphAssociation = (id, application = 'rw', mockSuccess = true) => {
+const mockDeleteGraphAssociation = (datasetId, application = 'rw', mockSuccess = true) => {
     nock(process.env.CT_URL)
-        .delete(`/v1/graph/dataset/${id}/associate?application=${application}`)
+        .delete(`/v1/graph/dataset/${datasetId}/associate?application=${application}`)
         .reply(mockSuccess ? 200 : 404, { data: {} });
 };
 
