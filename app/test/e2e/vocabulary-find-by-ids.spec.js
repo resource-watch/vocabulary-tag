@@ -93,6 +93,9 @@ describe('Find vocabularies by IDs', () => {
     });
 
     it('Find vocabularies with id list containing vocabularies that exist returns the listed vocabularies', async () => {
+        resourceOne = await new Resource(createResource('rw', 3)).save();
+        resourceTwo = await new Resource(createResource('gfw', 4)).save();
+
         const response = await requester
             .post(`/api/v1/dataset/vocabulary/find-by-ids`)
             .send({
@@ -142,6 +145,9 @@ describe('Find vocabularies by IDs', () => {
     });
 
     it('Find vocabularies with id list containing vocabularies that exist returns the listed vocabularies (query param is ignored)', async () => {
+        resourceOne = await new Resource(createResource('rw', 3)).save();
+        resourceTwo = await new Resource(createResource('gfw', 4)).save();
+
         const response = await requester
             .post(`/api/v1/dataset/vocabulary/find-by-ids?ids=${resourceTwo.id}`)
             .send({
