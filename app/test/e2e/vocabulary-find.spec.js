@@ -3,7 +3,7 @@ const chai = require('chai');
 const Resource = require('models/resource.model');
 const Vocabulary = require('models/vocabulary.model');
 
-const { assert200 } = require('./utils');
+const { assertOKResponse } = require('./utils');
 
 const { getTestServer } = require('./test-server');
 
@@ -27,19 +27,19 @@ describe('Vocabulary find test suite', () => {
     });
 
     it('Finding dataset vocabulary without auth returns 200 OK and a data array', async () => {
-        assert200(await requester.get(`/api/v1/dataset/vocabulary/find`).send());
+        assertOKResponse(await requester.get(`/api/v1/dataset/vocabulary/find`).send());
     });
 
     it('Finding widget vocabulary without auth returns 200 OK and a data array', async () => {
-        assert200(await requester.get(`/api/v1/dataset/123/widget/vocabulary/find`).send());
+        assertOKResponse(await requester.get(`/api/v1/dataset/123/widget/vocabulary/find`).send());
     });
 
     it('Finding layer vocabulary without auth returns 200 OK and a data array', async () => {
-        assert200(await requester.get(`/api/v1/dataset/123/layer/vocabulary/find`).send());
+        assertOKResponse(await requester.get(`/api/v1/dataset/123/layer/vocabulary/find`).send());
     });
 
     it('Finding all vocabulary without auth returns 200 OK and a data array', async () => {
-        assert200(await requester.get(`/api/v1/vocabulary`).send());
+        assertOKResponse(await requester.get(`/api/v1/vocabulary`).send());
     });
 
     afterEach(async () => {

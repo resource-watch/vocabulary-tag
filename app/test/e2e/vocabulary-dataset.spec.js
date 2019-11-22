@@ -5,8 +5,8 @@ const Vocabulary = require('models/vocabulary.model');
 
 const { USERS } = require('./test.constants');
 const {
-    assert200,
-    assert401,
+    assertOKResponse,
+    assertUnauthorizedResponse,
     mockDataset,
     mockPostGraphAssociation,
     mockPutGraphAssociation,
@@ -34,7 +34,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
     });
 
     it('Creating a vocab-dataset relationship without auth returns 401 Unauthorized', async () => {
-        assert401(await requester
+        assertUnauthorizedResponse(await requester
             .post(`/api/v1/dataset/123/vocabulary/science`)
             .send({ application: 'rw', tags: ['biology', 'chemistry'] }));
     });
@@ -52,7 +52,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
             .post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
             .send({ ...vocabData, loggedUser: USERS.ADMIN });
 
-        assert200(response);
+        assertOKResponse(response);
         response.body.data[0].should.have.property('id').and.equal(vocabName);
     });
 
@@ -75,7 +75,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
             .patch(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
             .send({ ...vocabData2, loggedUser: USERS.ADMIN });
 
-        assert200(response);
+        assertOKResponse(response);
         response.body.data[0].should.have.property('id').and.equal(vocabName);
         response.body.data[0].attributes.should.have.property('application').and.equal(vocabData2.application);
         response.body.data[0].attributes.should.have.property('tags').and.deep.equal(vocabData2.tags);
@@ -94,7 +94,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
                 loggedUser: USERS.ADMIN
             });
 
-        assert200(response);
+        assertOKResponse(response);
         response.body.data[0].attributes.should.have.property('name').and.equal('physics');
         response.body.data[0].attributes.should.have.property('application').and.equal('gfw');
         response.body.data[0].attributes.should.have.property('tags').and.deep.equal(['quantum', 'universe']);
@@ -122,11 +122,11 @@ describe('Vocabulary-dataset relationships test suite', () => {
         const response = await requester
             .delete(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}?loggedUser=${JSON.stringify(USERS.ADMIN)}`).send();
 
-        assert200(response);
+        assertOKResponse(response);
     });
 
     it('Getting vocab-dataset relationships without auth returns 401 Unauthorized', async () => {
-        assert401(await requester.post(`/api/v1/dataset/123/vocabulary`).send());
+        assertUnauthorizedResponse(await requester.post(`/api/v1/dataset/123/vocabulary`).send());
     });
 
     it('Getting vocab-dataset relationships with auth returns 200 OK with the requested data', async () => {
@@ -149,7 +149,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
             .post(`/api/v1/dataset/${mockDatasetId}/vocabulary`)
             .send({ loggedUser: USERS.ADMIN });
 
-        assert200(response);
+        assertOKResponse(response);
         response.body.data[0].attributes.should.have.property('name').and.equal('science_v3');
         response.body.data[0].attributes.should.have.property('application').and.equal('rw');
         response.body.data[0].attributes.should.have.property('tags').and.deep.equal(['biology', 'chemistry']);
@@ -165,7 +165,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
             .get(`/api/v1/dataset/${mockDatasetId}/vocabulary`)
             .send({ loggedUser: USERS.ADMIN });
 
-        assert200(getResponse, 0);
+        assertOKResponse(getResponse, 0);
 
         // Use PUT to add a new vocabulary to the mock dataset
         const putData = {};
@@ -175,7 +175,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
             .put(`/api/v1/dataset/${mockDatasetId}/vocabulary`)
             .send({ ...putData, loggedUser: USERS.ADMIN });
 
-        assert200(putResponse, 1);
+        assertOKResponse(putResponse, 1);
         putResponse.body.data[0].attributes.should.have.property('name').and.be.equal(vocabName);
         putResponse.body.data[0].attributes.should.have.property('tags').and.be.deep.equal(['table']);
 
@@ -184,7 +184,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
             .get(`/api/v1/dataset/${mockDatasetId}/vocabulary`)
             .send({ loggedUser: USERS.ADMIN });
 
-        assert200(getResponse2, 1);
+        assertOKResponse(getResponse2, 1);
         getResponse2.body.data[0].attributes.should.have.property('name').and.be.equal(vocabName);
         getResponse2.body.data[0].attributes.should.have.property('tags').and.be.deep.equal(['table']);
 
@@ -195,7 +195,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
             .patch(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
             .send({ application: 'rw', tags: ['vector'], loggedUser: USERS.ADMIN });
 
-        assert200(patchResponse, 1);
+        assertOKResponse(patchResponse, 1);
         patchResponse.body.data[0].attributes.should.have.property('name').and.be.equal(vocabName);
         patchResponse.body.data[0].attributes.should.have.property('tags').and.be.deep.equal(['vector']);
 
@@ -205,7 +205,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
         const deleteResponse = await requester
             .delete(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}?loggedUser=${JSON.stringify(USERS.ADMIN)}`)
             .send();
-        assert200(deleteResponse);
+        assertOKResponse(deleteResponse);
     });
 
     afterEach(async () => {
