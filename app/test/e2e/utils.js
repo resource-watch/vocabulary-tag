@@ -222,10 +222,31 @@ const mockLayer = (id = undefined, extraData = {}) => {
     return mockData;
 };
 
+const mockPostGraphAssocition = (id, mockSuccess = true) => {
+    nock(process.env.CT_URL)
+        .post(`/v1/graph/dataset/${id}/associate`)
+        .reply(mockSuccess ? 200 : 404, { data: {} });
+};
+
+const mockPutGraphAssocition = (id, mockSuccess = true) => {
+    nock(process.env.CT_URL)
+        .put(`/v1/graph/dataset/${id}/associate`)
+        .reply(mockSuccess ? 200 : 404, { data: {} });
+};
+
+const mockDeleteGraphAssocition = (id, application = 'rw', mockSuccess = true) => {
+    nock(process.env.CT_URL)
+        .delete(`/v1/graph/dataset/${id}/associate?application=${application}`)
+        .reply(mockSuccess ? 200 : 404, { data: {} });
+};
+
 module.exports = {
     createResource,
     createVocabulary,
     mockDataset,
+    mockDeleteGraphAssocition,
+    mockPostGraphAssocition,
+    mockPutGraphAssocition,
     mockLayer,
     mockWidget,
 };
