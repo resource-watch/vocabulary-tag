@@ -240,13 +240,13 @@ const mockDeleteGraphAssociation = (datasetId, application = 'rw', mockSuccess =
         .reply(mockSuccess ? 200 : 404, { data: {} });
 };
 
-const assert401 = (response) => {
+const assertUnauthorizedResponse = (response) => {
     response.status.should.equal(401);
     response.body.should.have.property('errors').and.be.an('array');
     response.body.errors[0].should.have.property('detail').and.equal('Unauthorized');
 };
 
-const assert200 = (response, length = undefined) => {
+const assertOKResponse = (response, length = undefined) => {
     response.status.should.equal(200);
     response.body.should.have.property('data').and.be.an('array');
     if (length) {
@@ -255,8 +255,8 @@ const assert200 = (response, length = undefined) => {
 };
 
 module.exports = {
-    assert200,
-    assert401,
+    assertOKResponse,
+    assertUnauthorizedResponse,
     createResource,
     createVocabulary,
     mockDataset,
