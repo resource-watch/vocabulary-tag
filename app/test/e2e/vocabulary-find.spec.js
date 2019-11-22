@@ -13,7 +13,7 @@ nock.disableNetConnect();
 nock.enableNetConnect(process.env.HOST_IP);
 
 describe('Vocabulary find test suite', () => {
-    before(async () => {
+    beforeEach(async () => {
         if (process.env.NODE_ENV !== 'test') {
             throw Error(`Running the test suite with NODE_ENV ${process.env.NODE_ENV} may result in permanent data loss. Please use NODE_ENV=test.`);
         }
@@ -48,13 +48,11 @@ describe('Vocabulary find test suite', () => {
         response.body.should.have.property('data').and.be.an('array');
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         if (!nock.isDone()) {
             throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);
         }
-    });
 
-    after(async () => {
         await Resource.deleteMany().exec();
         await Vocabulary.deleteMany().exec();
     });

@@ -17,8 +17,7 @@ let resourceTwo;
 
 
 describe('Find vocabularies by IDs', () => {
-
-    before(async () => {
+    beforeEach(async () => {
         if (process.env.NODE_ENV !== 'test') {
             throw Error(`Running the test suite with NODE_ENV ${process.env.NODE_ENV} may result in permanent data loss. Please use NODE_ENV=test.`);
         }
@@ -174,13 +173,11 @@ describe('Find vocabularies by IDs', () => {
         (response.body.data.sort()).should.deep.equal(expectedResponses.sort());
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         if (!nock.isDone()) {
             throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);
         }
-    });
 
-    after(async () => {
         await Resource.deleteMany().exec();
     });
 });
