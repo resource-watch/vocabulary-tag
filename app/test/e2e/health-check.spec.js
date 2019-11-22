@@ -4,7 +4,7 @@ const { getTestServer } = require('./test-server');
 let requester;
 
 describe('GET healthcheck', () => {
-    before(async () => {
+    beforeEach(async () => {
         if (process.env.NODE_ENV !== 'test') {
             throw Error(`Running the test suite with NODE_ENV ${process.env.NODE_ENV} may result in permanent data loss. Please use NODE_ENV=test.`);
         }

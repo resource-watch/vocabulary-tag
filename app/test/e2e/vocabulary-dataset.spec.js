@@ -15,7 +15,7 @@ nock.disableNetConnect();
 nock.enableNetConnect(process.env.HOST_IP);
 
 describe('Vocabulary-dataset relationships test suite', () => {
-    before(async () => {
+    beforeEach(async () => {
         if (process.env.NODE_ENV !== 'test') {
             throw Error(`Running the test suite with NODE_ENV ${process.env.NODE_ENV} may result in permanent data loss. Please use NODE_ENV=test.`);
         }
@@ -175,13 +175,11 @@ describe('Vocabulary-dataset relationships test suite', () => {
         response.body.data[0].attributes.should.have.property('tags').and.deep.equal(['biology', 'chemistry']);
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         if (!nock.isDone()) {
             throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);
         }
-    });
 
-    after(async () => {
         await Resource.deleteMany().exec();
         await Vocabulary.deleteMany().exec();
     });
