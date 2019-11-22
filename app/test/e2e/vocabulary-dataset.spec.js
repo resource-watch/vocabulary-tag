@@ -21,6 +21,35 @@ let requester;
 nock.disableNetConnect();
 nock.enableNetConnect(process.env.HOST_IP);
 
+const assertCountOfVocabDatasetRelationships = async (datasetId, length) => {
+    assertOKResponse(await requester
+        .get(`/api/v1/dataset/${datasetId}/vocabulary`)
+        .send({ loggedUser: USERS.ADMIN }), length);
+};
+
+const putVocabDatasetRelationship = async (datasetId, vocabName, vocabData = {}) => {
+    const putData = {};
+    putData[vocabName] = vocabData;
+    mockPostGraphAssociation(datasetId);
+    return requester.put(`/api/v1/dataset/${datasetId}/vocabulary`)
+        .send({ ...putData, loggedUser: USERS.ADMIN });
+};
+
+const patchVocabDatasetRelationship = async (datasetId, vocabName, vocabData = {}) => {
+    mockDataset(datasetId);
+    mockPutGraphAssociation(datasetId);
+    return requester.patch(`/api/v1/dataset/${datasetId}/vocabulary/${vocabName}`)
+        .send({ ...vocabData, loggedUser: USERS.ADMIN });
+};
+
+const deleteVocabDatasetRelationship = async (datasetId, vocabName) => {
+    mockDataset(datasetId);
+    mockDeleteGraphAssociation(datasetId);
+    return requester
+        .delete(`/api/v1/dataset/${datasetId}/vocabulary/${vocabName}?loggedUser=${JSON.stringify(USERS.ADMIN)}`)
+        .send();
+};
+
 describe('Vocabulary-dataset relationships test suite', () => {
     beforeEach(async () => {
         if (process.env.NODE_ENV !== 'test') {
@@ -155,57 +184,68 @@ describe('Vocabulary-dataset relationships test suite', () => {
         response.body.data[0].attributes.should.have.property('tags').and.deep.equal(['biology', 'chemistry']);
     });
 
-    it('Using PUT, PATCH and DELETE to manage vocab-dataset relationships with auth returns 200 OK with data', async () => {
-        const vocabName = 'knowledge_graph';
-        const vocabData = { application: 'rw', tags: ['table'] };
-
-        // Assert that the mock dataset has no associated vocabularies
+    it('PUTting vocab-dataset relationships with auth returns 200 OK with created data', async () => {
+        // Assert no relationships exist for the mock dataset created
         const mockDatasetId = mockDataset().id;
-        const getResponse = await requester
-            .get(`/api/v1/dataset/${mockDatasetId}/vocabulary`)
-            .send({ loggedUser: USERS.ADMIN });
+        await assertCountOfVocabDatasetRelationships(mockDatasetId, 0);
 
-        assertOKResponse(getResponse, 0);
-
-        // Use PUT to add a new vocabulary to the mock dataset
-        const putData = {};
-        putData[vocabName] = vocabData;
-        mockPostGraphAssociation(mockDatasetId);
-        const putResponse = await requester
-            .put(`/api/v1/dataset/${mockDatasetId}/vocabulary`)
-            .send({ ...putData, loggedUser: USERS.ADMIN });
-
-        assertOKResponse(putResponse, 1);
-        putResponse.body.data[0].attributes.should.have.property('name').and.be.equal(vocabName);
+        // PUT one vocabulary relationship
+        const putResponse = await putVocabDatasetRelationship(
+            mockDatasetId,
+            'knowledge_graph',
+            { application: 'rw', tags: ['table'] },
+        );
+        assertOKResponse(putResponse);
+        putResponse.body.data[0].attributes.should.have.property('name').and.be.equal('knowledge_graph');
         putResponse.body.data[0].attributes.should.have.property('tags').and.be.deep.equal(['table']);
 
-        // Use GET to check it has been correctly created
-        const getResponse2 = await requester
-            .get(`/api/v1/dataset/${mockDatasetId}/vocabulary`)
-            .send({ loggedUser: USERS.ADMIN });
+        // Assert that exists one relationship for the mock dataset created
+        await assertCountOfVocabDatasetRelationships(mockDatasetId, 1);
+    });
 
-        assertOKResponse(getResponse2, 1);
-        getResponse2.body.data[0].attributes.should.have.property('name').and.be.equal(vocabName);
-        getResponse2.body.data[0].attributes.should.have.property('tags').and.be.deep.equal(['table']);
+    it('PATCHing vocab-dataset relationships with auth returns 200 OK with updated data', async () => {
+        // PUT one vocabulary relationship
+        const mockDatasetId = mockDataset().id;
+        assertOKResponse(await putVocabDatasetRelationship(
+            mockDatasetId,
+            'knowledge_graph',
+            { application: 'rw', tags: ['table'] },
+        ));
 
-        // Use PATCH to update the inserted vocabulary
-        mockDataset(mockDatasetId);
-        mockPutGraphAssociation(mockDatasetId);
-        const patchResponse = await requester
-            .patch(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
-            .send({ application: 'rw', tags: ['vector'], loggedUser: USERS.ADMIN });
+        // Assert that exists one relationship for the mock dataset created
+        await assertCountOfVocabDatasetRelationships(mockDatasetId, 1);
 
-        assertOKResponse(patchResponse, 1);
-        patchResponse.body.data[0].attributes.should.have.property('name').and.be.equal(vocabName);
+        // PATCH the previously created relationship
+        const patchResponse = await patchVocabDatasetRelationship(
+            mockDatasetId,
+            'knowledge_graph',
+            { application: 'rw', tags: ['vector'] },
+        );
+        assertOKResponse(patchResponse);
+        patchResponse.body.data[0].attributes.should.have.property('name').and.be.equal('knowledge_graph');
         patchResponse.body.data[0].attributes.should.have.property('tags').and.be.deep.equal(['vector']);
 
-        // Use DELETE to remove the created vocabulary
-        mockDataset(mockDatasetId);
-        mockDeleteGraphAssociation(mockDatasetId);
-        const deleteResponse = await requester
-            .delete(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}?loggedUser=${JSON.stringify(USERS.ADMIN)}`)
-            .send();
-        assertOKResponse(deleteResponse);
+        // Assert that still exists one relationship for the mock dataset updated
+        await assertCountOfVocabDatasetRelationships(mockDatasetId, 1);
+    });
+
+    it('DELETing vocab-dataset relationships with auth returns 200 OK with no data', async () => {
+        // PUT one vocabulary relationship
+        const mockDatasetId = mockDataset().id;
+        assertOKResponse(await putVocabDatasetRelationship(
+            mockDatasetId,
+            'knowledge_graph',
+            { application: 'rw', tags: ['table'] },
+        ));
+
+        // Assert that exists one relationship for the mock dataset created
+        await assertCountOfVocabDatasetRelationships(mockDatasetId, 1);
+
+        // DELETE the previously created relationship
+        assertOKResponse(await deleteVocabDatasetRelationship(mockDatasetId, 'knowledge_graph'));
+
+        // Assert that no relationship exists for the mock dataset created
+        await assertCountOfVocabDatasetRelationships(mockDatasetId, 0);
     });
 
     afterEach(async () => {
