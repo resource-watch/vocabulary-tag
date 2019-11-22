@@ -5,6 +5,8 @@ const Vocabulary = require('models/vocabulary.model');
 
 const { USERS } = require('./test.constants');
 const {
+    assert200,
+    assert401,
     mockDataset,
     mockPostGraphAssocition,
     mockPutGraphAssocition,
@@ -18,20 +20,6 @@ let requester;
 
 nock.disableNetConnect();
 nock.enableNetConnect(process.env.HOST_IP);
-
-const assert401 = (response) => {
-    response.status.should.equal(401);
-    response.body.should.have.property('errors').and.be.an('array');
-    response.body.errors[0].should.have.property('detail').and.equal('Unauthorized');
-};
-
-const assert200 = (response, length = undefined) => {
-    response.status.should.equal(200);
-    response.body.should.have.property('data').and.be.an('array');
-    if (length) {
-        response.body.should.have.property('data').and.be.an('array').and.have.lengthOf(length);
-    }
-};
 
 describe('Vocabulary-dataset relationships test suite', () => {
     beforeEach(async () => {
