@@ -26,19 +26,19 @@ describe('Vocabulary find test suite', () => {
         await Vocabulary.deleteMany().exec();
     });
 
-    it('Findind dataset vocabulary without auth returns 200 OK and a data array', async () => {
+    it('Finding dataset vocabulary without auth returns 200 OK and a data array', async () => {
         assert200(await requester.get(`/api/v1/dataset/vocabulary/find`).send());
     });
 
-    it('Findind widget vocabulary without auth returns 200 OK and a data array', async () => {
+    it('Finding widget vocabulary without auth returns 200 OK and a data array', async () => {
         assert200(await requester.get(`/api/v1/dataset/123/widget/vocabulary/find`).send());
     });
 
-    it('Findind layer vocabulary without auth returns 200 OK and a data array', async () => {
+    it('Finding layer vocabulary without auth returns 200 OK and a data array', async () => {
         assert200(await requester.get(`/api/v1/dataset/123/layer/vocabulary/find`).send());
     });
 
-    it('Findind all vocabulary without auth returns 200 OK and a data array', async () => {
+    it('Finding all vocabulary without auth returns 200 OK and a data array', async () => {
         assert200(await requester.get(`/api/v1/vocabulary`).send());
     });
 

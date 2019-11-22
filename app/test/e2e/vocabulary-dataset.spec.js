@@ -8,9 +8,9 @@ const {
     assert200,
     assert401,
     mockDataset,
-    mockPostGraphAssocition,
-    mockPutGraphAssocition,
-    mockDeleteGraphAssocition,
+    mockPostGraphAssociation,
+    mockPutGraphAssociation,
+    mockDeleteGraphAssociation,
 } = require('./utils');
 const { getTestServer } = require('./test-server');
 
@@ -108,7 +108,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
         const mockDatasetId = mockDataset().id;
 
         // Prepare vocabulary test data
-        const vocabName = 'sciencev2';
+        const vocabName = 'science_v2';
         const vocabData = { application: 'rw', tags: ['biology', 'chemistry'] };
 
         // Perform POST request for creating the vocabulary-dataset relationship
@@ -134,7 +134,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
         const mockDatasetId = mockDataset().id;
 
         // Prepare vocabulary test data
-        const vocabName = 'sciencev3';
+        const vocabName = 'science_v3';
         const vocabData = { application: 'rw', tags: ['biology', 'chemistry'] };
 
         // Perform POST request for creating the vocabulary-dataset relationship
@@ -150,7 +150,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
             .send({ loggedUser: USERS.ADMIN });
 
         assert200(response);
-        response.body.data[0].attributes.should.have.property('name').and.equal('sciencev3');
+        response.body.data[0].attributes.should.have.property('name').and.equal('science_v3');
         response.body.data[0].attributes.should.have.property('application').and.equal('rw');
         response.body.data[0].attributes.should.have.property('tags').and.deep.equal(['biology', 'chemistry']);
     });
@@ -170,7 +170,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
         // Use PUT to add a new vocabulary to the mock dataset
         const putData = {};
         putData[vocabName] = vocabData;
-        mockPostGraphAssocition(mockDatasetId);
+        mockPostGraphAssociation(mockDatasetId);
         const putResponse = await requester
             .put(`/api/v1/dataset/${mockDatasetId}/vocabulary`)
             .send({ ...putData, loggedUser: USERS.ADMIN });
@@ -190,7 +190,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
 
         // Use PATCH to update the inserted vocabulary
         mockDataset(mockDatasetId);
-        mockPutGraphAssocition(mockDatasetId);
+        mockPutGraphAssociation(mockDatasetId);
         const patchResponse = await requester
             .patch(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
             .send({ application: 'rw', tags: ['vector'], loggedUser: USERS.ADMIN });
@@ -201,7 +201,7 @@ describe('Vocabulary-dataset relationships test suite', () => {
 
         // Use DELETE to remove the created vocabulary
         mockDataset(mockDatasetId);
-        mockDeleteGraphAssocition(mockDatasetId);
+        mockDeleteGraphAssociation(mockDatasetId);
         const deleteResponse = await requester
             .delete(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}?loggedUser=${JSON.stringify(USERS.ADMIN)}`)
             .send();
