@@ -17,9 +17,7 @@ class GraphService {
                 }
             });
         } catch (e) {
-            const errorMsg = '[GraphService]: Error communicating with Graph MS (POST associations)';
-            logger.error(errorMsg, e.message);
-            throw new ConsistencyViolation(errorMsg);
+            throw new ConsistencyViolation('[GraphService]: Error communicating with Graph MS (POST associations)');
         }
     }
 
@@ -36,9 +34,7 @@ class GraphService {
                 }
             });
         } catch (e) {
-            const errorMsg = '[GraphService]: Error communicating with Graph MS (PUT associations)';
-            logger.error(errorMsg, e.message);
-            throw new ConsistencyViolation(errorMsg);
+            throw new ConsistencyViolation('[GraphService]: Error communicating with Graph MS (PUT associations)');
         }
     }
 
@@ -55,9 +51,7 @@ class GraphService {
                 json: true
             });
         } catch (e) {
-            const errorMsg = '[GraphService]: Error communicating with Graph MS (DELETE associations)';
-            logger.error(errorMsg, e.message);
-            throw new ConsistencyViolation(errorMsg);
+            throw new ConsistencyViolation('[GraphService]: Error communicating with Graph MS (DELETE associations)');
         }
     }
 
