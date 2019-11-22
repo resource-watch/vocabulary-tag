@@ -1,5 +1,6 @@
 const logger = require('logger');
 const ctRegisterMicroservice = require('sd-ct-register-microservice-node');
+const ConsistencyViolation = require('errors/consistency-violation.error');
 
 class GraphService {
 
@@ -16,8 +17,9 @@ class GraphService {
                 }
             });
         } catch (e) {
-            logger.error(e);
-            throw new Error(e);
+            const errorMsg = '[GraphService]: Error communicating with Graph MS (POST associations)';
+            logger.error(errorMsg, e.message);
+            throw new ConsistencyViolation(errorMsg);
         }
     }
 
@@ -34,8 +36,9 @@ class GraphService {
                 }
             });
         } catch (e) {
-            logger.error(e);
-            throw new Error(e);
+            const errorMsg = '[GraphService]: Error communicating with Graph MS (PUT associations)';
+            logger.error(errorMsg, e.message);
+            throw new ConsistencyViolation(errorMsg);
         }
     }
 
@@ -52,8 +55,9 @@ class GraphService {
                 json: true
             });
         } catch (e) {
-            logger.error(e);
-            throw new Error(e);
+            const errorMsg = '[GraphService]: Error communicating with Graph MS (DELETE associations)';
+            logger.error(errorMsg, e.message);
+            throw new ConsistencyViolation(errorMsg);
         }
     }
 
