@@ -248,6 +248,30 @@ describe('Vocabulary-dataset relationships test suite', () => {
         await assertCountOfVocabDatasetRelationships(mockDatasetId, 0);
     });
 
+    it('PATCHing vocab-dataset relationships when the resource is not present in the vocabulary resources list returns 200 OK with updated data', async () => {
+        const mockDatasetId = mockDataset().id;
+        assertOKResponse(await putVocabDatasetRelationship(
+            mockDatasetId,
+            'knowledge_graph',
+            { application: 'rw', tags: ['table'] },
+        ));
+
+        // Manually eliminate the resource from the vocabulary list
+        const vocab = await Vocabulary.findOne({ id: 'knowledge_graph' });
+        vocab.resources = [];
+        await vocab.save();
+
+        const patchResponse = await patchVocabDatasetRelationship(
+            mockDatasetId,
+            'knowledge_graph',
+            { application: 'rw', tags: ['vector'] },
+        );
+
+        assertOKResponse(patchResponse);
+        patchResponse.body.data[0].attributes.should.have.property('name').and.be.equal('knowledge_graph');
+        patchResponse.body.data[0].attributes.should.have.property('tags').and.be.deep.equal(['vector']);
+    });
+
     afterEach(async () => {
         if (!nock.isDone()) {
             throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);
