@@ -154,7 +154,19 @@ class RelationshipService {
                 }
             }
             logger.debug(`Tags to vocabulary`);
-            vocabulary.resources[position].tags = body.tags;
+
+            // If the resource has not been found in the vocabulary resources, push it!
+            if (!position) {
+                vocabulary.resources.push({
+                    id: resource.id,
+                    dataset,
+                    type: resource.type,
+                    tags: body.tags,
+                });
+            } else {
+                vocabulary.resources[position].tags = body.tags;
+            }
+
             vocabulary.save();
         } catch (err) {
             throw err;
