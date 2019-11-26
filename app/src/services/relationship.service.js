@@ -156,7 +156,7 @@ class RelationshipService {
             logger.debug(`Tags to vocabulary`);
 
             // If the resource has not been found in the vocabulary resources, push it!
-            if (!position) {
+            if (position === undefined) {
                 vocabulary.resources.push({
                     id: resource.id,
                     dataset,
