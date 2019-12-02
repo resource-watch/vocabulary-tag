@@ -225,19 +225,36 @@ const mockLayer = (id = undefined, extraData = {}) => {
 const mockPostGraphAssociation = (datasetId, mockSuccess = true) => {
     nock(process.env.CT_URL)
         .post(`/v1/graph/dataset/${datasetId}/associate`)
-        .reply(mockSuccess ? 200 : 404, { data: {} });
+        .reply(mockSuccess ? 200 : 404, { data: mockSuccess ? {} : { message: 'Resource XXXX not found.' } });
+
+    if (!mockSuccess) {
+        nock(process.env.CT_URL)
+            .post(`/v1/graph/dataset/${datasetId}`)
+            .reply(200, { data: {} });
+
+        nock(process.env.CT_URL)
+            .post(`/v1/graph/dataset/${datasetId}/associate`).reply(200, { data: {} });
+    }
 };
 
 const mockPutGraphAssociation = (datasetId, mockSuccess = true) => {
     nock(process.env.CT_URL)
         .put(`/v1/graph/dataset/${datasetId}/associate`)
-        .reply(mockSuccess ? 200 : 404, { data: {} });
+        .reply(mockSuccess ? 200 : 404, { data: mockSuccess ? {} : { message: 'Resource XXXX not found.' } });
+
+    if (!mockSuccess) {
+        nock(process.env.CT_URL)
+            .post(`/v1/graph/dataset/${datasetId}`).reply(200, { data: {} });
+
+        nock(process.env.CT_URL)
+            .put(`/v1/graph/dataset/${datasetId}/associate`).reply(200, { data: {} });
+    }
 };
 
 const mockDeleteGraphAssociation = (datasetId, application = 'rw', mockSuccess = true) => {
     nock(process.env.CT_URL)
         .delete(`/v1/graph/dataset/${datasetId}/associate?application=${application}`)
-        .reply(mockSuccess ? 200 : 404, { data: {} });
+        .reply(mockSuccess ? 200 : 404, { data: mockSuccess ? {} : { message: 'Resource XXXX not found.' } });
 };
 
 const assertUnauthorizedResponse = (response) => {
