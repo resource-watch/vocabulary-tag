@@ -2,20 +2,115 @@ const logger = require('logger');
 const ctRegisterMicroservice = require('sd-ct-register-microservice-node');
 const ConsistencyViolation = require('errors/consistency-violation.error');
 
+const createResource = async (resource) => {
+    if (resource.type === 'widget') {
+        return ctRegisterMicroservice.requestToMicroservice({
+            uri: `/graph/widget/${resource.dataset}/${resource.id}`,
+            method: 'POST',
+            json: true,
+        });
+    }
+
+    if (resource.type === 'layer') {
+        return ctRegisterMicroservice.requestToMicroservice({
+            uri: `/graph/layer/${resource.dataset}/${resource.id}`,
+            method: 'POST',
+            json: true,
+        });
+    }
+
+    // Default to 'dataset' case
+    return ctRegisterMicroservice.requestToMicroservice({
+        uri: `/graph/dataset/${resource.id}`,
+        method: 'POST',
+        json: true,
+    });
+};
+
+const postGraphAssociation = async (resource, tags, application) => {
+    try {
+        return ctRegisterMicroservice.requestToMicroservice({
+            uri: `/graph/${resource.type}/${resource.id}/associate`,
+            method: 'POST',
+            json: true,
+            body: { tags, application }
+        });
+    } catch (err) {
+        // Check if error matches resource not found, and if so try to create the resource first hand
+        if (err.message.match(/Resource.*not found/g)) {
+            await createResource(resource);
+            return ctRegisterMicroservice.requestToMicroservice({
+                uri: `/graph/${resource.type}/${resource.id}/associate`,
+                method: 'POST',
+                json: true,
+                body: { tags, application }
+            });
+        }
+
+        throw err;
+    }
+};
+
+const putGraphAssociation = async (resource, tags, application) => {
+    try {
+        return ctRegisterMicroservice.requestToMicroservice({
+            uri: `/graph/${resource.type}/${resource.id}/associate`,
+            method: 'PUT',
+            json: true,
+            body: { tags, application }
+        });
+    } catch (err) {
+        // Check if error matches resource not found, and if so try to create the resource first hand
+        if (err.message.match(/Resource.*not found/g)) {
+            await createResource(resource);
+            return ctRegisterMicroservice.requestToMicroservice({
+                uri: `/graph/${resource.type}/${resource.id}/associate`,
+                method: 'PUT',
+                json: true,
+                body: { tags, application }
+            });
+        }
+
+        throw err;
+    }
+};
+
+const getDeleteURL = (resource, application) => {
+    let url = `/graph/${resource.type}/${resource.id}/associate`;
+    if (application) {
+        url = `${url}?application=${application}`;
+    }
+    return url;
+};
+
+const deleteGraphAssociation = async (resource, application) => {
+    try {
+        return ctRegisterMicroservice.requestToMicroservice({
+            uri: getDeleteURL(resource, application),
+            method: 'DELETE',
+            json: true
+        });
+    } catch (err) {
+        // Check if error matches resource not found, and if so try to create the resource first hand
+        if (err.message.match(/Resource.*not found/g)) {
+            await createResource(resource);
+            return ctRegisterMicroservice.requestToMicroservice({
+                uri: getDeleteURL(resource, application),
+                method: 'DELETE',
+                json: true
+            });
+        }
+
+        throw err;
+    }
+};
+
 class GraphService {
 
     static async createAssociation(resource, tags, application) {
         logger.info('[GraphService]: Associating tags in the graph db');
         try {
-            return await ctRegisterMicroservice.requestToMicroservice({
-                uri: `/graph/${resource.type}/${resource.id}/associate`,
-                method: 'POST',
-                json: true,
-                body: {
-                    tags,
-                    application
-                }
-            });
+            return postGraphAssociation(resource, tags, application);
         } catch (e) {
             throw new ConsistencyViolation('[GraphService]: Error communicating with Graph MS (POST associations)');
         }
@@ -24,15 +119,7 @@ class GraphService {
     static async updateAssociation(resource, tags, application) {
         logger.info('[GraphService]: Associating tags in the graph db');
         try {
-            return await ctRegisterMicroservice.requestToMicroservice({
-                uri: `/graph/${resource.type}/${resource.id}/associate`,
-                method: 'PUT',
-                json: true,
-                body: {
-                    tags,
-                    application
-                }
-            });
+            return putGraphAssociation(resource, tags, application);
         } catch (e) {
             throw new ConsistencyViolation('[GraphService]: Error communicating with Graph MS (PUT associations)');
         }
@@ -41,15 +128,7 @@ class GraphService {
     static async deleteAssociation(resource, application) {
         logger.info('[GraphService]: Deleting tags in the graph db');
         try {
-            let url = `/graph/${resource.type}/${resource.id}/associate`;
-            if (application) {
-                url = `${url}?application=${application}`;
-            }
-            return await ctRegisterMicroservice.requestToMicroservice({
-                uri: url,
-                method: 'DELETE',
-                json: true
-            });
+            return deleteGraphAssociation(resource, application);
         } catch (e) {
             throw new ConsistencyViolation('[GraphService]: Error communicating with Graph MS (DELETE associations)');
         }
