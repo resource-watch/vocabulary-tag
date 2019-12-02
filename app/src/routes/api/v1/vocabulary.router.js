@@ -206,7 +206,7 @@ class VocabularyRouter {
             }
         });
         vocabularies.forEach((vocabulary) => {
-            logger.info(`Creating realtionships between vocabulary: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
+            logger.info(`Creating relationships between vocabulary: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
         });
         try {
             const user = ctx.request.body.loggedUser;
@@ -252,7 +252,7 @@ class VocabularyRouter {
             }
         });
         vocabularies.forEach((vocabulary) => {
-            logger.info(`Creating realtionships between vocabulary: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
+            logger.info(`Creating relationships between vocabulary: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
         });
         try {
             const user = ctx.request.body.loggedUser;
