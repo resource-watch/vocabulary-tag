@@ -29,15 +29,17 @@ const createResource = async (resource) => {
 
 const postGraphAssociation = async (resource, tags, application) => {
     try {
-        return ctRegisterMicroservice.requestToMicroservice({
+        const res = await ctRegisterMicroservice.requestToMicroservice({
             uri: `/graph/${resource.type}/${resource.id}/associate`,
             method: 'POST',
             json: true,
             body: { tags, application }
         });
+
+        return res;
     } catch (err) {
         // Check if error matches resource not found, and if so try to create the resource first hand
-        if (err.message.match(/Resource.*not found/g)) {
+        if (err.message.match(/Resource.*not found/g) !== null) {
             await createResource(resource);
             return ctRegisterMicroservice.requestToMicroservice({
                 uri: `/graph/${resource.type}/${resource.id}/associate`,
@@ -53,15 +55,17 @@ const postGraphAssociation = async (resource, tags, application) => {
 
 const putGraphAssociation = async (resource, tags, application) => {
     try {
-        return ctRegisterMicroservice.requestToMicroservice({
+        const res = await ctRegisterMicroservice.requestToMicroservice({
             uri: `/graph/${resource.type}/${resource.id}/associate`,
             method: 'PUT',
             json: true,
             body: { tags, application }
         });
+
+        return res;
     } catch (err) {
         // Check if error matches resource not found, and if so try to create the resource first hand
-        if (err.message.match(/Resource.*not found/g)) {
+        if (err.message.match(/Resource.*not found/g) !== null) {
             await createResource(resource);
             return ctRegisterMicroservice.requestToMicroservice({
                 uri: `/graph/${resource.type}/${resource.id}/associate`,
@@ -85,20 +89,15 @@ const getDeleteURL = (resource, application) => {
 
 const deleteGraphAssociation = async (resource, application) => {
     try {
-        return ctRegisterMicroservice.requestToMicroservice({
+        await ctRegisterMicroservice.requestToMicroservice({
             uri: getDeleteURL(resource, application),
             method: 'DELETE',
             json: true
         });
     } catch (err) {
-        // Check if error matches resource not found, and if so try to create the resource first hand
-        if (err.message.match(/Resource.*not found/g)) {
-            await createResource(resource);
-            return ctRegisterMicroservice.requestToMicroservice({
-                uri: getDeleteURL(resource, application),
-                method: 'DELETE',
-                json: true
-            });
+        // Check if error matches resource not found, and in that case fail silently
+        if (err.message.match(/Resource.*not found/g) !== null) {
+            return;
         }
 
         throw err;
