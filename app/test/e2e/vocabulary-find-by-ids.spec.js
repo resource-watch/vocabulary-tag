@@ -1,9 +1,9 @@
 const nock = require('nock');
 const chai = require('chai');
 const Resource = require('models/resource.model');
-const { createResource } = require('./utils');
+const { createResource } = require('./utils/helpers');
 
-const { getTestServer } = require('./test-server');
+const { getTestServer } = require('./utils/test-server');
 
 chai.should();
 

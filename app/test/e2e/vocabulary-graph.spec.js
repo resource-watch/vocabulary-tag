@@ -3,15 +3,15 @@ const chai = require('chai');
 const Resource = require('models/resource.model');
 const Vocabulary = require('models/vocabulary.model');
 
-const { USERS } = require('./test.constants');
+const { USERS } = require('./utils/test.constants');
 const {
     assertOKResponse,
     mockDataset,
     mockPostGraphAssociation,
     mockPutGraphAssociation,
     mockDeleteGraphAssociation,
-} = require('./utils');
-const { getTestServer } = require('./test-server');
+} = require('./utils/helpers');
+const { getTestServer } = require('./utils/test-server');
 
 chai.should();
 

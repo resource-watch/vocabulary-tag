@@ -4,6 +4,7 @@ const ctRegisterMicroservice = require('sd-ct-register-microservice-node');
 const CollectionModel = require('models/collection.model');
 const CollectionSerializer = require('serializers/collection.serializer');
 const CollectionValidator = require('validators/collection.validator');
+const mongoose = require('mongoose');
 
 const router = new Router({
     prefix: '/collection'
@@ -104,6 +105,13 @@ class CollectionRouter {
 
     static async findByIds(ctx) {
         logger.info('Obtaining collection by user');
+
+        ctx.request.body.ids.forEach((id) => {
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                ctx.throw(400, `Invalid id ${id} in request body`);
+            }
+        });
+
         const filters = {
             _id: {
                 $in: ctx.request.body.ids
@@ -188,6 +196,23 @@ const existResourceInCollection = async (ctx, next) => {
     await next();
 };
 
+const findByIdValidationMiddleware = async (ctx, next) => {
+    logger.info(`[DatasetRouter] Validating`);
+    try {
+        ctx.checkBody('ids').notEmpty().check(() => (ctx.request.body.ids instanceof Array && ctx.request.body.ids.length > 0), '\'ids\' must be a non-empty array');
+        ctx.checkBody('userId').notEmpty();
+    } catch (err) {
+        ctx.throw(400, err);
+    }
+
+    if (ctx.errors) {
+        logger.error('Validation error');
+        ctx.throw(400, JSON.stringify(ctx.errors));
+    }
+
+    await next();
+};
+
 const validationMiddleware = async (ctx, next) => {
     logger.info(`[DatasetRouter] Validating`);
     try {
@@ -203,7 +228,7 @@ router.get('/:id', existCollection, CollectionRouter.getById);
 
 router.post('/', validationMiddleware, CollectionRouter.postCollection);
 router.post('/:id/resource', existCollection, existResourceInCollection, CollectionRouter.postResource);
-router.post('/find-by-ids', CollectionRouter.findByIds);
+router.post('/find-by-ids', findByIdValidationMiddleware, CollectionRouter.findByIds);
 
 router.patch('/:id', existCollection, CollectionRouter.patchCollection);
 

@@ -3,9 +3,9 @@ const chai = require('chai');
 const Resource = require('models/resource.model');
 const Vocabulary = require('models/vocabulary.model');
 
-const { assertOKResponse } = require('./utils');
+const { assertOKResponse } = require('./utils/helpers');
 
-const { getTestServer } = require('./test-server');
+const { getTestServer } = require('./utils/test-server');
 
 chai.should();
 
