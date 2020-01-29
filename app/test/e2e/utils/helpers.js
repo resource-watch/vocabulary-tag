@@ -57,6 +57,13 @@ const createResource = (app = 'rw', vocabularyCount = 1) => {
     };
 };
 
+const createCollection = (app = 'rw', ownerId = null) => ({
+    name: `Collection ${getUUID()}`,
+    application: app,
+    ownerId: ownerId || getUUID(),
+    resources: []
+});
+
 const mockDataset = (id = undefined, extraData = {}) => {
     const idToUse = id || mongoose.Types.ObjectId();
     const mockData = Object.assign({}, {
@@ -276,6 +283,7 @@ module.exports = {
     assertUnauthorizedResponse,
     createResource,
     createVocabulary,
+    createCollection,
     mockDataset,
     mockDeleteGraphAssociation,
     mockPostGraphAssociation,
