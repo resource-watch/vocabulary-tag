@@ -106,6 +106,10 @@ class CollectionRouter {
     static async findByIds(ctx) {
         logger.info('Obtaining collection by user');
 
+        if (typeof ctx.request.body.ids === 'string') {
+            ctx.request.body.ids = [ctx.request.body.ids];
+        }
+
         ctx.request.body.ids.forEach((id) => {
             if (!mongoose.Types.ObjectId.isValid(id)) {
                 ctx.throw(400, `Invalid id ${id} in request body`);
@@ -199,7 +203,7 @@ const existResourceInCollection = async (ctx, next) => {
 const findByIdValidationMiddleware = async (ctx, next) => {
     logger.info(`[DatasetRouter] Validating`);
     try {
-        ctx.checkBody('ids').notEmpty().check(() => (ctx.request.body.ids instanceof Array && ctx.request.body.ids.length > 0), '\'ids\' must be a non-empty array');
+        ctx.checkBody('ids').notEmpty().check(() => ((ctx.request.body.ids instanceof Array || typeof ctx.request.body.ids === 'string') && ctx.request.body.ids.length > 0), '\'ids\' must be a non-empty array or string');
         ctx.checkBody('userId').notEmpty();
     } catch (err) {
         ctx.throw(400, err);

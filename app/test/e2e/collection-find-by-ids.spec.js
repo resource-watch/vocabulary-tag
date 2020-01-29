@@ -35,19 +35,6 @@ describe('Find collections by IDs', () => {
         response.body.errors[0].should.have.property('detail').and.equal(`[{"ids":"ids can not be empty."},{"userId":"userId can not be empty."}]`);
     });
 
-    it('Find collections with ids as a string in body returns a 400 error', async () => {
-        const response = await requester
-            .post(`/api/v1/collection/find-by-ids`)
-            .send({
-                ids: mongoose.Types.ObjectId(),
-                userId: mongoose.Types.ObjectId()
-            });
-
-        response.status.should.equal(400);
-        response.body.should.have.property('errors').and.be.an('array');
-        response.body.errors[0].should.have.property('detail').and.equal(`[{"ids":"'ids' must be a non-empty array"}]`);
-    });
-
     it('Find collections with empty id list returns a 400 error', async () => {
         const response = await requester
             .post(`/api/v1/collection/find-by-ids`)
@@ -58,7 +45,7 @@ describe('Find collections by IDs', () => {
 
         response.status.should.equal(400);
         response.body.should.have.property('errors').and.be.an('array');
-        response.body.errors[0].should.have.property('detail').and.equal(`[{"ids":"'ids' must be a non-empty array"}]`);
+        response.body.errors[0].should.have.property('detail').and.equal(`[{"ids":"'ids' must be a non-empty array or string"}]`);
     });
 
     it('Find collections with id list containing an invalid collection id that does not exist returns an empty list (empty db)', async () => {
@@ -99,6 +86,37 @@ describe('Find collections by IDs', () => {
 
         response.status.should.equal(200);
         response.body.should.have.property('data').and.be.an('array').and.length(0);
+    });
+
+    it('Find collections with id string for a collections that exists and a matching userId returns the collections that match user and id list - single result (happy case)', async () => {
+        const collectionOne = await new Collection(createCollection('rw')).save();
+        await new Collection(createCollection('gfw')).save();
+
+        const response = await requester
+            .post(`/api/v1/collection/find-by-ids`)
+            .send({
+                ids: collectionOne.id,
+                userId: collectionOne.ownerId
+            });
+
+        response.status.should.equal(200);
+        response.body.should.have.property('data').and.be.an('array').and.length(1);
+
+        const expectedResponses = [
+            {
+                id: collectionOne.id,
+                type: 'collection',
+                attributes: {
+                    name: collectionOne.name,
+                    ownerId: collectionOne.ownerId,
+                    application: 'rw',
+                    resources: []
+                }
+            }
+        ];
+
+        (response.body.data.sort()).should.deep.equal(expectedResponses.sort());
+
     });
 
     it('Find collections with id list containing a collections that exists and a matching userId returns the collections that match user and id list - single result (happy case)', async () => {
