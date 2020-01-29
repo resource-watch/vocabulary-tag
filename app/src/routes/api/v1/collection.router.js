@@ -110,15 +110,9 @@ class CollectionRouter {
             ctx.request.body.ids = [ctx.request.body.ids];
         }
 
-        ctx.request.body.ids.forEach((id) => {
-            if (!mongoose.Types.ObjectId.isValid(id)) {
-                ctx.throw(400, `Invalid id ${id} in request body`);
-            }
-        });
-
         const filters = {
             _id: {
-                $in: ctx.request.body.ids
+                $in: ctx.request.body.ids.filter(mongoose.Types.ObjectId.isValid)
             },
             ownerId: ctx.request.body.userId
         };
