@@ -195,7 +195,7 @@ const existResourceInCollection = async (ctx, next) => {
 };
 
 const findByIdValidationMiddleware = async (ctx, next) => {
-    logger.info(`[DatasetRouter] Validating`);
+    logger.info(`[CollectionRouter] Validating`);
     try {
         ctx.checkBody('ids').notEmpty().check(() => ((ctx.request.body.ids instanceof Array || typeof ctx.request.body.ids === 'string') && ctx.request.body.ids.length > 0), '\'ids\' must be a non-empty array or string');
         ctx.checkBody('userId').notEmpty();
@@ -212,7 +212,7 @@ const findByIdValidationMiddleware = async (ctx, next) => {
 };
 
 const validationMiddleware = async (ctx, next) => {
-    logger.info(`[DatasetRouter] Validating`);
+    logger.info(`[CollectionRouter] Validating`);
     try {
         await CollectionValidator.validate(ctx);
     } catch (err) {
