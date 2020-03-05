@@ -1,5 +1,8 @@
+# v1.0.1
+
 ## 29/01/2020
-- Add validation and tests to find collection by id endpoint
+
+- Add validation and tests to find collection by id endpoint.
 
 # v1.0.0
 
