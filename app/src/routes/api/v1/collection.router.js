@@ -4,6 +4,7 @@ const ctRegisterMicroservice = require('sd-ct-register-microservice-node');
 const CollectionModel = require('models/collection.model');
 const CollectionSerializer = require('serializers/collection.serializer');
 const CollectionValidator = require('validators/collection.validator');
+const mongoose = require('mongoose');
 
 const router = new Router({
     prefix: '/collection'
@@ -104,9 +105,14 @@ class CollectionRouter {
 
     static async findByIds(ctx) {
         logger.info('Obtaining collection by user');
+
+        if (typeof ctx.request.body.ids === 'string') {
+            ctx.request.body.ids = [ctx.request.body.ids];
+        }
+
         const filters = {
             _id: {
-                $in: ctx.request.body.ids
+                $in: ctx.request.body.ids.filter(mongoose.Types.ObjectId.isValid)
             },
             ownerId: ctx.request.body.userId
         };
@@ -188,8 +194,25 @@ const existResourceInCollection = async (ctx, next) => {
     await next();
 };
 
+const findByIdValidationMiddleware = async (ctx, next) => {
+    logger.info(`[CollectionRouter] Validating`);
+    try {
+        ctx.checkBody('ids').notEmpty().check(() => ((ctx.request.body.ids instanceof Array || typeof ctx.request.body.ids === 'string') && ctx.request.body.ids.length > 0), '\'ids\' must be a non-empty array or string');
+        ctx.checkBody('userId').notEmpty();
+    } catch (err) {
+        ctx.throw(400, err);
+    }
+
+    if (ctx.errors) {
+        logger.error('Validation error');
+        ctx.throw(400, JSON.stringify(ctx.errors));
+    }
+
+    await next();
+};
+
 const validationMiddleware = async (ctx, next) => {
-    logger.info(`[DatasetRouter] Validating`);
+    logger.info(`[CollectionRouter] Validating`);
     try {
         await CollectionValidator.validate(ctx);
     } catch (err) {
@@ -203,7 +226,7 @@ router.get('/:id', existCollection, CollectionRouter.getById);
 
 router.post('/', validationMiddleware, CollectionRouter.postCollection);
 router.post('/:id/resource', existCollection, existResourceInCollection, CollectionRouter.postResource);
-router.post('/find-by-ids', CollectionRouter.findByIds);
+router.post('/find-by-ids', findByIdValidationMiddleware, CollectionRouter.findByIds);
 
 router.patch('/:id', existCollection, CollectionRouter.patchCollection);
 
