@@ -1,6 +1,6 @@
 # Vocabulary Tag Microservice
 
-[![Build Status](https://travis-ci.org/resource-watch/vocabulary-tag.svg?branch=master)](https://travis-ci.org/resource-watch/vocabulary-tag)
+[![Build Status](https://travis-ci.org/resource-watch/vocabulary-tag.svg?branch=develop)](https://travis-ci.org/resource-watch/vocabulary-tag)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/89f70e66993b8524fd09/test_coverage)](https://codeclimate.com/github/resource-watch/vocabulary-tag/test_coverage)
 
 This repository implements the Vocabulary Tag services that are available in the Resource Watch API.
