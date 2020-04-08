@@ -1,3 +1,9 @@
+# v1.0.2
+
+## 08/04/2020
+
+- Update k8s configuration with node affinity.
+
 # v1.0.1
 
 ## 29/01/2020
