@@ -176,7 +176,7 @@ class VocabularyRouter {
         const vocabulary = { name: ctx.params.vocabulary, application };
         const resource = VocabularyRouter.getResource(ctx.params);
         const { body } = ctx.request;
-        logger.info(`Creating realtionship between vocabulary: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
+        logger.info(`Creating relationship between vocabulary: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
         try {
             const user = ctx.request.body.loggedUser;
             const result = await RelationshipService.create(user, vocabulary, dataset, resource, body);
