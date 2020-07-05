@@ -20,7 +20,6 @@ Execution using Docker requires:
 Dependencies on other Microservices:
 - [Dataset](https://github.com/resource-watch/dataset/)
 - [Graph Client](https://github.com/resource-watch/graph-client/)
-- [Vocabulary](https://github.com/resource-watch/vocabulary-tag/)
 
 ## Getting started
 
