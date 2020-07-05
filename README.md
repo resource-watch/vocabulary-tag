@@ -15,6 +15,13 @@ Execution using Docker requires:
 - [Docker](https://www.docker.com/)
 - [Docker Compose](https://docs.docker.com/compose/)
 
+## Dependencies
+
+Dependencies on other Microservices:
+- [Dataset](https://github.com/resource-watch/dataset/)
+- [Graph Client](https://github.com/resource-watch/graph-client/)
+- [Vocabulary](https://github.com/resource-watch/vocabulary-tag/)
+
 ## Getting started
 
 Start by cloning the repository from github to your execution environment
