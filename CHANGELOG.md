@@ -1,3 +1,9 @@
+# v2.1.0
+
+## 07/09/2020
+
+- Add filter by application to collection find-by-ids endpoint.
+
 # v1.0.2
 
 ## 08/04/2020
