@@ -42,7 +42,7 @@ node {
       switch ("${env.BRANCH_NAME}") {
 
         // Roll out to dev
-        case "develop":
+        case "dev":
           sh("echo Deploying to STAGING cluster")
           sh("kubectl config use-context ${KUBECTL_CONTEXT_PREFIX}_${CLOUD_PROJECT_NAME}_${CLOUD_PROJECT_ZONE}_${KUBE_DEV_CLUSTER}")
           sh("kubectl apply -f k8s/services/")
