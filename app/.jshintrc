@@ -1,6 +1,5 @@
 {
   "node": true,
-  "esnext": true,
   "bitwise": true,
   "camelcase": false,
   "curly": true,
@@ -20,6 +19,7 @@
   "white": true,
   "validthis": true,
   "noyield": true,
+  "esversion": 8,
   "globals": {
     "module": false,
     "yield": false,
