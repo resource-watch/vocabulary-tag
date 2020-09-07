@@ -14,7 +14,7 @@ class CollectionValidator {
             logger.debug('entering validation', data.resources);
             if (data.resources) {
                 for (let i = 0; i < data.resources.length; i++) {
-                    if (!data.rsources[i].type || !data.resources[i].id) { return false; }
+                    if (!data.resources[i].type || !data.resources[i].id) { return false; }
                 }
             }
             return true;

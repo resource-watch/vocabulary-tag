@@ -14,6 +14,12 @@ class CollectionRouter {
 
     static async getAll(ctx) {
         logger.info('Obtaining collection by user');
+
+        if (!ctx.query.loggedUser) {
+            logger.error('Unauthorized access');
+            ctx.throw(401, 'Unauthorized');
+        }
+
         const application = ctx.query.application || ctx.query.app || 'rw';
         const filters = {
             ownerId: JSON.parse(ctx.query.loggedUser).id,
