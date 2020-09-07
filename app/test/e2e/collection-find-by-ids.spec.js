@@ -13,6 +13,11 @@ let requester;
 nock.disableNetConnect();
 nock.enableNetConnect(process.env.HOST_IP);
 
+const assertValidFindByIdsResponse = (response, expectedResponse) => {
+    response.status.should.equal(200);
+    response.body.should.have.property('data').and.be.an('array').and.length(expectedResponse.length);
+    (response.body.data.sort()).should.deep.equal(expectedResponse.sort());
+};
 
 describe('Find collections by IDs', () => {
     beforeEach(async () => {
@@ -98,24 +103,16 @@ describe('Find collections by IDs', () => {
                 userId: collectionOne.ownerId
             });
 
-        response.status.should.equal(200);
-        response.body.should.have.property('data').and.be.an('array').and.length(1);
-
-        const expectedResponses = [
-            {
-                id: collectionOne.id,
-                type: 'collection',
-                attributes: {
-                    name: collectionOne.name,
-                    ownerId: collectionOne.ownerId,
-                    application: 'rw',
-                    resources: []
-                }
+        assertValidFindByIdsResponse(response, [{
+            id: collectionOne.id,
+            type: 'collection',
+            attributes: {
+                name: collectionOne.name,
+                ownerId: collectionOne.ownerId,
+                application: 'rw',
+                resources: []
             }
-        ];
-
-        (response.body.data.sort()).should.deep.equal(expectedResponses.sort());
-
+        }]);
     });
 
     it('Find collections with id list containing a collections that exists and a matching userId returns the collections that match user and id list - single result (happy case)', async () => {
@@ -129,23 +126,16 @@ describe('Find collections by IDs', () => {
                 userId: collectionOne.ownerId
             });
 
-        response.status.should.equal(200);
-        response.body.should.have.property('data').and.be.an('array').and.length(1);
-
-        const expectedResponses = [
-            {
-                id: collectionOne.id,
-                type: 'collection',
-                attributes: {
-                    name: collectionOne.name,
-                    ownerId: collectionOne.ownerId,
-                    application: 'rw',
-                    resources: []
-                }
+        assertValidFindByIdsResponse(response, [{
+            id: collectionOne.id,
+            type: 'collection',
+            attributes: {
+                name: collectionOne.name,
+                ownerId: collectionOne.ownerId,
+                application: 'rw',
+                resources: []
             }
-        ];
-
-        (response.body.data.sort()).should.deep.equal(expectedResponses.sort());
+        }]);
     });
 
     it('Find collections with id list containing a collections that exists and a matching userId returns the collections that match user and id list - multiple result (happy case)', async () => {
@@ -161,10 +151,7 @@ describe('Find collections by IDs', () => {
                 userId: collectionOne.ownerId
             });
 
-        response.status.should.equal(200);
-        response.body.should.have.property('data').and.be.an('array').and.length(2);
-
-        const expectedResponses = [
+        assertValidFindByIdsResponse(response, [
             {
                 id: collectionOne.id,
                 type: 'collection',
@@ -185,9 +172,7 @@ describe('Find collections by IDs', () => {
                     resources: []
                 }
             }
-        ];
-
-        (response.body.data.sort()).should.deep.equal(expectedResponses.sort());
+        ]);
     });
 
     it('Find collections with id list containing a collections that exists and a matching userId doesn\'t return the collections that don\'t match user id', async () => {
@@ -204,10 +189,7 @@ describe('Find collections by IDs', () => {
                 userId: collectionOne.ownerId
             });
 
-        response.status.should.equal(200);
-        response.body.should.have.property('data').and.be.an('array').and.length(2);
-
-        const expectedResponses = [
+        assertValidFindByIdsResponse(response, [
             {
                 id: collectionOne.id,
                 type: 'collection',
@@ -228,9 +210,7 @@ describe('Find collections by IDs', () => {
                     resources: []
                 }
             }
-        ];
-
-        (response.body.data.sort()).should.deep.equal(expectedResponses.sort());
+        ]);
     });
 
     it('Find collections with id list containing collections that exist returns the listed collections (query param is ignored)', async () => {
@@ -244,10 +224,30 @@ describe('Find collections by IDs', () => {
                 userId: collectionOne.ownerId
             });
 
-        response.status.should.equal(200);
-        response.body.should.have.property('data').and.be.an('array').and.length(1);
+        assertValidFindByIdsResponse(response, [{
+            id: collectionOne.id,
+            type: 'collection',
+            attributes: {
+                name: collectionOne.name,
+                ownerId: collectionOne.ownerId,
+                application: 'rw',
+                resources: []
+            }
+        }]);
+    });
 
-        const expectedResponses = [
+    it('Find collections with id list allows filtering by application using a query parameter, returning the listed collections', async () => {
+        const userId = mongoose.Types.ObjectId();
+
+        const collectionOne = await new Collection(createCollection('rw', userId)).save();
+        const collectionTwo = await new Collection(createCollection('gfw', userId)).save();
+
+        const response = await requester.post(`/api/v1/collection/find-by-ids`).send({
+            ids: [collectionOne.id, collectionTwo.id],
+            userId,
+        });
+
+        assertValidFindByIdsResponse(response, [
             {
                 id: collectionOne.id,
                 type: 'collection',
@@ -257,10 +257,34 @@ describe('Find collections by IDs', () => {
                     application: 'rw',
                     resources: []
                 }
+            },
+            {
+                id: collectionTwo.id,
+                type: 'collection',
+                attributes: {
+                    name: collectionTwo.name,
+                    ownerId: collectionTwo.ownerId,
+                    application: 'gfw',
+                    resources: []
+                }
             }
-        ];
+        ]);
 
-        (response.body.data.sort()).should.deep.equal(expectedResponses.sort());
+        const response2 = await requester.post(`/api/v1/collection/find-by-ids?application=rw`).send({
+            ids: [collectionOne.id, collectionTwo.id],
+            userId,
+        });
+
+        assertValidFindByIdsResponse(response2, [{
+            id: collectionOne.id,
+            type: 'collection',
+            attributes: {
+                name: collectionOne.name,
+                ownerId: collectionOne.ownerId,
+                application: 'rw',
+                resources: []
+            }
+        }]);
     });
 
     afterEach(async () => {

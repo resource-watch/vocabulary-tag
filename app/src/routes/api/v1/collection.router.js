@@ -122,6 +122,11 @@ class CollectionRouter {
             },
             ownerId: ctx.request.body.userId
         };
+
+        if (ctx.query.application) {
+            filters.application = ctx.query.application;
+        }
+
         const data = await CollectionModel.find(filters);
         ctx.body = CollectionSerializer.serialize(data);
     }
