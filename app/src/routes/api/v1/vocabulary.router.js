@@ -162,7 +162,7 @@ class VocabularyRouter {
             resource.application = ctx.query.application;
         }
         if (typeof resource.ids === 'string') {
-            resource.ids = resource.ids.split(',').map(elem => elem.trim());
+            resource.ids = resource.ids.split(',').map((elem) => elem.trim());
         }
         resource.type = VocabularyRouter.getResourceTypeByPath(ctx.path);
         const result = await ResourceService.getByIds(resource);
@@ -211,7 +211,7 @@ class VocabularyRouter {
         try {
             const user = ctx.request.body.loggedUser;
             const result = await RelationshipService.createSome(user, vocabularies, dataset, resource);
-            ctx.set('uncache', `vocabulary ${resource.id}-vocabulary ${resource.id}-vocabulary-all ${vocabularies.map(el => `${el.name}`).join(' ')}`);
+            ctx.set('uncache', `vocabulary ${resource.id}-vocabulary ${resource.id}-vocabulary-all ${vocabularies.map((el) => `${el.name}`).join(' ')}`);
             ctx.body = ResourceSerializer.serialize(result);
         } catch (err) {
             if (err instanceof RelationshipDuplicated) {
@@ -257,7 +257,7 @@ class VocabularyRouter {
         try {
             const user = ctx.request.body.loggedUser;
             const result = await RelationshipService.createSome(user, vocabularies, dataset, resource);
-            ctx.set('uncache', `vocabulary ${resource.id}-vocabulary ${resource.id}-vocabulary-all ${vocabularies.map(el => `${el.name}`).join(' ')}`);
+            ctx.set('uncache', `vocabulary ${resource.id}-vocabulary ${resource.id}-vocabulary-all ${vocabularies.map((el) => `${el.name}`).join(' ')}`);
             ctx.body = ResourceSerializer.serialize(result);
         } catch (err) {
             if (err instanceof RelationshipDuplicated) {
@@ -296,7 +296,7 @@ class VocabularyRouter {
             const user = ctx.request.body.loggedUser;
             const result = await RelationshipService.deleteAll(user, dataset, resource);
             logger.debug(result);
-            ctx.set('uncache', `vocabulary ${resource.id}-vocabulary ${resource.id}-vocabulary-all ${result.vocabularies.map(el => `${el.id}`).join(' ')}`);
+            ctx.set('uncache', `vocabulary ${resource.id}-vocabulary ${resource.id}-vocabulary-all ${result.vocabularies.map((el) => `${el.id}`).join(' ')}`);
             ctx.body = ResourceSerializer.serialize(result);
         } catch (err) {
             if (err instanceof VocabularyNotFound || err instanceof ResourceNotFound || err instanceof RelationshipNotFound) {
@@ -374,7 +374,7 @@ class VocabularyRouter {
 // Negative checking
 const relationshipAuthorizationMiddleware = async (ctx, next) => {
     // Get user from query (delete) or body (post-patch)
-    const user = Object.assign({}, ctx.request.query.loggedUser ? JSON.parse(ctx.request.query.loggedUser) : {}, ctx.request.body.loggedUser);
+    const user = { ...(ctx.request.query.loggedUser ? JSON.parse(ctx.request.query.loggedUser) : {}), ...ctx.request.body.loggedUser };
     if (user.id === 'microservice') {
         await next();
         return;
@@ -389,14 +389,10 @@ const relationshipAuthorizationMiddleware = async (ctx, next) => {
     }
     if (user.role === 'MANAGER' || user.role === 'ADMIN') {
         const resource = VocabularyRouter.getResource(ctx.params);
-        try {
-            const permission = await ResourceService.hasPermission(user, ctx.params.dataset, resource);
-            if (!permission) {
-                ctx.throw(403, 'Forbidden');
-                return;
-            }
-        } catch (err) {
-            throw err;
+        const permission = await ResourceService.hasPermission(user, ctx.params.dataset, resource);
+        if (!permission) {
+            ctx.throw(403, 'Forbidden');
+            return;
         }
     }
     await next(); // SUPERADMIN are included here
@@ -405,7 +401,7 @@ const relationshipAuthorizationMiddleware = async (ctx, next) => {
 // Negative checking
 const vocabularyAuthorizationMiddleware = async (ctx, next) => {
     // Get user from query (delete) or body (post-patch)
-    const user = Object.assign({}, ctx.request.query.loggedUser ? JSON.parse(ctx.request.query.loggedUser) : {}, ctx.request.body.loggedUser);
+    const user = { ...(ctx.request.query.loggedUser ? JSON.parse(ctx.request.query.loggedUser) : {}), ...ctx.request.body.loggedUser };
     if (user.id === 'microservice') {
         await next();
         return;

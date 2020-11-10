@@ -1,4 +1,3 @@
-
 class RelationshipNotFound extends Error {
 
     constructor(message) {

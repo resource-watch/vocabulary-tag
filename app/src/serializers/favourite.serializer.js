@@ -1,4 +1,3 @@
-
 class FavouriteSerializer {
 
     static serializeElement(el) {
@@ -20,7 +19,7 @@ class FavouriteSerializer {
         const result = {};
         if (data) {
             if (Array.isArray(data)) {
-                result.data = data.map(el => FavouriteSerializer.serializeElement(el));
+                result.data = data.map((el) => FavouriteSerializer.serializeElement(el));
             } else {
                 result.data = FavouriteSerializer.serializeElement(data);
             }

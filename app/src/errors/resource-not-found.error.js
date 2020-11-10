@@ -1,4 +1,3 @@
-
 class ResourceNotFound extends Error {
 
     constructor(message) {

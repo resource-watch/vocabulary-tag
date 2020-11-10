@@ -1,4 +1,3 @@
-
 class VocabularyDuplicated extends Error {
 
     constructor(message) {

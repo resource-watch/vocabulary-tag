@@ -1,4 +1,3 @@
-
 class ErrorSerializer {
 
     static serializeValidationError(data, typeParam) {

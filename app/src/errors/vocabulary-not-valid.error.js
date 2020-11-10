@@ -1,4 +1,3 @@
-
 class VocabularyNotValid extends Error {
 
     constructor(messages) {

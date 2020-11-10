@@ -15,7 +15,6 @@ nock.enableNetConnect(process.env.HOST_IP);
 let resourceOne;
 let resourceTwo;
 
-
 describe('Find vocabularies by IDs', () => {
     beforeEach(async () => {
         if (process.env.NODE_ENV !== 'test') {
@@ -24,7 +23,7 @@ describe('Find vocabularies by IDs', () => {
 
         requester = await getTestServer();
 
-        await Resource.deleteMany().exec();
+        await Resource.deleteMany({}).exec();
     });
 
     it('Find vocabularies without ids in body returns a 400 error', async () => {
@@ -184,6 +183,6 @@ describe('Find vocabularies by IDs', () => {
             throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);
         }
 
-        await Resource.deleteMany().exec();
+        await Resource.deleteMany({}).exec();
     });
 });

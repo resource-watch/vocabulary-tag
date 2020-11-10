@@ -30,6 +30,19 @@ const createVocabulary = (app = 'rw') => {
     };
 };
 
+const createCollection = (additionalData = {}) => {
+    const uuid = getUUID();
+
+    return {
+        id: uuid,
+        name: `Collection ${uuid}`,
+        application: 'rw',
+        ownerId: 'abcde',
+        resources: [],
+        ...additionalData
+    };
+};
+
 const createResource = (app = 'rw', vocabularyCount = 1) => {
     const uuid = getUUID();
     const datasetUuid = getUUID();
@@ -57,16 +70,9 @@ const createResource = (app = 'rw', vocabularyCount = 1) => {
     };
 };
 
-const createCollection = (app = 'rw', ownerId = null) => ({
-    name: `Collection ${getUUID()}`,
-    application: app,
-    ownerId: ownerId || getUUID(),
-    resources: []
-});
-
 const mockDataset = (id = undefined, extraData = {}) => {
     const idToUse = id || mongoose.Types.ObjectId();
-    const mockData = Object.assign({}, {
+    const mockData = {
         id: idToUse,
         type: 'dataset',
         attributes: {
@@ -101,15 +107,16 @@ const mockDataset = (id = undefined, extraData = {}) => {
             dataLastUpdated: null,
             widgetRelevantProps: [],
             layerRelevantProps: []
-        }
-    }, extraData);
+        },
+        ...extraData
+    };
     nock(process.env.CT_URL).get(`/v1/dataset/${idToUse}`).reply(200, { data: mockData });
     return mockData;
 };
 
 const mockWidget = (id = undefined, extraData = {}) => {
     const idToUse = id || mongoose.Types.ObjectId();
-    const mockData = Object.assign({}, {
+    const mockData = {
         id: idToUse,
         type: 'widget',
         attributes: {
@@ -141,14 +148,15 @@ const mockWidget = (id = undefined, extraData = {}) => {
             createdAt: '2016-09-15T15:48:38.688Z',
             updatedAt: '2017-03-21T12:39:21.826Z'
         },
-    }, extraData);
+        ...extraData
+    };
     nock(process.env.CT_URL).get(`/v1/widget/${idToUse}`).reply(200, { data: mockData });
     return mockData;
 };
 
 const mockLayer = (id = undefined, extraData = {}) => {
     const idToUse = id || mongoose.Types.ObjectId();
-    const mockData = Object.assign({}, {
+    const mockData = {
         id: idToUse,
         type: 'layer',
         attributes: {
@@ -223,8 +231,9 @@ const mockLayer = (id = undefined, extraData = {}) => {
             staticImageConfig: {},
             createdAt: '2016-09-06T11:43:25.207Z',
             updatedAt: '2016-09-06T12:06:47.364Z'
-        }
-    }, extraData);
+        },
+        ...extraData
+    };
     nock(process.env.CT_URL).get(`/v1/layer/${idToUse}`).reply(200, { data: mockData });
     return mockData;
 };

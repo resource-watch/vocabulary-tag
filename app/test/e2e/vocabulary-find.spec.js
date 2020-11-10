@@ -22,8 +22,8 @@ describe('Vocabulary find test suite', () => {
 
         requester = await getTestServer();
 
-        await Resource.deleteMany().exec();
-        await Vocabulary.deleteMany().exec();
+        await Resource.deleteMany({}).exec();
+        await Vocabulary.deleteMany({}).exec();
     });
 
     it('Finding dataset vocabulary without auth returns 200 OK and a data array', async () => {
@@ -47,7 +47,7 @@ describe('Vocabulary find test suite', () => {
             throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);
         }
 
-        await Resource.deleteMany().exec();
-        await Vocabulary.deleteMany().exec();
+        await Resource.deleteMany({}).exec();
+        await Vocabulary.deleteMany({}).exec();
     });
 });

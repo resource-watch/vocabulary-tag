@@ -1,4 +1,3 @@
-
 class CollectionSerializer {
 
     static serializeElement(el) {
@@ -9,10 +8,18 @@ class CollectionSerializer {
                 name: el.name,
                 ownerId: el.ownerId,
                 application: el.application,
-                resources: el.resources ? el.resources.map(res => ({
-                    id: res.id,
-                    type: res.type
-                })) : []
+                resources: el.resources ? el.resources.map((res) => {
+                    const result = {
+                        id: res.id,
+                        type: res.type
+                    };
+
+                    if (res.attributes) {
+                        result.attributes = res.attributes;
+                    }
+
+                    return result;
+                }) : []
             }
         };
     }
@@ -22,7 +29,7 @@ class CollectionSerializer {
         if (data) {
             if (Array.isArray(data)) {
 
-                result.data = data.map(el => CollectionSerializer.serializeElement(el));
+                result.data = data.map((el) => CollectionSerializer.serializeElement(el));
             } else {
                 result.data = CollectionSerializer.serializeElement(data);
             }

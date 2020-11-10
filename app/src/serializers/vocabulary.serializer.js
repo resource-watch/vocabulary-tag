@@ -26,7 +26,6 @@ class VocabularySerializer {
         return result;
     }
 
-
     static serializeTags(data) {
 
         const result = {};

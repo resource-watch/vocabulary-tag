@@ -65,8 +65,8 @@ describe('Vocabulary interaction with Graph MS test suite', () => {
 
         requester = await getTestServer();
 
-        await Resource.deleteMany().exec();
-        await Vocabulary.deleteMany().exec();
+        await Resource.deleteMany({}).exec();
+        await Vocabulary.deleteMany({}).exec();
     });
 
     it('POSTing vocab-dataset relationships with auth returns 200 OK with created data', async () => {
@@ -247,7 +247,7 @@ describe('Vocabulary interaction with Graph MS test suite', () => {
             throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);
         }
 
-        await Resource.deleteMany().exec();
-        await Vocabulary.deleteMany().exec();
+        await Resource.deleteMany({}).exec();
+        await Vocabulary.deleteMany({}).exec();
     });
 });

@@ -1,4 +1,3 @@
-
 class ConsistencyViolation extends Error {
 
     constructor(message) {

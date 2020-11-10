@@ -1,3 +1,7 @@
+## 10/11/2020
+
+- Fix `include` param for GET collection endpoint.
+
 # v2.1.0
 
 ## 07/09/2020

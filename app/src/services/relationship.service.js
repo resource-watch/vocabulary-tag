@@ -1,4 +1,3 @@
-
 const logger = require('logger');
 const VocabularyService = require('services/vocabulary.service');
 const ResourceService = require('services/resource.service');
@@ -11,7 +10,7 @@ const VocabularyNotFound = require('errors/vocabulary-not-found.error');
 class RelationshipService {
 
     static checkRelationship(resource, vocabulary) {
-        return resource.vocabularies.find(elVocabulary => (vocabulary.id === elVocabulary.id) && (vocabulary.application === elVocabulary.application));
+        return resource.vocabularies.find((elVocabulary) => (vocabulary.id === elVocabulary.id) && (vocabulary.application === elVocabulary.application));
     }
 
     static async create(user, pVocabulary, dataset, pResource, body) {
@@ -32,18 +31,14 @@ class RelationshipService {
             throw new RelationshipDuplicated(`This relationship already exists`);
         }
         body.tags = Array.from(new Set(body.tags));
-        try {
-            logger.debug(`Relationship in vocabulary`);
-            vocabulary.resources.push({
-                id: resource.id,
-                dataset: resource.dataset,
-                type: resource.type,
-                tags: body.tags
-            });
-            vocabulary.save();
-        } catch (err) {
-            throw err;
-        }
+        logger.debug(`Relationship in vocabulary`);
+        vocabulary.resources.push({
+            id: resource.id,
+            dataset: resource.dataset,
+            type: resource.type,
+            tags: body.tags
+        });
+        vocabulary.save();
         logger.debug(`Relationship in resource`);
         resource.vocabularies.push({
             id: vocabulary.id,
@@ -84,13 +79,9 @@ class RelationshipService {
             throw new RelationshipNotFound(`Relationship between ${vocabulary.id} and ${resource.type} - ${resource.id} and dataset: ${dataset} doesn't exist`);
         }
         let position;
-        try {
-            logger.debug(`Deleting from vocabulary`);
-            vocabulary.resources.splice(position, 1);
-            vocabulary.save();
-        } catch (err) {
-            throw err;
-        }
+        logger.debug(`Deleting from vocabulary`);
+        vocabulary.resources.splice(position, 1);
+        vocabulary.save();
         logger.debug(`Deleting from resource`);
         resource.vocabularies.splice(position, 1);
         resource = await resource.save();
@@ -119,7 +110,7 @@ class RelationshipService {
             logger.debug(`This resource doesn't have Relationships`);
             throw new RelationshipNotFound(`This resource doesn't have Relationships`);
         }
-        const vocabularies = resource.vocabularies.map(vocabulary => ({
+        const vocabularies = resource.vocabularies.map((vocabulary) => ({
             name: vocabulary.id
         }));
         for (let i = 0; i < vocabularies.length; i++) {
@@ -146,31 +137,27 @@ class RelationshipService {
             throw new RelationshipNotFound(`Relationship between ${vocabulary.id} and ${resource.type} - ${resource.id} and dataset: ${dataset} doesn't exist`);
         }
         let position;
-        try {
-            for (let i = 0, { length } = vocabulary.resources; i < length; i++) {
-                if (vocabulary.resources[i].type === resource.type && vocabulary.resources[i].id === resource.id) {
-                    position = i;
-                    break;
-                }
+        for (let i = 0, { length } = vocabulary.resources; i < length; i++) {
+            if (vocabulary.resources[i].type === resource.type && vocabulary.resources[i].id === resource.id) {
+                position = i;
+                break;
             }
-            logger.debug(`Tags to vocabulary`);
-
-            // If the resource has not been found in the vocabulary resources, push it!
-            if (position === undefined) {
-                vocabulary.resources.push({
-                    id: resource.id,
-                    dataset,
-                    type: resource.type,
-                    tags: body.tags,
-                });
-            } else {
-                vocabulary.resources[position].tags = body.tags;
-            }
-
-            vocabulary.save();
-        } catch (err) {
-            throw err;
         }
+        logger.debug(`Tags to vocabulary`);
+
+        // If the resource has not been found in the vocabulary resources, push it!
+        if (position === undefined) {
+            vocabulary.resources.push({
+                id: resource.id,
+                dataset,
+                type: resource.type,
+                tags: body.tags,
+            });
+        } else {
+            vocabulary.resources[position].tags = body.tags;
+        }
+
+        vocabulary.save();
         logger.debug(`Tags to resource`);
         position = 0;
         for (let i = 0, { length } = resource.vocabularies; i < length; i++) {
@@ -206,16 +193,12 @@ class RelationshipService {
         if (!relationship) {
             return RelationshipService.create(user, pVocabulary, dataset, pResource, body);
         }
-        try {
-            body.tags.forEach((el) => {
-                if (relationship.tags.indexOf(el) < 0) {
-                    relationship.tags.push(el);
-                }
-            });
-            return await RelationshipService.updateTagsFromRelationship(user, pVocabulary, dataset, pResource, relationship);
-        } catch (err) {
-            throw err;
-        }
+        body.tags.forEach((el) => {
+            if (relationship.tags.indexOf(el) < 0) {
+                relationship.tags.push(el);
+            }
+        });
+        return RelationshipService.updateTagsFromRelationship(user, pVocabulary, dataset, pResource, relationship);
     }
 
     static async cloneVocabularyTags(user, dataset, pResource, body) {
@@ -231,11 +214,7 @@ class RelationshipService {
             return vocabulary;
         });
         logger.debug('New Vocabularies', vocabularies);
-        try {
-            return await RelationshipService.createSome(user, vocabularies, body.newDataset, { type: 'dataset', id: body.newDataset });
-        } catch (err) {
-            throw err;
-        }
+        return RelationshipService.createSome(user, vocabularies, body.newDataset, { type: 'dataset', id: body.newDataset });
     }
 
 }

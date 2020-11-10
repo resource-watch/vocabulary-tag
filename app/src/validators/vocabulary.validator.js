@@ -1,4 +1,3 @@
-
 const logger = require('logger');
 const VocabularyNotValid = require('errors/vocabulary-not-valid.error');
 

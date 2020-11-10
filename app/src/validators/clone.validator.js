@@ -1,4 +1,3 @@
-
 const logger = require('logger');
 const CloneNotValid = require('errors/clone-not-valid.error');
 

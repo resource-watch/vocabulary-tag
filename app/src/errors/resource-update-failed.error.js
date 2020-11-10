@@ -1,4 +1,3 @@
-
 class ResourceUpdateFailed extends Error {
 
     constructor(message) {

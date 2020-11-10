@@ -1,4 +1,3 @@
-
 class RelationshipsNotValid extends Error {
 
     constructor(messages) {

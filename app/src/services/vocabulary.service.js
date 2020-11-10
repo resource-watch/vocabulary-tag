@@ -17,13 +17,13 @@ class VocabularyService {
         logger.debug(`Getting resources by vocabulary-tag`);
         const application = pQuery.application || pQuery.app;
         const query = VocabularyService.getQuery(pQuery);
-        let vocabularies = Object.keys(query).map(vocabularyName => Vocabulary.aggregate([
+        let vocabularies = Object.keys(query).map((vocabularyName) => Vocabulary.aggregate([
             {
                 $match: {
                     id: vocabularyName,
                     application: application || { $ne: null },
                     'resources.type': resource.type,
-                    'resources.tags': { $in: query[vocabularyName].split(',').map(elem => elem.trim()) }
+                    'resources.tags': { $in: query[vocabularyName].split(',').map((elem) => elem.trim()) }
                 }
             },
 
@@ -33,7 +33,7 @@ class VocabularyService {
             {
                 $match: {
                     'resources.type': resource.type,
-                    'resources.tags': { $in: query[vocabularyName].split(',').map(elem => elem.trim()) }
+                    'resources.tags': { $in: query[vocabularyName].split(',').map((elem) => elem.trim()) }
                 }
             },
 
@@ -64,7 +64,7 @@ class VocabularyService {
             // Unique a.resources
             const aUniqueResources = [];
             a.resources.forEach((nextResource) => {
-                const alreadyIn = aUniqueResources.find(currentResource => (nextResource.type === currentResource.type)
+                const alreadyIn = aUniqueResources.find((currentResource) => (nextResource.type === currentResource.type)
                     && (nextResource.id === currentResource.id)
                     && (nextResource.dataset === currentResource.dataset));
                 if (!alreadyIn) {
@@ -74,7 +74,7 @@ class VocabularyService {
             a.resources = aUniqueResources;
             // B in a unique resources
             b.resources.forEach((nextResource) => {
-                const alreadyIn = a.resources.find(currentResource => (nextResource.type === currentResource.type)
+                const alreadyIn = a.resources.find((currentResource) => (nextResource.type === currentResource.type)
                     && (nextResource.id === currentResource.id)
                     && (nextResource.dataset === currentResource.dataset));
                 if (!alreadyIn) {

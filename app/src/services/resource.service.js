@@ -102,9 +102,9 @@ class ResourceService {
         const resources = await Resource.find(query).exec();
         if (resource.application) {
             return resources.map((res) => {
-                res.vocabularies = res.vocabularies.filter(voc => voc.application === resource.application);
+                res.vocabularies = res.vocabularies.filter((voc) => voc.application === resource.application);
                 return res;
-            }).filter(res => res.vocabularies.length > 0);
+            }).filter((res) => res.vocabularies.length > 0);
         }
         return resources;
     }
@@ -114,22 +114,17 @@ class ResourceService {
     */
     static async hasPermission(user, dataset, pResource) {
         let permission = true;
-        let resource;
-        try {
-            resource = await ctRegisterMicroservice.requestToMicroservice({
-                uri: `/${pResource.type}/${pResource.id}`,
-                method: 'GET',
-                json: true
-            });
-        } catch (err) {
-            throw err;
-        }
+        let resource = await ctRegisterMicroservice.requestToMicroservice({
+            uri: `/${pResource.type}/${pResource.id}`,
+            method: 'GET',
+            json: true
+        });
         resource = deserializer(resource);
         if (!resource) {
             logger.error('Error getting resource from microservice');
             throw new ResourceNotFound(`REAL Resource ${pResource.type} - ${pResource.id} and dataset: ${dataset} doesn't exist`);
         }
-        const appPermission = resource.application.find(resourceApp => user.extraUserData.apps.find(app => app === resourceApp));
+        const appPermission = resource.application.find((resourceApp) => user.extraUserData.apps.find((app) => app === resourceApp));
         if (!appPermission) {
             permission = false;
         }

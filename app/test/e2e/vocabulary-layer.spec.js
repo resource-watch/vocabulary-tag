@@ -22,8 +22,8 @@ describe('Vocabulary-layer relationships test suite', () => {
 
         requester = await getTestServer();
 
-        await Resource.deleteMany().exec();
-        await Vocabulary.deleteMany().exec();
+        await Resource.deleteMany({}).exec();
+        await Vocabulary.deleteMany({}).exec();
     });
 
     it('Creating a vocab-layer relationship without auth returns 401 Unauthorized', async () => {
@@ -182,7 +182,7 @@ describe('Vocabulary-layer relationships test suite', () => {
             throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);
         }
 
-        await Resource.deleteMany().exec();
-        await Vocabulary.deleteMany().exec();
+        await Resource.deleteMany({}).exec();
+        await Vocabulary.deleteMany({}).exec();
     });
 });

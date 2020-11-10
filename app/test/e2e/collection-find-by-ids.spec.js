@@ -27,7 +27,7 @@ describe('Find collections by IDs', () => {
 
         requester = await getTestServer();
 
-        await Collection.deleteMany().exec();
+        await Collection.deleteMany({}).exec();
     });
 
     it('Find collections without ids or userId in body returns a 400 error', async () => {
@@ -78,8 +78,8 @@ describe('Find collections by IDs', () => {
     });
 
     it('Find collections with matching id list but different user id returns an empty list', async () => {
-        const collectionOne = await new Collection(createCollection('rw')).save();
-        await new Collection(createCollection('gfw')).save();
+        const collectionOne = await new Collection(createCollection({ application: 'rw' })).save();
+        await new Collection(createCollection({ application: 'gfw' })).save();
 
         const response = await requester
             .post(`/api/v1/collection/find-by-ids`)
@@ -93,8 +93,8 @@ describe('Find collections by IDs', () => {
     });
 
     it('Find collections with id string for a collections that exists and a matching userId returns the collections that match user and id list - single result (happy case)', async () => {
-        const collectionOne = await new Collection(createCollection('rw')).save();
-        await new Collection(createCollection('gfw')).save();
+        const collectionOne = await new Collection(createCollection({ application: 'rw' })).save();
+        await new Collection(createCollection({ application: 'gfw' })).save();
 
         const response = await requester
             .post(`/api/v1/collection/find-by-ids`)
@@ -116,8 +116,8 @@ describe('Find collections by IDs', () => {
     });
 
     it('Find collections with id list containing a collections that exists and a matching userId returns the collections that match user and id list - single result (happy case)', async () => {
-        const collectionOne = await new Collection(createCollection('rw')).save();
-        await new Collection(createCollection('gfw')).save();
+        const collectionOne = await new Collection(createCollection({ application: 'rw' })).save();
+        await new Collection(createCollection({ application: 'gfw' })).save();
 
         const response = await requester
             .post(`/api/v1/collection/find-by-ids`)
@@ -141,8 +141,8 @@ describe('Find collections by IDs', () => {
     it('Find collections with id list containing a collections that exists and a matching userId returns the collections that match user and id list - multiple result (happy case)', async () => {
         const userId = mongoose.Types.ObjectId();
 
-        const collectionOne = await new Collection(createCollection('rw', userId)).save();
-        const collectionTwo = await new Collection(createCollection('gfw', userId)).save();
+        const collectionOne = await new Collection(createCollection({ application: 'rw', ownerId: userId })).save();
+        const collectionTwo = await new Collection(createCollection({ application: 'gfw', ownerId: userId })).save();
 
         const response = await requester
             .post(`/api/v1/collection/find-by-ids`)
@@ -178,9 +178,12 @@ describe('Find collections by IDs', () => {
     it('Find collections with id list containing a collections that exists and a matching userId doesn\'t return the collections that don\'t match user id', async () => {
         const userId = mongoose.Types.ObjectId();
 
-        const collectionOne = await new Collection(createCollection('rw', userId)).save();
-        const collectionTwo = await new Collection(createCollection('gfw', userId)).save();
-        const collectionThree = await new Collection(createCollection('gfw', mongoose.Types.ObjectId())).save();
+        const collectionOne = await new Collection(createCollection({ application: 'rw', ownerId: userId })).save();
+        const collectionTwo = await new Collection(createCollection({ application: 'gfw', ownerId: userId })).save();
+        const collectionThree = await new Collection(createCollection({
+            application: 'gfw',
+            ownerId: mongoose.Types.ObjectId()
+        })).save();
 
         const response = await requester
             .post(`/api/v1/collection/find-by-ids`)
@@ -214,8 +217,8 @@ describe('Find collections by IDs', () => {
     });
 
     it('Find collections with id list containing collections that exist returns the listed collections (query param is ignored)', async () => {
-        const collectionOne = await new Collection(createCollection('rw')).save();
-        const collectionTwo = await new Collection(createCollection('gfw')).save();
+        const collectionOne = await new Collection(createCollection({ application: 'rw' })).save();
+        const collectionTwo = await new Collection(createCollection({ application: 'gfw' })).save();
 
         const response = await requester
             .post(`/api/v1/collection/find-by-ids?ids=${collectionTwo.id}`)
@@ -239,8 +242,8 @@ describe('Find collections by IDs', () => {
     it('Find collections with id list allows filtering by application using a query parameter, returning the listed collections', async () => {
         const userId = mongoose.Types.ObjectId();
 
-        const collectionOne = await new Collection(createCollection('rw', userId)).save();
-        const collectionTwo = await new Collection(createCollection('gfw', userId)).save();
+        const collectionOne = await new Collection(createCollection({ application: 'rw', ownerId: userId })).save();
+        const collectionTwo = await new Collection(createCollection({ application: 'gfw', ownerId: userId })).save();
 
         const response = await requester.post(`/api/v1/collection/find-by-ids`).send({
             ids: [collectionOne.id, collectionTwo.id],

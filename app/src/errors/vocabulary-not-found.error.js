@@ -1,4 +1,3 @@
-
 class VocabularyNotFound extends Error {
 
     constructor(message) {

@@ -1,4 +1,3 @@
-
 class RelationshipDuplicated extends Error {
 
     constructor(message) {
