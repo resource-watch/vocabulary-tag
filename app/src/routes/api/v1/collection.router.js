@@ -20,6 +20,11 @@ const getUser = (ctx) => {
     return user;
 };
 
+const serializeObjToQuery = (obj) => Object.keys(obj).reduce((a, k) => {
+    a.push(`${k}=${encodeURIComponent(obj[k])}`);
+    return a;
+}, []).join('&');
+
 class CollectionRouter {
 
     static async getAll(ctx) {
@@ -40,7 +45,18 @@ class CollectionRouter {
             ownerId: user.id,
             application
         };
-        let collections = await CollectionModel.find(filters);
+
+        const { query } = ctx;
+
+        const page = query['page[number]'] ? parseInt(query['page[number]'], 10) : 1;
+        const limit = query['page[size]'] ? parseInt(query['page[size]'], 10) : 9999999;
+
+        const options = {
+            page,
+            limit
+        };
+        const collections = await CollectionModel.paginate(filters, options);
+
         if (ctx.query.include && ctx.query.include === 'true') {
             logger.debug('including resources');
             const widgetIds = [];
@@ -52,7 +68,7 @@ class CollectionRouter {
             const layers = {};
 
             // Compile a list of ids for the 3 resource types
-            collections.forEach((collection) => {
+            collections.docs.forEach((collection) => {
                 collection.resources.forEach((resource) => {
                     switch (resource.type) {
 
@@ -129,7 +145,7 @@ class CollectionRouter {
             }
 
             // Reconcile imported resources
-            collections = collections.map((collectionModel) => {
+            collections.docs = collections.docs.map((collectionModel) => {
                 const collection = collectionModel.toObject();
 
                 collection.resources = collection.resources.map((resource) => {
@@ -152,7 +168,17 @@ class CollectionRouter {
             });
 
         }
-        ctx.body = CollectionSerializer.serialize(collections);
+
+        const clonedQuery = { ...query };
+        delete clonedQuery['page[size]'];
+        delete clonedQuery['page[number]'];
+        delete clonedQuery.loggedUser;
+
+        const serializedQuery = serializeObjToQuery(clonedQuery) ? `?${serializeObjToQuery(clonedQuery)}&` : '?';
+        const apiVersion = ctx.mountPath.split('/')[ctx.mountPath.split('/').length - 1];
+        const link = `${ctx.request.protocol}://${ctx.request.host}/${apiVersion}${ctx.request.path}${serializedQuery}`;
+
+        ctx.body = CollectionSerializer.serialize(collections, link);
     }
 
     static async findByIds(ctx) {

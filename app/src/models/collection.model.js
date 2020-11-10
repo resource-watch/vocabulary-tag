@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate');
 
 const { Schema } = mongoose;
 
@@ -14,5 +15,6 @@ const Collection = new Schema({
         type: { type: String, required: true, trim: true }
     }]
 });
+Collection.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('Collection', Collection);

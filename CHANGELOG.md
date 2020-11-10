@@ -1,6 +1,7 @@
 ## 10/11/2020
 
 - Fix `include` param for GET collection endpoint.
+- Add pagination got the GET collection endpoint.
 
 # v2.1.0
 

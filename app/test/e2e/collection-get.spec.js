@@ -45,8 +45,14 @@ describe('Get collections', () => {
     });
 
     it('Get collections with a user id should return a 200 with collections from the user and default app (happy case)', async () => {
-        const collectionOne = await new Collection(createCollection({ application: 'rw', ownerId: USERS.USER.id })).save();
-        const collectionTwo = await new Collection(createCollection({ application: 'rw', ownerId: USERS.USER.id })).save();
+        const collectionOne = await new Collection(createCollection({
+            application: 'rw',
+            ownerId: USERS.USER.id
+        })).save();
+        const collectionTwo = await new Collection(createCollection({
+            application: 'rw',
+            ownerId: USERS.USER.id
+        })).save();
 
         const response = await requester
             .get(`/api/v1/collection`)
@@ -60,7 +66,10 @@ describe('Get collections', () => {
 
     it('Get collections with a user id and no explicit app should return a 200 with collections from the user and default app (happy case)', async () => {
         await new Collection(createCollection({ application: 'gfw', ownerId: USERS.USER.id })).save();
-        const collectionTwo = await new Collection(createCollection({ application: 'rw', ownerId: USERS.USER.id })).save();
+        const collectionTwo = await new Collection(createCollection({
+            application: 'rw',
+            ownerId: USERS.USER.id
+        })).save();
 
         const response = await requester
             .get(`/api/v1/collection`)
@@ -219,6 +228,47 @@ describe('Get collections', () => {
                 ]
             }
         });
+    });
+
+    it('Get collections without pagination arguments should return the full list of collections', async () => {
+        for (let i = 0; i < 20; i++) {
+            await new Collection(createCollection({
+                application: 'rw',
+                ownerId: USERS.USER.id
+            })).save();
+        }
+
+        const response = await requester
+            .get(`/api/v1/collection`)
+            .query({ loggedUser: JSON.stringify(USERS.USER) })
+            .send();
+
+        response.status.should.equal(200);
+        response.body.should.have.property('data').and.be.an('array').and.length(20);
+        response.body.should.have.property('links').and.be.an('object');
+    });
+
+    it('Get collections with pagination arguments should return the paginated list of collections', async () => {
+        for (let i = 0; i < 20; i++) {
+            await new Collection(createCollection({
+                application: 'rw',
+                ownerId: USERS.USER.id
+            })).save();
+        }
+
+        const response = await requester
+            .get(`/api/v1/collection`)
+            .query({
+                loggedUser: JSON.stringify(USERS.USER),
+                page: {
+                    number: 1, size: 3
+                }
+            })
+            .send();
+
+        response.status.should.equal(200);
+        response.body.should.have.property('data').and.be.an('array').and.length(3);
+        response.body.should.have.property('links').and.be.an('object');
     });
 
     afterEach(async () => {
