@@ -1,6 +1,6 @@
 {
   "name": "vocabulary-tag",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Vocabulary Tag",
   "main": "index.js",
   "scripts": {
