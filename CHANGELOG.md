@@ -1,3 +1,7 @@
+## 20/11/2020
+
+- Add sorting support to the GET collection endpoint.
+
 # v2.2.0
 
 ## 17/11/2020

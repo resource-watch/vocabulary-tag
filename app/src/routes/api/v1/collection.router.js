@@ -25,6 +25,24 @@ const serializeObjToQuery = (obj) => Object.keys(obj).reduce((a, k) => {
     return a;
 }, []).join('&');
 
+function getFilteredSort(sort) {
+    const sortParams = sort.split(',');
+    const filteredSort = {};
+    const areaAttributes = Object.keys(CollectionModel.schema.obj);
+    sortParams.forEach((param) => {
+        let sign = param.substr(0, 1);
+        let signlessParam = param.substr(1);
+        if (sign !== '-' && sign !== '+') {
+            signlessParam = param;
+            sign = '+';
+        }
+        if (areaAttributes.indexOf(signlessParam) >= 0) {
+            filteredSort[signlessParam] = parseInt(sign + 1, 10);
+        }
+    });
+    return filteredSort;
+}
+
 class CollectionRouter {
 
     static async getAll(ctx) {
@@ -47,13 +65,17 @@ class CollectionRouter {
         };
 
         const { query } = ctx;
+        const sort = ctx.query.sort || '';
 
         const page = query['page[number]'] ? parseInt(query['page[number]'], 10) : 1;
         const limit = query['page[size]'] ? parseInt(query['page[size]'], 10) : 9999999;
 
+        const filteredSort = getFilteredSort(sort);
+
         const options = {
             page,
-            limit
+            limit,
+            sort: filteredSort
         };
         const collections = await CollectionModel.paginate(filters, options);
 
