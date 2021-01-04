@@ -3,15 +3,15 @@ const chai = require('chai');
 const Resource = require('models/resource.model');
 const Vocabulary = require('models/vocabulary.model');
 
-const { USERS } = require('./utils/test.constants');
+const { USERS } = require('../utils/test.constants');
 const {
     assertOKResponse,
     mockDataset,
     mockPostGraphAssociation,
     mockPutGraphAssociation,
     mockDeleteGraphAssociation,
-} = require('./utils/helpers');
-const { getTestServer } = require('./utils/test-server');
+} = require('../utils/helpers');
+const { getTestServer } = require('../utils/test-server');
 
 chai.should();
 
@@ -69,7 +69,7 @@ describe('Vocabulary interaction with Graph MS test suite', () => {
         await Vocabulary.deleteMany({}).exec();
     });
 
-    it('POSTing vocab-dataset relationships with auth returns 200 OK with created data', async () => {
+    it('POSTing vocabulary-dataset relationships with auth returns 200 OK with created data', async () => {
         // Assert no relationships exist for the mock dataset created
         const mockDatasetId = mockDataset().id;
         await assertCountOfVocabDatasetRelationships(mockDatasetId, 0);
@@ -88,7 +88,7 @@ describe('Vocabulary interaction with Graph MS test suite', () => {
         await assertCountOfVocabDatasetRelationships(mockDatasetId, 1);
     });
 
-    it('PUTting vocab-dataset relationships with auth returns 200 OK with created data', async () => {
+    it('PUTting vocabulary-dataset relationships with auth returns 200 OK with created data', async () => {
         // Assert no relationships exist for the mock dataset created
         const mockDatasetId = mockDataset().id;
         await assertCountOfVocabDatasetRelationships(mockDatasetId, 0);
@@ -107,7 +107,7 @@ describe('Vocabulary interaction with Graph MS test suite', () => {
         await assertCountOfVocabDatasetRelationships(mockDatasetId, 1);
     });
 
-    it('PATCHing vocab-dataset relationships with auth returns 200 OK with updated data', async () => {
+    it('PATCHing vocabulary-dataset relationships with auth returns 200 OK with updated data', async () => {
         // PUT one vocabulary relationship
         const mockDatasetId = mockDataset().id;
         assertOKResponse(await putVocabDatasetRelationship(
@@ -133,7 +133,7 @@ describe('Vocabulary interaction with Graph MS test suite', () => {
         await assertCountOfVocabDatasetRelationships(mockDatasetId, 1);
     });
 
-    it('DELETing vocab-dataset relationships with auth returns 200 OK with no data', async () => {
+    it('DELETing vocabulary-dataset relationships with auth returns 200 OK with no data', async () => {
         // PUT one vocabulary relationship
         const mockDatasetId = mockDataset().id;
         assertOKResponse(await putVocabDatasetRelationship(
@@ -152,7 +152,7 @@ describe('Vocabulary interaction with Graph MS test suite', () => {
         await assertCountOfVocabDatasetRelationships(mockDatasetId, 0);
     });
 
-    it('PATCHing vocab-dataset relationships when the resource is not present in the vocabulary resources list returns 200 OK with updated data', async () => {
+    it('PATCHing vocabulary-dataset relationships when the resource is not present in the vocabulary resources list returns 200 OK with updated data', async () => {
         const mockDatasetId = mockDataset().id;
         assertOKResponse(await putVocabDatasetRelationship(
             mockDatasetId,
@@ -176,7 +176,7 @@ describe('Vocabulary interaction with Graph MS test suite', () => {
         patchResponse.body.data[0].attributes.should.have.property('tags').and.be.deep.equal(['vector']);
     });
 
-    it('PUTting vocab-graph relationships when Graph request fails should return 200 OK with created data', async () => {
+    it('PUTting vocabulary-graph relationships when Graph request fails should return 200 OK with created data', async () => {
         // Assert no relationships exist for the mock dataset created
         const mockDatasetId = mockDataset().id;
         await assertCountOfVocabDatasetRelationships(mockDatasetId, 0);
@@ -196,7 +196,7 @@ describe('Vocabulary interaction with Graph MS test suite', () => {
         await assertCountOfVocabDatasetRelationships(mockDatasetId, 1);
     });
 
-    it('PATCHing vocab-graph relationships when Graph request fails should return 200 OK with updated data', async () => {
+    it('PATCHing vocabulary-graph relationships when Graph request fails should return 200 OK with updated data', async () => {
         // PUT one vocabulary relationship
         const mockDatasetId = mockDataset().id;
         assertOKResponse(await putVocabDatasetRelationship(
@@ -223,7 +223,7 @@ describe('Vocabulary interaction with Graph MS test suite', () => {
         await assertCountOfVocabDatasetRelationships(mockDatasetId, 1);
     });
 
-    it('DELETing vocab-graph relationships when Graph request fails should return 200 OK with no data', async () => {
+    it('DELETing vocabulary-graph relationships when Graph request fails should return 200 OK with no data', async () => {
         // PUT one vocabulary relationship
         const mockDatasetId = mockDataset().id;
         assertOKResponse(await putVocabDatasetRelationship(

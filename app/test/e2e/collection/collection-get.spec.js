@@ -1,10 +1,10 @@
 const nock = require('nock');
 const chai = require('chai');
 const Collection = require('models/collection.model');
-const { USERS } = require('./utils/test.constants');
-const { createCollection } = require('./utils/helpers');
+const { USERS } = require('../utils/test.constants');
+const { createCollection } = require('../utils/helpers');
 
-const { getTestServer } = require('./utils/test-server');
+const { getTestServer } = require('../utils/test-server');
 
 chai.should();
 

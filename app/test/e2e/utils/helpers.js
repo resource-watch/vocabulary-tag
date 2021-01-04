@@ -43,9 +43,8 @@ const createCollection = (additionalData = {}) => {
     };
 };
 
-const createResource = (app = 'rw', vocabularyCount = 1) => {
+const createResource = (app = 'rw', vocabularyCount = 1, type = 'dataset', id = null) => {
     const uuid = getUUID();
-    const datasetUuid = getUUID();
     const vocabularies = [];
 
     for (let i = 0; i < vocabularyCount; i += 1) {
@@ -63,9 +62,9 @@ const createResource = (app = 'rw', vocabularyCount = 1) => {
         });
     }
     return {
-        id: uuid,
-        dataset: datasetUuid,
-        type: 'dataset',
+        id: id || uuid,
+        dataset: uuid,
+        type,
         vocabularies
     };
 };
@@ -106,9 +105,9 @@ const mockDataset = (id = undefined, extraData = {}) => {
             updatedAt: '2018-11-05T15:25:53.321Z',
             dataLastUpdated: null,
             widgetRelevantProps: [],
-            layerRelevantProps: []
-        },
-        ...extraData
+            layerRelevantProps: [],
+            ...extraData
+        }
     };
     nock(process.env.CT_URL).get(`/v1/dataset/${idToUse}`).reply(200, { data: mockData });
     return mockData;
@@ -146,9 +145,9 @@ const mockWidget = (id = undefined, extraData = {}) => {
             template: false,
             layerId: null,
             createdAt: '2016-09-15T15:48:38.688Z',
-            updatedAt: '2017-03-21T12:39:21.826Z'
-        },
-        ...extraData
+            updatedAt: '2017-03-21T12:39:21.826Z',
+            ...extraData
+        }
     };
     nock(process.env.CT_URL).get(`/v1/widget/${idToUse}`).reply(200, { data: mockData });
     return mockData;
@@ -230,9 +229,9 @@ const mockLayer = (id = undefined, extraData = {}) => {
             },
             staticImageConfig: {},
             createdAt: '2016-09-06T11:43:25.207Z',
-            updatedAt: '2016-09-06T12:06:47.364Z'
-        },
-        ...extraData
+            updatedAt: '2016-09-06T12:06:47.364Z',
+            ...extraData
+        }
     };
     nock(process.env.CT_URL).get(`/v1/layer/${idToUse}`).reply(200, { data: mockData });
     return mockData;
@@ -278,6 +277,11 @@ const assertUnauthorizedResponse = (response) => {
     response.body.should.have.property('errors').and.be.an('array');
     response.body.errors[0].should.have.property('detail').and.equal('Unauthorized');
 };
+const assertForbiddenResponse = (response) => {
+    response.status.should.equal(403);
+    response.body.should.have.property('errors').and.be.an('array');
+    response.body.errors[0].should.have.property('detail').and.equal('Forbidden');
+};
 
 const assertOKResponse = (response, length = undefined) => {
     response.status.should.equal(200);
@@ -288,8 +292,10 @@ const assertOKResponse = (response, length = undefined) => {
 };
 
 module.exports = {
+    getUUID,
     assertOKResponse,
     assertUnauthorizedResponse,
+    assertForbiddenResponse,
     createResource,
     createVocabulary,
     createCollection,
