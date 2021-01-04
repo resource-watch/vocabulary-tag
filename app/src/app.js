@@ -77,7 +77,8 @@ async function init() {
                     try {
                         error = JSON.parse(inErr);
                     } catch (e) {
-                        logger.error('Could not parse error message - is it JSON?: ', inErr);
+                        logger.debug('Could not parse error message - is it JSON?: ', inErr);
+                        error = inErr;
                     }
                     ctx.status = error.status || ctx.status || 500;
                     if (ctx.status >= 500) {
