@@ -1,7 +1,7 @@
 const nock = require('nock');
 const chai = require('chai');
 const Resource = require('models/resource.model');
-const { createResource } = require('../utils/helpers');
+const { createResource, getUUID } = require('../utils/helpers');
 
 const { getTestServer } = require('../utils/test-server');
 
@@ -15,7 +15,7 @@ nock.enableNetConnect(process.env.HOST_IP);
 let resourceOne;
 let resourceTwo;
 
-describe('Find vocabularies by IDs', () => {
+describe('Find widget vocabularies by IDs', () => {
     beforeEach(async () => {
         if (process.env.NODE_ENV !== 'test') {
             throw Error(`Running the test suite with NODE_ENV ${process.env.NODE_ENV} may result in permanent data loss. Please use NODE_ENV=test.`);
@@ -28,7 +28,7 @@ describe('Find vocabularies by IDs', () => {
 
     it('Find vocabularies without ids in body returns a 400 error', async () => {
         const response = await requester
-            .post(`/api/v1/dataset/vocabulary/find-by-ids`)
+            .post(`/api/v1/dataset/345/widget/vocabulary/find-by-ids`)
             .send({});
 
         response.status.should.equal(400);
@@ -38,7 +38,7 @@ describe('Find vocabularies by IDs', () => {
 
     it('Find vocabularies with empty id list returns an empty list (empty db)', async () => {
         const response = await requester
-            .post(`/api/v1/dataset/vocabulary/find-by-ids`)
+            .post(`/api/v1/dataset/345/widget/vocabulary/find-by-ids`)
             .send({
                 ids: []
             });
@@ -49,7 +49,7 @@ describe('Find vocabularies by IDs', () => {
 
     it('Find vocabularies with id list containing vocabulary that does not exist returns an empty list (empty db)', async () => {
         const response = await requester
-            .post(`/api/v1/dataset/vocabulary/find-by-ids`)
+            .post(`/api/v1/dataset/345/widget/vocabulary/find-by-ids`)
             .send({
                 ids: ['abcd']
             });
@@ -59,11 +59,11 @@ describe('Find vocabularies by IDs', () => {
     });
 
     it('Find vocabularies with id list containing a vocabulary that exists returns only the listed vocabulary', async () => {
-        resourceOne = await new Resource(createResource('rw', 3)).save();
-        resourceTwo = await new Resource(createResource('gfw', 4)).save();
+        resourceOne = await new Resource(createResource('rw', 3, 'widget', getUUID())).save();
+        resourceTwo = await new Resource(createResource('gfw', 4, 'widget', getUUID())).save();
 
         const response = await requester
-            .post(`/api/v1/dataset/vocabulary/find-by-ids`)
+            .post(`/api/v1/dataset/${resourceOne.dataset}/widget/vocabulary/find-by-ids`)
             .send({
                 ids: [resourceOne.id]
             });
@@ -92,11 +92,11 @@ describe('Find vocabularies by IDs', () => {
     });
 
     it('Find vocabularies with id list containing vocabularies that exist returns the listed vocabularies', async () => {
-        resourceOne = await new Resource(createResource('rw', 3)).save();
-        resourceTwo = await new Resource(createResource('gfw', 4)).save();
+        resourceOne = await new Resource(createResource('rw', 3, 'widget', getUUID())).save();
+        resourceTwo = await new Resource(createResource('gfw', 4, 'widget', getUUID())).save();
 
         const response = await requester
-            .post(`/api/v1/dataset/vocabulary/find-by-ids`)
+            .post(`/api/v1/dataset/${resourceOne.dataset}/widget/vocabulary/find-by-ids`)
             .send({
                 ids: [resourceOne.id, resourceTwo.id]
             });
@@ -113,7 +113,7 @@ describe('Find vocabularies by IDs', () => {
                     attributes: {
                         resource: {
                             id: resourceOne.id,
-                            type: 'dataset'
+                            type: 'widget'
                         },
                         tags: elem.tags,
                         name: elem.id,
@@ -130,7 +130,7 @@ describe('Find vocabularies by IDs', () => {
                     attributes: {
                         resource: {
                             id: resourceTwo.id,
-                            type: 'dataset'
+                            type: 'widget'
                         },
                         tags: elem.tags,
                         name: elem.id,
@@ -144,11 +144,11 @@ describe('Find vocabularies by IDs', () => {
     });
 
     it('Find vocabularies with id list containing vocabularies that exist returns the listed vocabularies (query param is ignored)', async () => {
-        resourceOne = await new Resource(createResource('rw', 3)).save();
-        resourceTwo = await new Resource(createResource('gfw', 4)).save();
+        resourceOne = await new Resource(createResource('rw', 3, 'widget', getUUID())).save();
+        resourceTwo = await new Resource(createResource('gfw', 4, 'widget', getUUID())).save();
 
         const response = await requester
-            .post(`/api/v1/dataset/vocabulary/find-by-ids?ids=${resourceTwo.id}`)
+            .post(`/api/v1/dataset/${resourceOne.dataset}/widget/vocabulary/find-by-ids?ids=${resourceTwo.id}`)
             .send({
                 ids: [resourceOne.id]
             });
@@ -165,7 +165,7 @@ describe('Find vocabularies by IDs', () => {
                     attributes: {
                         resource: {
                             id: resourceOne.id,
-                            type: 'dataset'
+                            type: 'widget'
                         },
                         tags: elem.tags,
                         name: elem.id,
