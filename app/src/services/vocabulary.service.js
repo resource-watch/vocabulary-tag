@@ -48,7 +48,7 @@ class VocabularyService {
         if (!vocabularies || vocabularies.length === 0 || vocabularies[0].length === 0) {
             return null;
         }
-        // just one vocabulary mathching? force to at least 2 arrays
+        // just one vocabulary matching? force to at least 2 arrays
         const validVocabularies = [];
         vocabularies.forEach((vocabulary) => {
             if (vocabulary.length !== 0) {

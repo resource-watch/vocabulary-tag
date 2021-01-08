@@ -8,7 +8,7 @@ const {
     assertOKResponse,
     assertUnauthorizedResponse,
     assertForbiddenResponse,
-    mockWidget
+    mockLayer
 } = require('../utils/helpers');
 const { getTestServer } = require('../utils/test-server');
 
@@ -19,7 +19,7 @@ let requester;
 nock.disableNetConnect();
 nock.enableNetConnect(process.env.HOST_IP);
 
-describe('Create widget vocabulary', () => {
+describe('Create a single vocabulary for a layer', () => {
     beforeEach(async () => {
         if (process.env.NODE_ENV !== 'test') {
             throw Error(`Running the test suite with NODE_ENV ${process.env.NODE_ENV} may result in permanent data loss. Please use NODE_ENV=test.`);
@@ -31,67 +31,94 @@ describe('Create widget vocabulary', () => {
         await Vocabulary.deleteMany({}).exec();
     });
 
-    it('Creating a vocabulary-widget relationship without auth returns 401 Unauthorized', async () => {
+    it('Creating a vocabulary-layer relationship without auth returns 401 Unauthorized', async () => {
         assertUnauthorizedResponse(await requester
-            .post(`/api/v1/dataset/345/widget/123/vocabulary/science`)
+            .post(`/api/v1/dataset/345/layer/123/vocabulary/science`)
             .send({ application: 'rw', tags: ['biology', 'chemistry'] }));
     });
 
-    it('Creating a vocabulary-widget relationship while being authenticated as a USER should return a 403 Forbidden', async () => {
+    it('Creating a vocabulary-layer relationship while being authenticated as a USER should return a 403 Forbidden', async () => {
         assertForbiddenResponse(await requester
-            .post(`/api/v1/dataset/345/widget/123/vocabulary/science`)
+            .post(`/api/v1/dataset/345/layer/123/vocabulary/science`)
             .send({ application: 'rw', tags: ['biology', 'chemistry'], loggedUser: USERS.USER }));
     });
 
-    it('Creating a vocabulary-widget relationship while being authenticated as a MANAGER that does not own the resource should return a 403 Forbidden', async () => {
-        const mockWidgetId = mockWidget().id;
+    it('Creating a vocabulary-layer relationship while being authenticated as a MANAGER that does not own the resource should return a 403 Forbidden', async () => {
+        const mockLayerId = mockLayer().id;
 
         const vocabName = 'science';
         const vocabData = { application: 'rw', tags: ['biology', 'chemistry'] };
 
         assertForbiddenResponse(await requester
-            .post(`/api/v1/dataset/345/widget/${mockWidgetId}/vocabulary/${vocabName}`)
+            .post(`/api/v1/dataset/345/layer/${mockLayerId}/vocabulary/${vocabName}`)
             .send({ ...vocabData, loggedUser: USERS.MANAGER }));
     });
 
-    it('Creating a vocabulary-widget relationship while being authenticated as a MANAGER that owns the resource should return a 200', async () => {
-        const mockWidgetId = mockWidget(null, { userId: USERS.MANAGER.id }).id;
+    it('Creating a vocabulary-layer relationship while being authenticated as a MANAGER that owns the resource should return a 200', async () => {
+        const mockLayerId = mockLayer(null, { userId: USERS.MANAGER.id }).id;
 
         const vocabName = 'science';
         const vocabData = { application: 'rw', tags: ['biology', 'chemistry'] };
 
         const response = await requester
-            .post(`/api/v1/dataset/345/widget/${mockWidgetId}/vocabulary/${vocabName}`)
+            .post(`/api/v1/dataset/345/layer/${mockLayerId}/vocabulary/${vocabName}`)
             .send({ ...vocabData, loggedUser: USERS.MANAGER });
 
         assertOKResponse(response);
         response.body.data[0].should.have.property('id').and.equal(vocabName);
     });
 
-    it('Creating a vocabulary-widget relationship while being authenticated as an ADMIN should return 200 OK and created data', async () => {
-        // Mock the request for widget validation
-        const mockWidgetId = mockWidget().id;
+    it('Creating a vocabulary-layer relationship while being authenticated as a MANAGER that owns the resource but does not belong to the same application as the resource should return a 403 Forbidden', async () => {
+        const mockLayerId = mockLayer(null, { userId: USERS.MANAGER.id, application: ['fake'] }).id;
+
+        const vocabName = 'science';
+        const vocabData = { application: 'fake', tags: ['biology', 'chemistry'] };
+
+        const response = await requester
+            .post(`/api/v1/dataset/345/layer/${mockLayerId}/vocabulary/${vocabName}`)
+            .send({ ...vocabData, loggedUser: USERS.MANAGER });
+
+        assertForbiddenResponse(response);
+    });
+
+    it('Creating a vocabulary-layer relationship for a different app while being authenticated as a MANAGER that owns the resource should return a 200', async () => {
+        const mockLayerId = mockLayer(null, { userId: USERS.MANAGER.id }).id;
+
+        const vocabName = 'science';
+        const vocabData = { application: 'fake', tags: ['biology', 'chemistry'] };
+
+        const response = await requester
+            .post(`/api/v1/dataset/345/layer/${mockLayerId}/vocabulary/${vocabName}`)
+            .send({ ...vocabData, loggedUser: USERS.MANAGER });
+
+        assertOKResponse(response);
+        response.body.data[0].should.have.property('id').and.equal(vocabName);
+    });
+
+    it('Creating a vocabulary-layer relationship while being authenticated as an ADMIN should return 200 OK and created data', async () => {
+        // Mock the request for layer validation
+        const mockLayerId = mockLayer().id;
 
         // Prepare vocabulary test data
         const vocabName = 'science';
         const vocabData = { application: 'rw', tags: ['biology', 'chemistry'] };
 
-        // Perform POST request for creating the vocabulary-widget relationship
+        // Perform POST request for creating the vocabulary-layer relationship
         const response = await requester
-            .post(`/api/v1/dataset/345/widget/${mockWidgetId}/vocabulary/${vocabName}`)
+            .post(`/api/v1/dataset/345/layer/${mockLayerId}/vocabulary/${vocabName}`)
             .send({ ...vocabData, loggedUser: USERS.ADMIN });
 
         assertOKResponse(response);
         response.body.data[0].should.have.property('id').and.equal(vocabName);
     });
 
-    it('Creating multiple vocabulary-widget relationships with auth returns 200 OK and created data', async () => {
-        // Mock the request for widget validation
-        const mockWidgetId = mockWidget().id;
+    it('Creating multiple vocabulary-layer relationships with auth returns 200 OK and created data', async () => {
+        // Mock the request for layer validation
+        const mockLayerId = mockLayer().id;
 
-        // Perform POST request for creating multiple vocabulary-widget relationships
+        // Perform POST request for creating multiple vocabulary-layer relationships
         const response = await requester
-            .post(`/api/v1/dataset/345/widget/${mockWidgetId}/vocabulary`)
+            .post(`/api/v1/dataset/345/layer/${mockLayerId}/vocabulary`)
             .send({
                 physics: { application: 'gfw', tags: ['quantum', 'universe'] },
                 geography: { application: 'rw', tags: ['countries', 'cities'] },

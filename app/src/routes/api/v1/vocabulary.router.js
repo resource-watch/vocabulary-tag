@@ -132,9 +132,9 @@ class VocabularyRouter {
 
     static async getTagsById(ctx) {
         logger.info(`Getting vocabulary tags by name: ${ctx.params.vocabulary}`);
-        const application = VocabularyRouter.getApplication(ctx);
-        const vocabulary = { name: ctx.params.vocabulary };
-        const result = await VocabularyService.getById(application, vocabulary);
+        const application = ctx.query.application || ctx.query.app || 'rw';
+        const vocabulary = { name: ctx.params.vocabulary, application };
+        const result = await VocabularyService.getById(vocabulary);
         ctx.body = VocabularySerializer.serializeTags(result);
     }
 
