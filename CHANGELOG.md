@@ -1,3 +1,7 @@
+## 14/01/2021
+
+- Replace CT integration library
+
 ## 20/11/2020
 
 - Add sorting support to the GET collection endpoint.

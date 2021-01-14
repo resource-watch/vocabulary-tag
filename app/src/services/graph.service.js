@@ -1,11 +1,11 @@
 const logger = require('logger');
-const ctRegisterMicroservice = require('sd-ct-register-microservice-node');
+const { RWAPIMicroservice } = require('rw-api-microservice-node');
 const ConsistencyViolation = require('errors/consistency-violation.error');
 const ResourceNotFoundError = require('errors/resource-not-found.error');
 
 const createResourceOnGraph = async (resource) => {
     if (resource.type === 'layer' || resource.type === 'widget') {
-        return ctRegisterMicroservice.requestToMicroservice({
+        return RWAPIMicroservice.requestToMicroservice({
             uri: `/graph/${resource.type}/${resource.dataset}/${resource.id}`,
             method: 'POST',
             json: true,
@@ -13,7 +13,7 @@ const createResourceOnGraph = async (resource) => {
     }
 
     // Default to 'dataset' case
-    return ctRegisterMicroservice.requestToMicroservice({
+    return RWAPIMicroservice.requestToMicroservice({
         uri: `/graph/dataset/${resource.id}`,
         method: 'POST',
         json: true,
@@ -22,7 +22,7 @@ const createResourceOnGraph = async (resource) => {
 
 const createOrUpdateAssociationOnGraph = async (action, resource, tags, application) => {
     try {
-        const res = await ctRegisterMicroservice.requestToMicroservice({
+        const res = await RWAPIMicroservice.requestToMicroservice({
             uri: `/graph/${resource.type}/${resource.id}/associate`,
             method: action.toUpperCase(),
             json: true,
@@ -46,7 +46,7 @@ const deleteAssociationOnGraph = async (resource, application) => {
     }
 
     try {
-        await ctRegisterMicroservice.requestToMicroservice({
+        await RWAPIMicroservice.requestToMicroservice({
             uri: `/graph/${resource.type}/${resource.id}/associate${applicationQueryParam}`,
             method: 'DELETE',
             json: true

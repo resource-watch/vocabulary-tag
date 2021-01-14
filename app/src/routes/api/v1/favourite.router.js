@@ -1,6 +1,6 @@
 const Router = require('koa-router');
 const logger = require('logger');
-const ctRegisterMicroservice = require('sd-ct-register-microservice-node');
+const { RWAPIMicroservice } = require('rw-api-microservice-node');
 const FavouriteSerializer = require('serializers/favourite.serializer');
 const FavouriteModel = require('models/favourite.model');
 const FavouriteValidator = require('validators/favourite.validator');
@@ -44,7 +44,7 @@ class FavouriteRouter {
             try {
                 if (datasets.length > 0) {
                     logger.debug('Loading datasets');
-                    const datasetResources = await ctRegisterMicroservice.requestToMicroservice({
+                    const datasetResources = await RWAPIMicroservice.requestToMicroservice({
                         uri: `/dataset?ids=${datasets.join(',')}`,
                         method: 'GET',
                         json: true
@@ -63,7 +63,7 @@ class FavouriteRouter {
                 logger.debug('Loading widgets', widgets);
                 if (widgets.length > 0) {
                     logger.debug('Loading widgets', widgets);
-                    const widgetResources = await ctRegisterMicroservice.requestToMicroservice({
+                    const widgetResources = await RWAPIMicroservice.requestToMicroservice({
                         uri: `/widget?ids=${widgets.join(',')}`,
                         method: 'GET',
                         json: true
@@ -85,7 +85,7 @@ class FavouriteRouter {
                     logger.info('Loading layers', layers);
                     for (let i = 0, { length } = layers; i < length; i++) {
                         try {
-                            const layerResource = await ctRegisterMicroservice.requestToMicroservice({
+                            const layerResource = await RWAPIMicroservice.requestToMicroservice({
                                 uri: `/layer/${layers[i]}`,
                                 method: 'GET',
                                 json: true
@@ -141,7 +141,7 @@ class FavouriteRouter {
         };
         const data = await new FavouriteModel(body).save();
         try {
-            await ctRegisterMicroservice.requestToMicroservice({
+            await RWAPIMicroservice.requestToMicroservice({
                 uri: `/graph/favourite/${ctx.request.body.resourceType}/${ctx.request.body.resourceId}/${ctx.request.body.loggedUser.id}`,
                 method: 'POST',
                 json: true
@@ -156,7 +156,7 @@ class FavouriteRouter {
         logger.info('Deleting favourite with id ', ctx.params.id);
         ctx.assert(ctx.params.id.length === 24, 400, 'Id not valid');
         try {
-            await ctRegisterMicroservice.requestToMicroservice({
+            await RWAPIMicroservice.requestToMicroservice({
                 uri: `/graph/favourite/${ctx.state.fav.resourceType}/${ctx.state.fav.resourceId}/${ctx.state.fav.id}`,
                 method: 'DELETE',
                 json: true

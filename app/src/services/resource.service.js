@@ -1,7 +1,7 @@
 const logger = require('logger');
 const Resource = require('models/resource.model');
 const ResourceNotFound = require('errors/resource-not-found.error');
-const ctRegisterMicroservice = require('sd-ct-register-microservice-node');
+const { RWAPIMicroservice } = require('rw-api-microservice-node');
 
 const deserializer = (obj) => {
     if (obj instanceof Array) {
@@ -114,7 +114,7 @@ class ResourceService {
     */
     static async hasPermission(user, dataset, pResource) {
         let permission = true;
-        let resource = await ctRegisterMicroservice.requestToMicroservice({
+        let resource = await RWAPIMicroservice.requestToMicroservice({
             uri: `/${pResource.type}/${pResource.id}`,
             method: 'GET',
             json: true
