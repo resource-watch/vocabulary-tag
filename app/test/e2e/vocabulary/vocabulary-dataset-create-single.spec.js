@@ -8,7 +8,8 @@ const {
     assertOKResponse,
     assertUnauthorizedResponse,
     assertForbiddenResponse,
-    mockDataset
+    mockDataset,
+    mockGetUserFromToken
 } = require('../utils/helpers');
 const { getTestServer } = require('../utils/test-server');
 
@@ -38,12 +39,15 @@ describe('Create a single vocabulary for a dataset', () => {
     });
 
     it('Creating a vocabulary-dataset relationship while being authenticated as a USER should return a 403 Forbidden', async () => {
+        mockGetUserFromToken(USERS.USER);
         assertForbiddenResponse(await requester
             .post(`/api/v1/dataset/123/vocabulary/science`)
-            .send({ application: 'rw', tags: ['biology', 'chemistry'], loggedUser: USERS.USER }));
+            .set('Authorization', `Bearer abcd`)
+            .send({ application: 'rw', tags: ['biology', 'chemistry'] }));
     });
 
     it('Creating a vocabulary-dataset relationship while being authenticated as a MANAGER that does not own the resource should return a 403 Forbidden', async () => {
+        mockGetUserFromToken(USERS.MANAGER);
         const mockDatasetId = mockDataset().id;
 
         const vocabName = 'science';
@@ -51,10 +55,12 @@ describe('Create a single vocabulary for a dataset', () => {
 
         assertForbiddenResponse(await requester
             .post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
-            .send({ ...vocabData, loggedUser: USERS.MANAGER }));
+            .set('Authorization', `Bearer abcd`)
+            .send(vocabData));
     });
 
     it('Creating a vocabulary-dataset relationship while being authenticated as a MANAGER that owns the resource should return a 200', async () => {
+        mockGetUserFromToken(USERS.MANAGER);
         const mockDatasetId = mockDataset(null, { userId: USERS.MANAGER.id }).id;
 
         const vocabName = 'science';
@@ -62,13 +68,15 @@ describe('Create a single vocabulary for a dataset', () => {
 
         const response = await requester
             .post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
-            .send({ ...vocabData, loggedUser: USERS.MANAGER });
+            .set('Authorization', `Bearer abcd`)
+            .send(vocabData);
 
         assertOKResponse(response);
         response.body.data[0].should.have.property('id').and.equal(vocabName);
     });
 
     it('Creating a vocabulary-dataset relationship while being authenticated as a MANAGER that owns the resource but does not belong to the same application as the resource should return a 403 Forbidden', async () => {
+        mockGetUserFromToken(USERS.MANAGER);
         const mockDatasetId = mockDataset(null, { userId: USERS.MANAGER.id, application: ['fake'] }).id;
 
         const vocabName = 'science';
@@ -76,12 +84,14 @@ describe('Create a single vocabulary for a dataset', () => {
 
         const response = await requester
             .post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
-            .send({ ...vocabData, loggedUser: USERS.MANAGER });
+            .set('Authorization', `Bearer abcd`)
+            .send(vocabData);
 
         assertForbiddenResponse(response);
     });
 
     it('Creating a vocabulary-dataset relationship for a different app while being authenticated as a MANAGER that owns the resource should return a 200', async () => {
+        mockGetUserFromToken(USERS.MANAGER);
         const mockDatasetId = mockDataset(null, { userId: USERS.MANAGER.id }).id;
 
         const vocabName = 'science';
@@ -89,13 +99,15 @@ describe('Create a single vocabulary for a dataset', () => {
 
         const response = await requester
             .post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
-            .send({ ...vocabData, loggedUser: USERS.MANAGER });
+            .set('Authorization', `Bearer abcd`)
+            .send(vocabData);
 
         assertOKResponse(response);
         response.body.data[0].should.have.property('id').and.equal(vocabName);
     });
 
     it('Creating a vocabulary-dataset relationship while being authenticated as an ADMIN should return 200 OK and created data', async () => {
+        mockGetUserFromToken(USERS.ADMIN);
         // Mock the request for dataset validation
         const mockDatasetId = mockDataset().id;
 
@@ -106,7 +118,8 @@ describe('Create a single vocabulary for a dataset', () => {
         // Perform POST request for creating the vocabulary-dataset relationship
         const response = await requester
             .post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
-            .send({ ...vocabData, loggedUser: USERS.ADMIN });
+            .set('Authorization', `Bearer abcd`)
+            .send(vocabData);
 
         assertOKResponse(response);
         response.body.data[0].should.have.property('id').and.equal(vocabName);

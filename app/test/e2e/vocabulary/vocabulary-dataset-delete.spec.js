@@ -8,7 +8,8 @@ const {
     assertOKResponse,
     mockDataset,
     assertUnauthorizedResponse,
-    assertForbiddenResponse
+    assertForbiddenResponse,
+    mockGetUserFromToken
 } = require('../utils/helpers');
 const { getTestServer } = require('../utils/test-server');
 
@@ -32,6 +33,7 @@ describe('Delete dataset vocabulary', () => {
     });
 
     it('Deleting a vocabulary-dataset relationship while not being authenticated should return a 401', async () => {
+        mockGetUserFromToken(USERS.ADMIN);
         // Mock the request for dataset validation
         const mockDatasetId = mockDataset().id;
 
@@ -41,7 +43,8 @@ describe('Delete dataset vocabulary', () => {
 
         // Perform POST request for creating the vocabulary-dataset relationship
         await requester.post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
-            .send({ ...vocabData, loggedUser: USERS.ADMIN });
+            .set('Authorization', `Bearer abcd`)
+            .send(vocabData);
 
         // Perform DELETE request for deleting the vocabulary-dataset relationship
         const response = await requester
@@ -51,6 +54,8 @@ describe('Delete dataset vocabulary', () => {
     });
 
     it('Deleting a vocabulary-dataset relationship while being authenticated as an USER should return a 403', async () => {
+        mockGetUserFromToken(USERS.ADMIN);
+        mockGetUserFromToken(USERS.USER);
         // Mock the request for dataset validation
         const mockDatasetId = mockDataset().id;
 
@@ -60,16 +65,20 @@ describe('Delete dataset vocabulary', () => {
 
         // Perform POST request for creating the vocabulary-dataset relationship
         await requester.post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
-            .send({ ...vocabData, loggedUser: USERS.ADMIN });
+            .set('Authorization', `Bearer abcd`)
+            .send(vocabData);
 
         // Perform DELETE request for deleting the vocabulary-dataset relationship
         const response = await requester
-            .delete(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}?loggedUser=${JSON.stringify(USERS.USER)}`).send();
+            .delete(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
+            .set('Authorization', `Bearer abcd`).send();
 
         assertForbiddenResponse(response);
     });
 
     it('Deleting a vocabulary-dataset relationship while being authenticated as a MANAGER that does not own the resource should return a 403', async () => {
+        mockGetUserFromToken(USERS.ADMIN);
+        mockGetUserFromToken(USERS.MANAGER);
         // Mock the request for dataset validation
         const mockDatasetId = mockDataset().id;
 
@@ -79,19 +88,23 @@ describe('Delete dataset vocabulary', () => {
 
         // Perform POST request for creating the vocabulary-dataset relationship
         await requester.post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
-            .send({ ...vocabData, loggedUser: USERS.ADMIN });
+            .set('Authorization', `Bearer abcd`)
+            .send(vocabData);
 
         // Mock the request for dataset validation
         mockDataset(mockDatasetId);
 
         // Perform DELETE request for deleting the vocabulary-dataset relationship
         const response = await requester
-            .delete(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}?loggedUser=${JSON.stringify(USERS.MANAGER)}`).send();
+            .delete(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
+            .set('Authorization', `Bearer abcd`).send();
 
         assertForbiddenResponse(response);
     });
 
     it('Deleting a vocabulary-dataset relationship while being authenticated as a MANAGER that owns the resource should return a 200', async () => {
+        mockGetUserFromToken(USERS.MANAGER);
+        mockGetUserFromToken(USERS.MANAGER);
         // Mock the request for dataset validation
         const mockDatasetId = mockDataset(null, { userId: USERS.MANAGER.id }).id;
 
@@ -101,19 +114,24 @@ describe('Delete dataset vocabulary', () => {
 
         // Perform POST request for creating the vocabulary-dataset relationship
         await requester.post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
-            .send({ ...vocabData, loggedUser: USERS.MANAGER });
+            .set('Authorization', `Bearer abcd`)
+            .send(vocabData);
 
         // Mock the request for dataset validation
         mockDataset(mockDatasetId, { userId: USERS.MANAGER.id });
 
         // Perform DELETE request for deleting the vocabulary-dataset relationship
         const response = await requester
-            .delete(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}?loggedUser=${JSON.stringify(USERS.MANAGER)}`).send();
+            .delete(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
+            .set('Authorization', `Bearer abcd`)
+            .send();
 
         assertOKResponse(response);
     });
 
     it('Deleting a vocabulary-dataset relationship while being authenticated as an ADMIN returns 200 OK', async () => {
+        mockGetUserFromToken(USERS.ADMIN);
+        mockGetUserFromToken(USERS.ADMIN);
         // Mock the request for dataset validation
         const mockDatasetId = mockDataset().id;
 
@@ -123,14 +141,17 @@ describe('Delete dataset vocabulary', () => {
 
         // Perform POST request for creating the vocabulary-dataset relationship
         await requester.post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
-            .send({ ...vocabData, loggedUser: USERS.ADMIN });
+            .set('Authorization', `Bearer abcd`)
+            .send(vocabData);
 
         // Mock the request for dataset validation
         mockDataset(mockDatasetId);
 
         // Perform DELETE request for deleting the vocabulary-dataset relationship
         const response = await requester
-            .delete(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}?loggedUser=${JSON.stringify(USERS.ADMIN)}`).send();
+            .delete(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
+            .set('Authorization', `Bearer abcd`)
+            .send();
 
         assertOKResponse(response);
     });
