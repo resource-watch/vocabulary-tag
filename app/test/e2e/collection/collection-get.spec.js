@@ -2,7 +2,7 @@ const nock = require('nock');
 const chai = require('chai');
 const Collection = require('models/collection.model');
 const { USERS } = require('../utils/test.constants');
-const { createCollection } = require('../utils/helpers');
+const { createCollection, mockGetUserFromToken } = require('../utils/helpers');
 
 const { getTestServer } = require('../utils/test-server');
 
@@ -35,9 +35,10 @@ describe('Get collections', () => {
     });
 
     it('Get collections with a user id should return a 200 with an empty list (happy case, no data)', async () => {
+        mockGetUserFromToken(USERS.USER);
         const response = await requester
             .get(`/api/v1/collection`)
-            .query({ loggedUser: JSON.stringify(USERS.USER) })
+            .set('Authorization', `Bearer abcd`)
             .send();
 
         response.status.should.equal(200);
@@ -45,6 +46,7 @@ describe('Get collections', () => {
     });
 
     it('Get collections with a user id should return a 200 with collections from the user and default app (happy case)', async () => {
+        mockGetUserFromToken(USERS.USER);
         const collectionOne = await new Collection(createCollection({
             application: 'rw',
             ownerId: USERS.USER.id
@@ -56,7 +58,7 @@ describe('Get collections', () => {
 
         const response = await requester
             .get(`/api/v1/collection`)
-            .query({ loggedUser: JSON.stringify(USERS.USER) })
+            .set('Authorization', `Bearer abcd`)
             .send();
 
         response.status.should.equal(200);
@@ -65,6 +67,7 @@ describe('Get collections', () => {
     });
 
     it('Get collections with a user id and no explicit app should return a 200 with collections from the user and default app (happy case)', async () => {
+        mockGetUserFromToken(USERS.USER);
         await new Collection(createCollection({ application: 'gfw', ownerId: USERS.USER.id })).save();
         const collectionTwo = await new Collection(createCollection({
             application: 'rw',
@@ -73,7 +76,7 @@ describe('Get collections', () => {
 
         const response = await requester
             .get(`/api/v1/collection`)
-            .query({ loggedUser: JSON.stringify(USERS.USER) })
+            .set('Authorization', `Bearer abcd`)
             .send();
 
         response.status.should.equal(200);
@@ -82,6 +85,7 @@ describe('Get collections', () => {
     });
 
     it('Get collections with a user id and an explicit app should return a 200 with collections from the user and provided app', async () => {
+        mockGetUserFromToken(USERS.USER);
         const collectionOne = await new Collection(createCollection({
             application: 'gfw',
             ownerId: USERS.USER.id
@@ -93,7 +97,8 @@ describe('Get collections', () => {
 
         const response = await requester
             .get(`/api/v1/collection`)
-            .query({ loggedUser: JSON.stringify(USERS.USER), application: 'gfw' })
+            .set('Authorization', `Bearer abcd`)
+            .query({ application: 'gfw' })
             .send();
 
         response.status.should.equal(200);
@@ -102,6 +107,7 @@ describe('Get collections', () => {
     });
 
     it('Get collections with include should return a 200 with collections from the user and provided app (no resources associated with collection)', async () => {
+        mockGetUserFromToken(USERS.USER);
         await new Collection(createCollection({
             application: 'gfw',
             ownerId: USERS.USER.id
@@ -113,7 +119,8 @@ describe('Get collections', () => {
 
         const response = await requester
             .get(`/api/v1/collection`)
-            .query({ loggedUser: JSON.stringify(USERS.USER), include: true })
+            .set('Authorization', `Bearer abcd`)
+            .query({ include: true })
             .send();
 
         response.status.should.equal(200);
@@ -122,6 +129,7 @@ describe('Get collections', () => {
     });
 
     it('Get collections with include should return a 200 with collections from the user and provided app and the associated resources', async () => {
+        mockGetUserFromToken(USERS.USER);
         const collection = await new Collection(createCollection({
             application: 'rw',
             ownerId: USERS.USER.id,
@@ -197,7 +205,8 @@ describe('Get collections', () => {
 
         const response = await requester
             .get(`/api/v1/collection`)
-            .query({ loggedUser: JSON.stringify(USERS.USER), include: true })
+            .set('Authorization', `Bearer abcd`)
+            .query({ include: true })
             .send();
 
         response.status.should.equal(200);
@@ -231,6 +240,7 @@ describe('Get collections', () => {
     });
 
     it('Get collections without pagination arguments should return the full list of collections', async () => {
+        mockGetUserFromToken(USERS.USER);
         for (let i = 0; i < 20; i++) {
             await new Collection(createCollection({
                 application: 'rw',
@@ -240,7 +250,7 @@ describe('Get collections', () => {
 
         const response = await requester
             .get(`/api/v1/collection`)
-            .query({ loggedUser: JSON.stringify(USERS.USER) })
+            .set('Authorization', `Bearer abcd`)
             .send();
 
         response.status.should.equal(200);
@@ -249,6 +259,7 @@ describe('Get collections', () => {
     });
 
     it('Get collections with pagination arguments should return the paginated list of collections', async () => {
+        mockGetUserFromToken(USERS.USER);
         for (let i = 0; i < 20; i++) {
             await new Collection(createCollection({
                 application: 'rw',
@@ -258,8 +269,8 @@ describe('Get collections', () => {
 
         const response = await requester
             .get(`/api/v1/collection`)
+            .set('Authorization', `Bearer abcd`)
             .query({
-                loggedUser: JSON.stringify(USERS.USER),
                 page: {
                     number: 1, size: 3
                 }

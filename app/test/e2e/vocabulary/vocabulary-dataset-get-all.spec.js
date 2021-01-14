@@ -4,7 +4,7 @@ const Resource = require('models/resource.model');
 const Vocabulary = require('models/vocabulary.model');
 
 const { USERS } = require('../utils/test.constants');
-const { assertOKResponse, createResource } = require('../utils/helpers');
+const { assertOKResponse, createResource, mockGetUserFromToken } = require('../utils/helpers');
 const { getTestServer } = require('../utils/test-server');
 
 chai.should();
@@ -34,11 +34,13 @@ describe('Get all dataset vocabulary', () => {
     });
 
     it('Getting vocabulary-dataset relationships returns 200 OK with the requested data - single vocabulary', async () => {
+        mockGetUserFromToken(USERS.USER);
         const resource = await (new Resource(createResource())).save();
 
         const response = await requester
             .get(`/api/v1/dataset/${resource.dataset}/vocabulary`)
-            .send({ loggedUser: USERS.USER });
+            .set('Authorization', `Bearer abcd`)
+            .send({});
 
         assertOKResponse(response);
         response.body.data.should.be.an('array').and.length(1);
@@ -50,11 +52,13 @@ describe('Get all dataset vocabulary', () => {
     });
 
     it('Getting vocabulary-dataset relationships returns 200 OK with the requested data - multiple vocabulary', async () => {
+        mockGetUserFromToken(USERS.USER);
         const resource = await (new Resource(createResource('rw', 4))).save();
 
         const response = await requester
             .get(`/api/v1/dataset/${resource.dataset}/vocabulary`)
-            .send({ loggedUser: USERS.USER });
+            .set('Authorization', `Bearer abcd`)
+            .send({});
 
         assertOKResponse(response);
         response.body.data.should.be.an('array').and.length(4);

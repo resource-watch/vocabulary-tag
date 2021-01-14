@@ -291,6 +291,12 @@ const assertOKResponse = (response, length = undefined) => {
     }
 };
 
+const mockGetUserFromToken = (userProfile) => {
+    nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+        .get('/auth/user/me')
+        .reply(200, userProfile);
+};
+
 module.exports = {
     getUUID,
     assertOKResponse,
@@ -305,4 +311,5 @@ module.exports = {
     mockPutGraphAssociation,
     mockLayer,
     mockWidget,
+    mockGetUserFromToken
 };

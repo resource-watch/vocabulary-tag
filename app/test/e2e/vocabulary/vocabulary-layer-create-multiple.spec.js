@@ -8,7 +8,8 @@ const {
     assertOKResponse,
     assertUnauthorizedResponse,
     assertForbiddenResponse,
-    mockLayer
+    mockLayer,
+    mockGetUserFromToken
 } = require('../utils/helpers');
 const { getTestServer } = require('../utils/test-server');
 
@@ -47,8 +48,10 @@ describe('Create multiple vocabulary for a layer', () => {
     });
 
     it('Creating a vocabulary-layer relationship while being authenticated as a USER should return a 403 Forbidden', async () => {
+        mockGetUserFromToken(USERS.USER);
         assertForbiddenResponse(await requester
             .post(`/api/v1/dataset/345/layer/123/vocabulary`)
+            .set('Authorization', `Bearer abcd`)
             .send({
                 vocabulary1: {
                     tags: ['biology', 'chemistry'],
@@ -58,11 +61,11 @@ describe('Create multiple vocabulary for a layer', () => {
                     tags: ['biology', 'chemistry'],
                     application: 'rw',
                 },
-                loggedUser: USERS.USER
             }));
     });
 
     it('Creating a vocabulary-layer relationship while being authenticated as a MANAGER that does not own the resource should return a 403 Forbidden', async () => {
+        mockGetUserFromToken(USERS.MANAGER);
         const mockLayerId = mockLayer().id;
 
         const vocabData = {
@@ -78,10 +81,12 @@ describe('Create multiple vocabulary for a layer', () => {
 
         assertForbiddenResponse(await requester
             .post(`/api/v1/dataset/345/layer/${mockLayerId}/vocabulary`)
-            .send({ ...vocabData, loggedUser: USERS.MANAGER }));
+            .set('Authorization', `Bearer abcd`)
+            .send(vocabData));
     });
 
     it('Creating a vocabulary-layer relationship while being authenticated as a MANAGER that owns the resource should return a 200', async () => {
+        mockGetUserFromToken(USERS.MANAGER);
         const mockLayerId = mockLayer(null, { userId: USERS.MANAGER.id }).id;
 
         const vocabData = {
@@ -97,7 +102,8 @@ describe('Create multiple vocabulary for a layer', () => {
 
         const response = await requester
             .post(`/api/v1/dataset/345/layer/${mockLayerId}/vocabulary`)
-            .send({ ...vocabData, loggedUser: USERS.MANAGER });
+            .set('Authorization', `Bearer abcd`)
+            .send(vocabData);
 
         assertOKResponse(response);
         response.body.data[0].should.have.property('id').and.equal('vocabulary1');
@@ -105,6 +111,7 @@ describe('Create multiple vocabulary for a layer', () => {
     });
 
     it('Creating a vocabulary-layer relationship while being authenticated as a MANAGER that owns the resource but does not belong to the same application as the resource should return a 403 Forbidden', async () => {
+        mockGetUserFromToken(USERS.MANAGER);
         const mockLayerId = mockLayer(null, { userId: USERS.MANAGER.id, application: ['fake'] }).id;
 
         const vocabData = {
@@ -120,12 +127,14 @@ describe('Create multiple vocabulary for a layer', () => {
 
         const response = await requester
             .post(`/api/v1/dataset/345/layer/${mockLayerId}/vocabulary`)
-            .send({ ...vocabData, loggedUser: USERS.MANAGER });
+            .set('Authorization', `Bearer abcd`)
+            .send(vocabData);
 
         assertForbiddenResponse(response);
     });
 
     it('Creating a vocabulary-layer relationship for a different app while being authenticated as a MANAGER that owns the resource should return a 200', async () => {
+        mockGetUserFromToken(USERS.MANAGER);
         const mockLayerId = mockLayer(null, { userId: USERS.MANAGER.id }).id;
 
         const vocabData = {
@@ -141,7 +150,8 @@ describe('Create multiple vocabulary for a layer', () => {
 
         const response = await requester
             .post(`/api/v1/dataset/345/layer/${mockLayerId}/vocabulary`)
-            .send({ ...vocabData, loggedUser: USERS.MANAGER });
+            .set('Authorization', `Bearer abcd`)
+            .send(vocabData);
 
         assertOKResponse(response);
         response.body.data[0].should.have.property('id').and.equal('vocabulary1');
@@ -149,6 +159,7 @@ describe('Create multiple vocabulary for a layer', () => {
     });
 
     it('Creating a vocabulary-layer relationship while being authenticated as an ADMIN should return 200 OK and created data', async () => {
+        mockGetUserFromToken(USERS.ADMIN);
         const mockLayerId = mockLayer().id;
 
         const vocabData = {
@@ -165,7 +176,8 @@ describe('Create multiple vocabulary for a layer', () => {
         // Perform POST request for creating the vocabulary-layer relationship
         const response = await requester
             .post(`/api/v1/dataset/345/layer/${mockLayerId}/vocabulary`)
-            .send({ ...vocabData, loggedUser: USERS.ADMIN });
+            .set('Authorization', `Bearer abcd`)
+            .send(vocabData);
 
         assertOKResponse(response);
         response.body.data[0].should.have.property('id').and.equal('vocabulary1');
