@@ -1,6 +1,6 @@
 const Router = require('koa-router');
 const logger = require('logger');
-const ctRegisterMicroservice = require('sd-ct-register-microservice-node');
+const { RWAPIMicroservice } = require('rw-api-microservice-node');
 const CollectionModel = require('models/collection.model');
 const CollectionSerializer = require('serializers/collection.serializer');
 const CollectionValidator = require('validators/collection.validator');
@@ -114,7 +114,7 @@ class CollectionRouter {
             try {
                 if (datasetIds.length > 0) {
                     logger.debug('Loading datasets');
-                    const getDatasetsResponse = await ctRegisterMicroservice.requestToMicroservice({
+                    const getDatasetsResponse = await RWAPIMicroservice.requestToMicroservice({
                         uri: `/dataset?ids=${datasetIds.join(',')}`,
                         method: 'GET',
                         json: true
@@ -132,7 +132,7 @@ class CollectionRouter {
             try {
                 if (widgetIds.length > 0) {
                     logger.debug('Loading widgets');
-                    const getWidgetsResponse = await ctRegisterMicroservice.requestToMicroservice({
+                    const getWidgetsResponse = await RWAPIMicroservice.requestToMicroservice({
                         uri: `/widget?ids=${widgetIds.join(',')}`,
                         method: 'GET',
                         json: true
@@ -150,7 +150,7 @@ class CollectionRouter {
             try {
                 if (layerIds.length > 0) {
                     logger.debug('Loading layers');
-                    const getLayersPromises = layerIds.map((layerId) => ctRegisterMicroservice.requestToMicroservice({
+                    const getLayersPromises = layerIds.map((layerId) => RWAPIMicroservice.requestToMicroservice({
                         uri: `/layer/${layerId}`,
                         method: 'GET',
                         json: true
