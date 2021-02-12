@@ -329,16 +329,29 @@ const validationMiddleware = async (ctx, next) => {
     await next();
 };
 
-router.get('/', CollectionRouter.getAll);
-router.get('/:id', collectionExists, CollectionRouter.getById);
+const isAuthenticatedMiddleware = async (ctx, next) => {
+    logger.info(`Verifying if user is authenticated`);
+    const { query, body } = ctx.request;
 
-router.post('/', validationMiddleware, CollectionRouter.postCollection);
-router.post('/:id/resource', collectionExists, existResourceInCollection, CollectionRouter.postResource);
+    const user = { ...(query.loggedUser ? JSON.parse(query.loggedUser) : {}), ...body.loggedUser };
+
+    if (!user || !user.id) {
+        ctx.throw(401, 'Unauthorized');
+        return;
+    }
+    await next();
+};
+
+router.get('/', isAuthenticatedMiddleware, CollectionRouter.getAll);
+router.get('/:id', isAuthenticatedMiddleware, collectionExists, CollectionRouter.getById);
+
+router.post('/', isAuthenticatedMiddleware, validationMiddleware, CollectionRouter.postCollection);
+router.post('/:id/resource', isAuthenticatedMiddleware, collectionExists, existResourceInCollection, CollectionRouter.postResource);
 router.post('/find-by-ids', findByIdValidationMiddleware, CollectionRouter.findByIds);
 
-router.patch('/:id', collectionExists, CollectionRouter.patchCollection);
+router.patch('/:id', isAuthenticatedMiddleware, collectionExists, CollectionRouter.patchCollection);
 
-router.delete('/:id', collectionExists, CollectionRouter.deleteCollection);
-router.delete('/:id/resource/:resourceType/:resourceId', collectionExists, CollectionRouter.deleteResource);
+router.delete('/:id', isAuthenticatedMiddleware, collectionExists, CollectionRouter.deleteCollection);
+router.delete('/:id/resource/:resourceType/:resourceId', isAuthenticatedMiddleware, collectionExists, CollectionRouter.deleteResource);
 
 module.exports = router;

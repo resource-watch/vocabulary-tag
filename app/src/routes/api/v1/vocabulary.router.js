@@ -477,46 +477,59 @@ const cloneValidationMiddleware = async (ctx, next) => {
     await next();
 };
 
+const isAuthenticatedMiddleware = async (ctx, next) => {
+    logger.info(`Verifying if user is authenticated`);
+    const { query, body } = ctx.request;
+
+    const user = { ...(query.loggedUser ? JSON.parse(query.loggedUser) : {}), ...body.loggedUser };
+
+    if (!user || !user.id) {
+        ctx.throw(401, 'Unauthorized');
+        return;
+    }
+    await next();
+};
+
 // dataset
 router.get('/dataset/:dataset/vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/:dataset/vocabulary/:vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/vocabulary/find', VocabularyRouter.get);
-router.post('/dataset/:dataset/vocabulary', relationshipsValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationships);
-router.put('/dataset/:dataset/vocabulary', relationshipsValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.updateRelationships);
-router.post('/dataset/:dataset/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationship);
-router.patch('/dataset/:dataset/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.updateRelationshipTags);
-router.post('/dataset/:dataset/vocabulary/:vocabulary/concat', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.concatTags);
-router.post('/dataset/:dataset/vocabulary/clone/dataset', cloneValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.cloneVocabularyTags);
-router.delete('/dataset/:dataset/vocabulary/:vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationship);
-router.delete('/dataset/:dataset/vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationships);
+router.post('/dataset/:dataset/vocabulary', isAuthenticatedMiddleware, relationshipsValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationships);
+router.put('/dataset/:dataset/vocabulary', isAuthenticatedMiddleware, relationshipsValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.updateRelationships);
+router.post('/dataset/:dataset/vocabulary/:vocabulary', isAuthenticatedMiddleware, relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationship);
+router.patch('/dataset/:dataset/vocabulary/:vocabulary', isAuthenticatedMiddleware, relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.updateRelationshipTags);
+router.post('/dataset/:dataset/vocabulary/:vocabulary/concat', isAuthenticatedMiddleware, relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.concatTags);
+router.post('/dataset/:dataset/vocabulary/clone/dataset', isAuthenticatedMiddleware, cloneValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.cloneVocabularyTags);
+router.delete('/dataset/:dataset/vocabulary/:vocabulary', isAuthenticatedMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationship);
+router.delete('/dataset/:dataset/vocabulary', isAuthenticatedMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationships);
 
 // widget
 router.get('/dataset/:dataset/widget/:widget/vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/:dataset/widget/vocabulary/find', VocabularyRouter.get);
-router.post('/dataset/:dataset/widget/:widget/vocabulary/', relationshipsValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationships);
-router.post('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationship);
-router.patch('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.updateRelationshipTags);
-router.delete('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationship);
-router.delete('/dataset/:dataset/widget/:widget/vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationships);
+router.post('/dataset/:dataset/widget/:widget/vocabulary/', isAuthenticatedMiddleware, relationshipsValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationships);
+router.post('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', isAuthenticatedMiddleware, relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationship);
+router.patch('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', isAuthenticatedMiddleware, relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.updateRelationshipTags);
+router.delete('/dataset/:dataset/widget/:widget/vocabulary/:vocabulary', isAuthenticatedMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationship);
+router.delete('/dataset/:dataset/widget/:widget/vocabulary', isAuthenticatedMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationships);
 
 // layer
 router.get('/dataset/:dataset/layer/:layer/vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/:dataset/layer/vocabulary/find', VocabularyRouter.get);
-router.post('/dataset/:dataset/layer/:layer/vocabulary', relationshipsValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationships);
-router.post('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationship);
-router.patch('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.updateRelationshipTags);
-router.delete('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationship);
-router.delete('/dataset/:dataset/layer/:layer/vocabulary', relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationships);
+router.post('/dataset/:dataset/layer/:layer/vocabulary', isAuthenticatedMiddleware, relationshipsValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationships);
+router.post('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', isAuthenticatedMiddleware, relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.createRelationship);
+router.patch('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', isAuthenticatedMiddleware, relationshipValidationMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.updateRelationshipTags);
+router.delete('/dataset/:dataset/layer/:layer/vocabulary/:vocabulary', isAuthenticatedMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationship);
+router.delete('/dataset/:dataset/layer/:layer/vocabulary', isAuthenticatedMiddleware, relationshipAuthorizationMiddleware, VocabularyRouter.deleteRelationships);
 
 // vocabulary (not the common use case)
 router.get('/vocabulary', VocabularyRouter.getAll);
 router.get('/vocabulary/:vocabulary', VocabularyRouter.getById);
 router.get('/vocabulary/:vocabulary/tags', VocabularyRouter.getTagsById);
-router.post('/vocabulary', vocabularyValidationMiddleware, vocabularyAuthorizationMiddleware, VocabularyRouter.create);
-// router.patch('/vocabulary/:vocabulary', vocabularyValidationMiddleware, vocabularyAuthorizationMiddleware, VocabularyRouter.update);
-// router.delete('/vocabulary/:vocabulary', vocabularyAuthorizationMiddleware, VocabularyRouter.delete);
+router.post('/vocabulary', isAuthenticatedMiddleware, vocabularyValidationMiddleware, vocabularyAuthorizationMiddleware, VocabularyRouter.create);
+// router.patch('/vocabulary/:vocabulary', isAuthenticatedMiddleware, vocabularyValidationMiddleware, vocabularyAuthorizationMiddleware, VocabularyRouter.update);
+// router.delete('/vocabulary/:vocabulary', isAuthenticatedMiddleware, vocabularyAuthorizationMiddleware, VocabularyRouter.delete);
 
 // find by ids (to include queries)
 router.post('/dataset/vocabulary/find-by-ids', VocabularyRouter.findByIds);

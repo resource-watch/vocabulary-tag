@@ -192,10 +192,23 @@ const validationMiddleware = async (ctx, next) => {
     await next();
 };
 
-router.get('/', FavouriteRouter.get);
-router.get('/:id', existFavourite, FavouriteRouter.getById);
-router.post('/find-by-user', FavouriteRouter.findByUser);
-router.post('/', validationMiddleware, FavouriteRouter.create);
-router.delete('/:id', existFavourite, FavouriteRouter.delete);
+const isAuthenticatedMiddleware = async (ctx, next) => {
+    logger.info(`Verifying if user is authenticated`);
+    const { query, body } = ctx.request;
+
+    const user = { ...(query.loggedUser ? JSON.parse(query.loggedUser) : {}), ...body.loggedUser };
+
+    if (!user || !user.id) {
+        ctx.throw(401, 'Unauthorized');
+        return;
+    }
+    await next();
+};
+
+router.get('/', isAuthenticatedMiddleware, FavouriteRouter.get);
+router.get('/:id', isAuthenticatedMiddleware, existFavourite, FavouriteRouter.getById);
+router.post('/find-by-user', isAuthenticatedMiddleware, FavouriteRouter.findByUser);
+router.post('/', isAuthenticatedMiddleware, validationMiddleware, FavouriteRouter.create);
+router.delete('/:id', isAuthenticatedMiddleware, existFavourite, FavouriteRouter.delete);
 
 module.exports = router;
