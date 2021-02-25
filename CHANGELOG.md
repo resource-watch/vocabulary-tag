@@ -1,3 +1,7 @@
+## 25/02/2021
+
+- Fix issue in finding resources by vocabulary and tag value while anonymous.
+
 ## 22/02/2021
 
 - Update `rw-api-microservice-node` to fix issue with Fastly headers.

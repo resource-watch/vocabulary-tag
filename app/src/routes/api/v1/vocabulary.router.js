@@ -46,7 +46,8 @@ class VocabularyRouter {
 
     static async get(ctx) {
         const { query } = ctx.request;
-        if (Object.keys(query).length === 1) {
+        const queryKeys = Object.keys(query).filter((e) => e !== 'loggedUser');
+        if (queryKeys.length === 0) {
             ctx.throw(400, 'Vocabulary and Tags are required in the queryParams');
             return;
         }
