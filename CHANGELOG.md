@@ -1,3 +1,7 @@
+## 21/05/2021
+
+- Add support for hosts from `referer` header when generating pagination links.
+
 ## 25/02/2021
 
 - Fix issue in finding resources by vocabulary and tag value while anonymous.
