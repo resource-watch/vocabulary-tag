@@ -45,7 +45,7 @@ class FavouriteRouter {
                 if (datasets.length > 0) {
                     logger.debug('Loading datasets');
                     const datasetResources = await RWAPIMicroservice.requestToMicroservice({
-                        uri: `/dataset?ids=${datasets.join(',')}`,
+                        uri: `/v1/dataset?ids=${datasets.join(',')}`,
                         method: 'GET',
                         json: true
                     });
@@ -64,7 +64,7 @@ class FavouriteRouter {
                 if (widgets.length > 0) {
                     logger.debug('Loading widgets', widgets);
                     const widgetResources = await RWAPIMicroservice.requestToMicroservice({
-                        uri: `/widget?ids=${widgets.join(',')}`,
+                        uri: `/v1/widget?ids=${widgets.join(',')}`,
                         method: 'GET',
                         json: true
                     });
@@ -86,7 +86,7 @@ class FavouriteRouter {
                     for (let i = 0, { length } = layers; i < length; i++) {
                         try {
                             const layerResource = await RWAPIMicroservice.requestToMicroservice({
-                                uri: `/layer/${layers[i]}`,
+                                uri: `/v1/layer/${layers[i]}`,
                                 method: 'GET',
                                 json: true
                             });
@@ -142,7 +142,7 @@ class FavouriteRouter {
         const data = await new FavouriteModel(body).save();
         try {
             await RWAPIMicroservice.requestToMicroservice({
-                uri: `/graph/favourite/${ctx.request.body.resourceType}/${ctx.request.body.resourceId}/${ctx.request.body.loggedUser.id}`,
+                uri: `/v1/graph/favourite/${ctx.request.body.resourceType}/${ctx.request.body.resourceId}/${ctx.request.body.loggedUser.id}`,
                 method: 'POST',
                 json: true
             });
@@ -157,7 +157,7 @@ class FavouriteRouter {
         ctx.assert(ctx.params.id.length === 24, 400, 'Id not valid');
         try {
             await RWAPIMicroservice.requestToMicroservice({
-                uri: `/graph/favourite/${ctx.state.fav.resourceType}/${ctx.state.fav.resourceId}/${ctx.state.fav.id}`,
+                uri: `/v1/graph/favourite/${ctx.state.fav.resourceType}/${ctx.state.fav.resourceId}/${ctx.state.fav.id}`,
                 method: 'DELETE',
                 json: true
             });

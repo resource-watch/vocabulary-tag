@@ -9,6 +9,9 @@ const Collection = new Schema({
         type: String, required: true, trim: true, default: 'rw'
     },
     ownerId: { type: String, required: true, trim: true },
+    env: {
+        type: String, required: true, default: 'production', trim: true
+    },
     resources: [{
         _id: false,
         id: { type: String, required: true, trim: true },

@@ -220,7 +220,7 @@ describe('Get collections', () => {
             }]
         })).save();
 
-        nock(process.env.CT_URL)
+        nock(process.env.GATEWAY_URL)
             .get('/v1/dataset?ids=datasetId')
             .reply(200, {
                 data: [
@@ -231,11 +231,11 @@ describe('Get collections', () => {
                     }
                 ],
                 links: {
-                    self: 'http://api.resourcewatch.org/v1/dataset?page[number]=1&page[size]=10',
-                    first: 'http://api.resourcewatch.org/v1/dataset?page[number]=1&page[size]=10',
-                    last: 'http://api.resourcewatch.org/v1/dataset?page[number]=1&page[size]=10',
-                    prev: 'http://api.resourcewatch.org/v1/dataset?page[number]=1&page[size]=10',
-                    next: 'http://api.resourcewatch.org/v1/dataset?page[number]=1&page[size]=10'
+                    self: 'http://api.resourcewatch.org/v1/dataset?page[number]=1&page[size]=99999990',
+                    first: 'http://api.resourcewatch.org/v1/dataset?page[number]=1&page[size]=99999990',
+                    last: 'http://api.resourcewatch.org/v1/dataset?page[number]=1&page[size]=99999990',
+                    prev: 'http://api.resourcewatch.org/v1/dataset?page[number]=1&page[size]=99999990',
+                    next: 'http://api.resourcewatch.org/v1/dataset?page[number]=1&page[size]=99999990'
                 },
                 meta: {
                     'total-pages': 1,
@@ -244,7 +244,7 @@ describe('Get collections', () => {
                 }
             });
 
-        nock(process.env.CT_URL)
+        nock(process.env.GATEWAY_URL)
             .get('/v1/widget?ids=widgetId')
             .reply(200, {
                 data: [
@@ -255,11 +255,11 @@ describe('Get collections', () => {
                     }
                 ],
                 links: {
-                    self: 'http://api.resourcewatch.org/v1/widget/?page[number]=1&page[size]=10',
-                    first: 'http://api.resourcewatch.org/v1/widget/?page[number]=1&page[size]=10',
-                    last: 'http://api.resourcewatch.org/v1/widget/?page[number]=1&page[size]=10',
-                    prev: 'http://api.resourcewatch.org/v1/widget/?page[number]=1&page[size]=10',
-                    next: 'http://api.resourcewatch.org/v1/widget/?page[number]=1&page[size]=10'
+                    self: 'http://api.resourcewatch.org/v1/widget/?page[number]=1&page[size]=99999990',
+                    first: 'http://api.resourcewatch.org/v1/widget/?page[number]=1&page[size]=99999990',
+                    last: 'http://api.resourcewatch.org/v1/widget/?page[number]=1&page[size]=99999990',
+                    prev: 'http://api.resourcewatch.org/v1/widget/?page[number]=1&page[size]=99999990',
+                    next: 'http://api.resourcewatch.org/v1/widget/?page[number]=1&page[size]=99999990'
                 },
                 meta: {
                     'total-pages': 1,
@@ -268,7 +268,7 @@ describe('Get collections', () => {
                 }
             });
 
-        nock(process.env.CT_URL)
+        nock(process.env.GATEWAY_URL)
             .get('/v1/layer/layerId')
             .reply(200, {
                 data: {
@@ -292,6 +292,7 @@ describe('Get collections', () => {
             attributes: {
                 name: collection.name,
                 ownerId: USERS.USER.id,
+                env: 'production',
                 application: 'rw',
                 resources: [
                     {
@@ -355,6 +356,111 @@ describe('Get collections', () => {
         response.status.should.equal(200);
         response.body.should.have.property('data').and.be.an('array').and.length(3);
         response.body.should.have.property('links').and.be.an('object');
+    });
+
+    describe('Environments', () => {
+        it('Getting collections without applying env filter returns all collections with env production', async () => {
+            mockGetUserFromToken(USERS.USER);
+
+            for (let i = 0; i < 3; i++) {
+                await new Collection(createCollection({
+                    application: 'rw',
+                    ownerId: USERS.USER.id,
+                    env: 'production'
+                })).save();
+            }
+
+            for (let i = 0; i < 3; i++) {
+                await new Collection(createCollection({
+                    application: 'rw',
+                    ownerId: USERS.USER.id,
+                })).save();
+            }
+
+            for (let i = 0; i < 3; i++) {
+                await new Collection(createCollection({
+                    application: 'rw',
+                    ownerId: USERS.USER.id,
+                    env: 'custom'
+                })).save();
+            }
+
+            const response = await requester
+                .get(`/api/v1/collection`)
+                .set('Authorization', `Bearer abcd`)
+                .send();
+
+            response.status.should.equal(200);
+            response.body.should.have.property('data').and.be.an('array').and.length(6);
+            response.body.should.have.property('links').and.be.an('object');
+            response.body.links.should.have.property('self').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?page[number]=1&page[size]=9999999`);
+            response.body.links.should.have.property('prev').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?page[number]=1&page[size]=9999999`);
+            response.body.links.should.have.property('next').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?page[number]=1&page[size]=9999999`);
+            response.body.links.should.have.property('first').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?page[number]=1&page[size]=9999999`);
+            response.body.links.should.have.property('last').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?page[number]=1&page[size]=9999999`);
+        });
+
+        it('Getting collections with the env filter set to a custom value should returns all collections with that env', async () => {
+            mockGetUserFromToken(USERS.USER);
+
+            const ds1 = await new Collection(createCollection({ ownerId: USERS.USER.id })).save();
+            const ds2 = await new Collection(createCollection({ ownerId: USERS.USER.id, env: 'production' })).save();
+            const ds3 = await new Collection(createCollection({ ownerId: USERS.USER.id, env: 'custom' })).save();
+            const ds4 = await new Collection(createCollection({ ownerId: USERS.USER.id, env: 'potato' })).save();
+
+            const response = await requester
+                .get(`/api/v1/collection`)
+                .set('Authorization', `Bearer abcd`)
+                .query({
+                    env: 'custom'
+                })
+                .send();
+
+            response.status.should.equal(200);
+            response.body.should.have.property('data').with.lengthOf(1);
+
+            const collectionIds = response.body.data.map((collection) => collection.id);
+            collectionIds.should.not.contain(ds1._id.toString());
+            collectionIds.should.not.contain(ds2._id.toString());
+            collectionIds.should.contain(ds3._id.toString());
+            collectionIds.should.not.contain(ds4._id.toString());
+            response.body.should.have.property('links').and.be.an('object');
+            response.body.links.should.have.property('self').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?env=custom&page[number]=1&page[size]=9999999`);
+            response.body.links.should.have.property('prev').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?env=custom&page[number]=1&page[size]=9999999`);
+            response.body.links.should.have.property('next').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?env=custom&page[number]=1&page[size]=9999999`);
+            response.body.links.should.have.property('first').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?env=custom&page[number]=1&page[size]=9999999`);
+            response.body.links.should.have.property('last').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?env=custom&page[number]=1&page[size]=9999999`);
+        });
+
+        it('Getting collections with the env filter set to a custom comma separated list of values should returns all collections with those envs', async () => {
+            mockGetUserFromToken(USERS.USER);
+
+            const ds1 = await new Collection(createCollection({ ownerId: USERS.USER.id })).save();
+            const ds2 = await new Collection(createCollection({ ownerId: USERS.USER.id, env: 'production' })).save();
+            const ds3 = await new Collection(createCollection({ ownerId: USERS.USER.id, env: 'custom' })).save();
+            const ds4 = await new Collection(createCollection({ ownerId: USERS.USER.id, env: 'potato' })).save();
+
+            const response = await requester
+                .get(`/api/v1/collection`)
+                .set('Authorization', `Bearer abcd`)
+                .query({
+                    env: ['custom', 'potato'].join(',')
+                });
+            response.status.should.equal(200);
+            response.body.should.have.property('data').with.lengthOf(2);
+
+            const collectionIds = response.body.data.map((collection) => collection.id);
+            collectionIds.should.not.contain(ds1._id.toString());
+            collectionIds.should.not.contain(ds2._id.toString());
+            collectionIds.should.contain(ds3._id.toString());
+            collectionIds.should.contain(ds4._id.toString());
+            response.body.should.have.property('links').and.be.an('object');
+            response.body.links.should.have.property('self').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?env=custom%2Cpotato&page[number]=1&page[size]=9999999`);
+            response.body.links.should.have.property('prev').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?env=custom%2Cpotato&page[number]=1&page[size]=9999999`);
+            response.body.links.should.have.property('next').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?env=custom%2Cpotato&page[number]=1&page[size]=9999999`);
+            response.body.links.should.have.property('first').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?env=custom%2Cpotato&page[number]=1&page[size]=9999999`);
+            response.body.links.should.have.property('last').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?env=custom%2Cpotato&page[number]=1&page[size]=9999999`);
+        });
     });
 
     afterEach(async () => {

@@ -6,7 +6,7 @@ const ResourceNotFoundError = require('errors/resource-not-found.error');
 const createResourceOnGraph = async (resource) => {
     if (resource.type === 'layer' || resource.type === 'widget') {
         return RWAPIMicroservice.requestToMicroservice({
-            uri: `/graph/${resource.type}/${resource.dataset}/${resource.id}`,
+            uri: `/v1/graph/${resource.type}/${resource.dataset}/${resource.id}`,
             method: 'POST',
             json: true,
         });
@@ -14,7 +14,7 @@ const createResourceOnGraph = async (resource) => {
 
     // Default to 'dataset' case
     return RWAPIMicroservice.requestToMicroservice({
-        uri: `/graph/dataset/${resource.id}`,
+        uri: `/v1/graph/dataset/${resource.id}`,
         method: 'POST',
         json: true,
     });
@@ -23,7 +23,7 @@ const createResourceOnGraph = async (resource) => {
 const createOrUpdateAssociationOnGraph = async (action, resource, tags, application) => {
     try {
         const res = await RWAPIMicroservice.requestToMicroservice({
-            uri: `/graph/${resource.type}/${resource.id}/associate`,
+            uri: `/v1/graph/${resource.type}/${resource.id}/associate`,
             method: action.toUpperCase(),
             json: true,
             body: { tags, application }
@@ -47,7 +47,7 @@ const deleteAssociationOnGraph = async (resource, application) => {
 
     try {
         await RWAPIMicroservice.requestToMicroservice({
-            uri: `/graph/${resource.type}/${resource.id}/associate${applicationQueryParam}`,
+            uri: `/v1/graph/${resource.type}/${resource.id}/associate${applicationQueryParam}`,
             method: 'DELETE',
             json: true
         });

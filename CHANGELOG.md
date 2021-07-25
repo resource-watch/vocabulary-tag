@@ -1,3 +1,8 @@
+## 25/07/2021
+
+- Update `rw-api-microservice-node` to remove CT support.
+- Add `env` support to collections.
+
 ## 09/06/2021
 
 - Add support for hosts from `x-rw-domain` header when generating pagination links.

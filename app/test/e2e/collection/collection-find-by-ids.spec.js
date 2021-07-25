@@ -109,6 +109,7 @@ describe('Find collections by IDs', () => {
             attributes: {
                 name: collectionOne.name,
                 ownerId: collectionOne.ownerId,
+                env: 'production',
                 application: 'rw',
                 resources: []
             }
@@ -132,6 +133,7 @@ describe('Find collections by IDs', () => {
             attributes: {
                 name: collectionOne.name,
                 ownerId: collectionOne.ownerId,
+                env: 'production',
                 application: 'rw',
                 resources: []
             }
@@ -158,6 +160,7 @@ describe('Find collections by IDs', () => {
                 attributes: {
                     name: collectionOne.name,
                     ownerId: collectionOne.ownerId,
+                    env: 'production',
                     application: 'rw',
                     resources: []
                 }
@@ -168,6 +171,7 @@ describe('Find collections by IDs', () => {
                 attributes: {
                     name: collectionTwo.name,
                     ownerId: collectionTwo.ownerId,
+                    env: 'production',
                     application: 'gfw',
                     resources: []
                 }
@@ -199,6 +203,7 @@ describe('Find collections by IDs', () => {
                 attributes: {
                     name: collectionOne.name,
                     ownerId: collectionOne.ownerId,
+                    env: 'production',
                     application: 'rw',
                     resources: []
                 }
@@ -209,6 +214,7 @@ describe('Find collections by IDs', () => {
                 attributes: {
                     name: collectionTwo.name,
                     ownerId: collectionTwo.ownerId,
+                    env: 'production',
                     application: 'gfw',
                     resources: []
                 }
@@ -233,6 +239,7 @@ describe('Find collections by IDs', () => {
             attributes: {
                 name: collectionOne.name,
                 ownerId: collectionOne.ownerId,
+                env: 'production',
                 application: 'rw',
                 resources: []
             }
@@ -257,6 +264,7 @@ describe('Find collections by IDs', () => {
                 attributes: {
                     name: collectionOne.name,
                     ownerId: collectionOne.ownerId,
+                    env: 'production',
                     application: 'rw',
                     resources: []
                 }
@@ -267,6 +275,7 @@ describe('Find collections by IDs', () => {
                 attributes: {
                     name: collectionTwo.name,
                     ownerId: collectionTwo.ownerId,
+                    env: 'production',
                     application: 'gfw',
                     resources: []
                 }
@@ -284,6 +293,7 @@ describe('Find collections by IDs', () => {
             attributes: {
                 name: collectionOne.name,
                 ownerId: collectionOne.ownerId,
+                env: 'production',
                 application: 'rw',
                 resources: []
             }

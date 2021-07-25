@@ -115,7 +115,7 @@ class ResourceService {
     static async hasPermission(user, dataset, pResource) {
         let permission = true;
         let resource = await RWAPIMicroservice.requestToMicroservice({
-            uri: `/${pResource.type}/${pResource.id}`,
+            uri: `/v1/${pResource.type}/${pResource.id}`,
             method: 'GET',
             json: true
         });

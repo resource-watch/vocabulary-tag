@@ -8,6 +8,7 @@ class CollectionSerializer {
                 name: el.name,
                 ownerId: el.ownerId,
                 application: el.application,
+                env: el.env,
                 resources: el.resources ? el.resources.map((res) => {
                     const result = {
                         id: res.id,

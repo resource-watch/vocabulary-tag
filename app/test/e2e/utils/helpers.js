@@ -3,6 +3,11 @@ const nock = require('nock');
 
 const getUUID = () => Math.random().toString(36).substring(7);
 
+const ensureCorrectError = (body, errMessage) => {
+    body.should.have.property('errors').and.be.an('array');
+    body.errors[0].should.have.property('detail').and.equal(errMessage);
+};
+
 const createVocabulary = (app = 'rw') => {
     const uuid = getUUID();
     const datasetUuid = getUUID();
@@ -109,7 +114,7 @@ const mockDataset = (id = undefined, extraData = {}) => {
             ...extraData
         }
     };
-    nock(process.env.CT_URL).get(`/v1/dataset/${idToUse}`).reply(200, { data: mockData });
+    nock(process.env.GATEWAY_URL).get(`/v1/dataset/${idToUse}`).reply(200, { data: mockData });
     return mockData;
 };
 
@@ -149,7 +154,7 @@ const mockWidget = (id = undefined, extraData = {}) => {
             ...extraData
         }
     };
-    nock(process.env.CT_URL).get(`/v1/widget/${idToUse}`).reply(200, { data: mockData });
+    nock(process.env.GATEWAY_URL).get(`/v1/widget/${idToUse}`).reply(200, { data: mockData });
     return mockData;
 };
 
@@ -233,41 +238,41 @@ const mockLayer = (id = undefined, extraData = {}) => {
             ...extraData
         }
     };
-    nock(process.env.CT_URL).get(`/v1/layer/${idToUse}`).reply(200, { data: mockData });
+    nock(process.env.GATEWAY_URL).get(`/v1/layer/${idToUse}`).reply(200, { data: mockData });
     return mockData;
 };
 
 const mockPostGraphAssociation = (datasetId, mockSuccess = true) => {
-    nock(process.env.CT_URL)
+    nock(process.env.GATEWAY_URL)
         .post(`/v1/graph/dataset/${datasetId}/associate`)
         .reply(mockSuccess ? 200 : 404, { data: mockSuccess ? {} : { message: 'Resource XXXX not found.' } });
 
     if (!mockSuccess) {
-        nock(process.env.CT_URL)
+        nock(process.env.GATEWAY_URL)
             .post(`/v1/graph/dataset/${datasetId}`)
             .reply(200, { data: {} });
 
-        nock(process.env.CT_URL)
+        nock(process.env.GATEWAY_URL)
             .post(`/v1/graph/dataset/${datasetId}/associate`).reply(200, { data: {} });
     }
 };
 
 const mockPutGraphAssociation = (datasetId, mockSuccess = true) => {
-    nock(process.env.CT_URL)
+    nock(process.env.GATEWAY_URL)
         .put(`/v1/graph/dataset/${datasetId}/associate`)
         .reply(mockSuccess ? 200 : 404, { data: mockSuccess ? {} : { message: 'Resource XXXX not found.' } });
 
     if (!mockSuccess) {
-        nock(process.env.CT_URL)
+        nock(process.env.GATEWAY_URL)
             .post(`/v1/graph/dataset/${datasetId}`).reply(200, { data: {} });
 
-        nock(process.env.CT_URL)
+        nock(process.env.GATEWAY_URL)
             .put(`/v1/graph/dataset/${datasetId}/associate`).reply(200, { data: {} });
     }
 };
 
 const mockDeleteGraphAssociation = (datasetId, application = 'rw', mockSuccess = true) => {
-    nock(process.env.CT_URL)
+    nock(process.env.GATEWAY_URL)
         .delete(`/v1/graph/dataset/${datasetId}/associate?application=${application}`)
         .reply(mockSuccess ? 200 : 404, { data: mockSuccess ? {} : { message: 'Resource XXXX not found.' } });
 };
@@ -292,7 +297,7 @@ const assertOKResponse = (response, length = undefined) => {
 };
 
 const mockGetUserFromToken = (userProfile) => {
-    nock(process.env.CT_URL, { reqheaders: { authorization: 'Bearer abcd' } })
+    nock(process.env.GATEWAY_URL, { reqheaders: { authorization: 'Bearer abcd' } })
         .get('/auth/user/me')
         .reply(200, userProfile);
 };
@@ -311,5 +316,6 @@ module.exports = {
     mockPutGraphAssociation,
     mockLayer,
     mockWidget,
-    mockGetUserFromToken
+    mockGetUserFromToken,
+    ensureCorrectError
 };
