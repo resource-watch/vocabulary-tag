@@ -164,8 +164,12 @@ class VocabularyService {
 
     static async getAll(filter) {
         const limit = (Number.isNaN(parseInt(filter.limit, 10))) ? 0 : parseInt(filter.limit, 10);
+        const query = {
+            env: { $in: filter.env.split(',').map((elem) => elem.trim()) }
+        };
+
         logger.debug('Getting vocabularies');
-        const vocabularies = await Vocabulary.find({}).limit(limit).exec();
+        const vocabularies = await Vocabulary.find(query).limit(limit).exec();
         return vocabularies;
     }
 
@@ -173,8 +177,10 @@ class VocabularyService {
         logger.debug(`Getting vocabulary with id ${pVocabulary.name} and application ${pVocabulary.application}`);
         const query = {
             id: pVocabulary.name,
-            application: pVocabulary.application ? pVocabulary.application : { $ne: null }
+            application: pVocabulary.application ? pVocabulary.application : { $ne: null },
+            env: { $in: pVocabulary.env.split(',').map((elem) => elem.trim()) }
         };
+
         logger.debug('Getting vocabulary');
         const vocabulary = await Vocabulary.find(query).exec();
         if (vocabulary.length === 1) {

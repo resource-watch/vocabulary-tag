@@ -9,6 +9,9 @@ const Vocabulary = new Schema({
     application: {
         type: String, required: true, trim: true, default: 'rw'
     },
+    env: {
+        type: String, required: true, default: 'production', trim: true
+    },
     resources: [{
         _id: false,
         id: { type: String, required: true, trim: true },
