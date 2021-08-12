@@ -8,7 +8,7 @@ const ensureCorrectError = (body, errMessage) => {
     body.errors[0].should.have.property('detail').and.equal(errMessage);
 };
 
-const createVocabulary = (app = 'rw') => {
+const createVocabulary = (additionalData = {}) => {
     const uuid = getUUID();
     const datasetUuid = getUUID();
 
@@ -31,7 +31,8 @@ const createVocabulary = (app = 'rw') => {
                 ]
             }
         ],
-        application: app
+        application: 'rw',
+        ...additionalData
     };
 };
 
