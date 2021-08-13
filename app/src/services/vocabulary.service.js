@@ -1,6 +1,7 @@
 const logger = require('logger');
 const Vocabulary = require('models/vocabulary.model');
 const VocabularyDuplicated = require('errors/vocabulary-duplicated.error');
+const RelationshipService = require('./relationship.service');
 
 class VocabularyService {
 
@@ -162,15 +163,16 @@ class VocabularyService {
     //     return vocabulary;
     // }
 
-    static async getAll(filter) {
+    static async getAll(filter, query) {
         const limit = (Number.isNaN(parseInt(filter.limit, 10))) ? 0 : parseInt(filter.limit, 10);
-        const query = {
-            env: { $in: filter.env.split(',').map((elem) => elem.trim()) }
-        };
+        // const query = {
+        //     env: { $in: filter.env.split(',').map((elem) => elem.trim()) }
+        // };
 
         logger.debug('Getting vocabularies');
-        const vocabularies = await Vocabulary.find(query).limit(limit).exec();
-        return vocabularies;
+        const vocabularies = await Vocabulary.find({}).limit(limit).exec();
+        const vocabulariesWithFilteredRelationship = await RelationshipService.getRelationships(vocabularies, query);
+        return vocabulariesWithFilteredRelationship;
     }
 
     static async getById(pVocabulary) {

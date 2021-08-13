@@ -117,8 +117,8 @@ class VocabularyRouter {
         logger.info('Getting all vocabularies');
         const filter = {};
         if (ctx.query.limit) { filter.limit = ctx.query.limit; }
-        filter.env = ctx.query.env ? ctx.query.env : 'production';
-        const result = await VocabularyService.getAll(filter);
+        const env = ctx.query.env ? ctx.query.env : 'production';
+        const result = await VocabularyService.getAll(filter, env);
         ctx.set('cache', 'vocabulary');
         ctx.body = VocabularySerializer.serialize(result);
     }
@@ -127,8 +127,8 @@ class VocabularyRouter {
         logger.info(`Getting vocabulary by name: ${ctx.params.vocabulary}`);
         const application = ctx.query.application || ctx.query.app || 'rw';
         const env = ctx.query.env ? ctx.query.env : 'production';
-        const vocabulary = { name: ctx.params.vocabulary, application, env };
-        const result = await VocabularyService.getById(vocabulary);
+        const vocabulary = { name: ctx.params.vocabulary, application };
+        const result = await VocabularyService.getById(vocabulary, env);
         ctx.set('cache', `${vocabulary.name} ${result.id}`);
         ctx.body = VocabularySerializer.serialize(result);
     }
@@ -137,8 +137,8 @@ class VocabularyRouter {
         logger.info(`Getting vocabulary tags by name: ${ctx.params.vocabulary}`);
         const application = ctx.query.application || ctx.query.app || 'rw';
         const env = ctx.query.env ? ctx.query.env : 'production';
-        const vocabulary = { name: ctx.params.vocabulary, application, env };
-        const result = await VocabularyService.getById(vocabulary);
+        const vocabulary = { name: ctx.params.vocabulary, application };
+        const result = await VocabularyService.getById(vocabulary, env);
         ctx.body = VocabularySerializer.serializeTags(result);
     }
 
