@@ -117,8 +117,10 @@ class VocabularyRouter {
         logger.info('Getting all vocabularies');
         const filter = {};
         if (ctx.query.limit) { filter.limit = ctx.query.limit; }
-        const env = ctx.query.env ? ctx.query.env : 'production';
-        const result = await VocabularyService.getAll(filter, env);
+        const query = {
+            env: ctx.query.env ? ctx.query.env : 'production'
+        };
+        const result = await VocabularyService.getAll(filter, query);
         ctx.set('cache', 'vocabulary');
         ctx.body = VocabularySerializer.serialize(result);
     }
@@ -126,9 +128,11 @@ class VocabularyRouter {
     static async getById(ctx) {
         logger.info(`Getting vocabulary by name: ${ctx.params.vocabulary}`);
         const application = ctx.query.application || ctx.query.app || 'rw';
-        const env = ctx.query.env ? ctx.query.env : 'production';
+        const query = {
+            env: ctx.query.env ? ctx.query.env : 'production'
+        };
         const vocabulary = { name: ctx.params.vocabulary, application };
-        const result = await VocabularyService.getById(vocabulary, env);
+        const result = await VocabularyService.getById(vocabulary, query);
         ctx.set('cache', `${vocabulary.name} ${result.id}`);
         ctx.body = VocabularySerializer.serialize(result);
     }
@@ -136,9 +140,11 @@ class VocabularyRouter {
     static async getTagsById(ctx) {
         logger.info(`Getting vocabulary tags by name: ${ctx.params.vocabulary}`);
         const application = ctx.query.application || ctx.query.app || 'rw';
-        const env = ctx.query.env ? ctx.query.env : 'production';
+        const query = {
+            env: ctx.query.env ? ctx.query.env : 'production'
+        };
         const vocabulary = { name: ctx.params.vocabulary, application };
-        const result = await VocabularyService.getById(vocabulary, env);
+        const result = await VocabularyService.getById(vocabulary, query);
         ctx.body = VocabularySerializer.serializeTags(result);
     }
 

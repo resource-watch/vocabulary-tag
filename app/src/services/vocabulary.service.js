@@ -163,32 +163,37 @@ class VocabularyService {
     //     return vocabulary;
     // }
 
-    static async getAll(filter, query) {
+    static async getAll(filter, rawQuery) {
         const limit = (Number.isNaN(parseInt(filter.limit, 10))) ? 0 : parseInt(filter.limit, 10);
-        // const query = {
-        //     env: { $in: filter.env.split(',').map((elem) => elem.trim()) }
-        // };
 
         logger.debug('Getting vocabularies');
         const vocabularies = await Vocabulary.find({}).limit(limit).exec();
-        const vocabulariesWithFilteredRelationship = await RelationshipService.getRelationships(vocabularies, query);
+        const relationshipQuery = {
+            env: rawQuery.env.split(',').map((elem) => elem.trim())
+        };
+        const vocabulariesWithFilteredRelationship = await RelationshipService.getRelationships(vocabularies, relationshipQuery);
         return vocabulariesWithFilteredRelationship;
     }
 
-    static async getById(pVocabulary) {
+    static async getById(pVocabulary, rawQuery) {
         logger.debug(`Getting vocabulary with id ${pVocabulary.name} and application ${pVocabulary.application}`);
         const query = {
             id: pVocabulary.name,
             application: pVocabulary.application ? pVocabulary.application : { $ne: null },
-            env: { $in: pVocabulary.env.split(',').map((elem) => elem.trim()) }
+        };
+
+        const relationshipQuery = {
+            env: rawQuery.env.split(',').map((elem) => elem.trim())
         };
 
         logger.debug('Getting vocabulary');
         const vocabulary = await Vocabulary.find(query).exec();
-        if (vocabulary.length === 1) {
+        const vocabualyWithFilteredRelationship = await RelationshipService.getRelationships(vocabulary, relationshipQuery);
+
+        if (vocabualyWithFilteredRelationship.length === 1) {
             return vocabulary[0];
         }
-        return vocabulary;
+        return vocabualyWithFilteredRelationship;
     }
 
     /*
