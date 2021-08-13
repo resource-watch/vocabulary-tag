@@ -6,6 +6,12 @@ const RelationshipDuplicated = require('errors/relationship-duplicated.error');
 const RelationshipNotFound = require('errors/relationship-not-found.error');
 const ResourceNotFound = require('errors/resource-not-found.error');
 const VocabularyNotFound = require('errors/vocabulary-not-found.error');
+const { RWAPIMicroservice } = require('rw-api-microservice-node');
+
+const serializeObjToQuery = (obj) => Object.keys(obj).reduce((a, k) => {
+    a.push(`${k}=${encodeURIComponent(obj[k])}`);
+    return a;
+}, []).join('&');
 
 class RelationshipService {
 
@@ -215,6 +221,76 @@ class RelationshipService {
         });
         logger.debug('New Vocabularies', vocabularies);
         return RelationshipService.createSome(user, vocabularies, body.newDataset, { type: 'dataset', id: body.newDataset });
+    }
+
+    /**
+     * - Clones the query object
+     * - Strips a few things that should not be passed over to other MSs
+     * - Encodes query into a URL param format
+     *
+     * @TODO: rawQuery is passed by reference, so we should evaluate cloning at an earlier point
+     *
+     * @param rawQuery
+     * @returns {string}
+     */
+    static prepareAndFormatQuery(rawQuery) {
+        const query = { ...rawQuery };
+
+        return serializeObjToQuery(query);
+    }
+
+    static async getRelationships(vocabularies, query = {}) {
+        logger.info(`Getting relationships of vocabularies: ${vocabularies}`);
+        // eslint-disable-next-line no-plusplus
+        for (let i = 0; i < vocabularies.length; i++) {
+            const datasetIds = vocabularies[i].resources.filter((resource) => resource.type === 'dataset').map((resource) => resource.id);
+            const layerIds = vocabularies[i].resources.filter((resource) => resource.type === 'layer').map((resource) => resource.id);
+            const widgetIds = vocabularies[i].resources.filter((resource) => resource.type === 'widget').map((resource) => resource.id);
+            const validResourceIds = [];
+            try {
+                if (datasetIds.length > 1) {
+                    const datasets = await RWAPIMicroservice.requestToMicroservice({
+                        uri: `/v1/dataset/find-by-ids`,
+                        method: 'POST',
+                        json: true,
+                        body: {
+                            ids: datasetIds,
+                            env: query.env
+                        }
+                    });
+                    validResourceIds.push(...datasets.map((dataset) => dataset.Id));
+                }
+                if (layerIds.length > 1) {
+                    const layers = await RWAPIMicroservice.requestToMicroservice({
+                        uri: `/v1/layer/find-by-ids`,
+                        method: 'POST',
+                        json: true,
+                        body: {
+                            ids: layerIds,
+                            env: query.env
+                        }
+                    });
+
+                    validResourceIds.push(...layers.map((dataset) => dataset.Id));
+                }
+                if (widgetIds.length > 1) {
+                    const widgets = await RWAPIMicroservice.requestToMicroservice({
+                        uri: `/v1/widget/find-by-ids`,
+                        method: 'POST',
+                        json: true,
+                        body: {
+                            ids: widgetIds,
+                            env: query.env
+                        }
+                    });
+                    validResourceIds.push(...widgets.map((dataset) => dataset.Id));
+                }
+                vocabularies.resources = vocabularies.resources.filter((resource) => validResourceIds.includes(resource.id));
+            } catch (err) {
+                logger.error(err);
+            }
+        }
+        return vocabularies;
     }
 
 }
