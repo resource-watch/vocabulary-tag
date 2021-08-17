@@ -130,6 +130,59 @@ describe('Find all resources for all vocabularies', () => {
         response.body.data[1].attributes.should.have.property('resources').and.deep.equal(vocabularyTwo.resources.toObject());
     });
 
+    // it('Finding all resources for a vocabulary with query params and env while being authenticated should return a 200 OK and a data array with part of resources', async () => {
+    //     const vocabularyOne = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
+    //     const vocabularyTwo = await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
+    //     // mockGetUserFromToken(USERS.USER);
+
+    //     const response = await requester
+    //         .get(`/api/v1/vocabulary`)
+    //         .query({
+    //             // foo: 'bar',
+    //             env: 'production'
+    //         })
+    //         .set('Authorization', `Bearer abcd`)
+    //         .send();
+
+    //     assertOKResponse(response, 2);
+
+    //     nock(process.env.GATEWAY_URL)
+    //         .post('/v1/dataset/find-by-ids', { ids: [vocabularyOne.resources[0].id] })
+    //         .query({
+    //             env: 'production',
+    //             // search: 'human'
+    //         })
+    //         .reply(200, vocabularyOne.resources[0]);
+
+    //     nock(process.env.GATEWAY_URL)
+    //         .post('/v1/layer/find-by-ids', { ids: [vocabularyOne.resources[0].id] })
+    //         .query({
+    //             env: 'production',
+    //             // search: 'human'
+    //         })
+    //         .reply(200, vocabularyOne.resources[0]);
+
+    //     nock(process.env.GATEWAY_URL)
+    //         .post('/v1/widget/find-by-ids', { ids: [vocabularyOne.resources[0].id] })
+    //         .query({
+    //             env: 'production',
+    //             // search: 'human'
+    //         })
+    //         .reply(200, vocabularyOne.resources[0]);
+
+    //     response.body.data[0].should.have.property('id').and.equal('abcd');
+    //     response.body.data[0].should.have.property('type').and.equal('vocabulary');
+    //     response.body.data[0].attributes.should.have.property('name').and.equal('abcd');
+    //     response.body.data[0].attributes.should.have.property('application').and.equal('rw');
+    //     response.body.data[0].attributes.should.have.property('resources').and.deep.equal(vocabularyOne.resources.toObject());
+
+    //     response.body.data[1].should.have.property('id').and.equal('efgh');
+    //     response.body.data[1].should.have.property('type').and.equal('vocabulary');
+    //     response.body.data[1].attributes.should.have.property('name').and.equal('efgh');
+    //     response.body.data[1].attributes.should.have.property('application').and.equal('rw');
+    //     response.body.data[1].attributes.should.have.property('resources').and.deep.equal(vocabularyTwo.resources.toObject());
+    // });
+
     afterEach(async () => {
         if (!nock.isDone()) {
             throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);

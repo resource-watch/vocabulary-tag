@@ -14,12 +14,11 @@ const deserializer = (obj) => {
 
 class ResourceService {
 
-    static async get(dataset, resource, vocabulary, env) {
+    static async get(dataset, resource, vocabulary) {
         const query = {
             dataset,
             id: resource.id,
             type: resource.type,
-            env,
         };
         if (vocabulary) {
             return Resource.aggregate([
@@ -29,8 +28,7 @@ class ResourceService {
                         id: resource.id,
                         type: resource.type,
                         'vocabularies.id': vocabulary.name || { $ne: null },
-                        'vocabularies.application': vocabulary.application || { $ne: null },
-                        'vocabularies.env': { $in: vocabulary.env.split(',').map((elem) => elem.trim()) }
+                        'vocabularies.application': vocabulary.application || { $ne: null }
                     }
                 },
 
@@ -39,8 +37,7 @@ class ResourceService {
                 {
                     $match: {
                         'vocabularies.id': vocabulary.name || { $ne: null },
-                        'vocabularies.application': vocabulary.application || { $ne: null },
-                        'vocabularies.env': { $in: vocabulary.env.split(',').map((elem) => elem.trim()) }
+                        'vocabularies.application': vocabulary.application || { $ne: null }
                     }
                 },
 

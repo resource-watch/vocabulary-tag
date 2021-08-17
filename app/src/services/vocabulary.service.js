@@ -173,6 +173,7 @@ class VocabularyService {
         };
         const vocabulariesWithFilteredRelationship = await RelationshipService.getRelationships(vocabularies, relationshipQuery);
         return vocabulariesWithFilteredRelationship;
+        // return vocabularies;
     }
 
     static async getById(pVocabulary, rawQuery) {
