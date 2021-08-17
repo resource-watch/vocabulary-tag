@@ -6,7 +6,7 @@ const RelationshipDuplicated = require('errors/relationship-duplicated.error');
 const RelationshipNotFound = require('errors/relationship-not-found.error');
 const ResourceNotFound = require('errors/resource-not-found.error');
 const VocabularyNotFound = require('errors/vocabulary-not-found.error');
-const { RWAPIMicroservice } = require('rw-api-microservice-node');
+// const { RWAPIMicroservice } = require('rw-api-microservice-node');
 
 const serializeObjToQuery = (obj) => Object.keys(obj).reduce((a, k) => {
     a.push(`${k}=${encodeURIComponent(obj[k])}`);
@@ -242,54 +242,55 @@ class RelationshipService {
     static async getRelationships(vocabularies, query = {}) {
         logger.info(`Getting relationships of vocabularies: ${vocabularies}`);
         // eslint-disable-next-line no-plusplus
-        for (let i = 0; i < vocabularies.length; i++) {
-            const datasetIds = vocabularies[i].resources.filter((resource) => resource.type === 'dataset').map((resource) => resource.id);
-            const layerIds = vocabularies[i].resources.filter((resource) => resource.type === 'layer').map((resource) => resource.id);
-            const widgetIds = vocabularies[i].resources.filter((resource) => resource.type === 'widget').map((resource) => resource.id);
-            const validResourceIds = [];
-            try {
-                if (datasetIds.length > 1) {
-                    const datasets = await RWAPIMicroservice.requestToMicroservice({
-                        uri: `/v1/dataset/find-by-ids`,
-                        method: 'POST',
-                        json: true,
-                        body: {
-                            ids: datasetIds,
-                            env: query.env
-                        }
-                    });
-                    validResourceIds.push(...datasets.map((dataset) => dataset.Id));
-                }
-                if (layerIds.length > 1) {
-                    const layers = await RWAPIMicroservice.requestToMicroservice({
-                        uri: `/v1/layer/find-by-ids`,
-                        method: 'POST',
-                        json: true,
-                        body: {
-                            ids: layerIds,
-                            env: query.env
-                        }
-                    });
+        console.log('relationship here', query);
+        // for (let i = 0; i < vocabularies.length; i++) {
+        //     const datasetIds = vocabularies[i].resources.filter((resource) => resource.type === 'dataset').map((resource) => resource.id);
+        //     const layerIds = vocabularies[i].resources.filter((resource) => resource.type === 'layer').map((resource) => resource.id);
+        //     const widgetIds = vocabularies[i].resources.filter((resource) => resource.type === 'widget').map((resource) => resource.id);
+        //     const validResourceIds = [];
+        //     try {
+        //         if (datasetIds.length > 1) {
+        //             const datasets = await RWAPIMicroservice.requestToMicroservice({
+        //                 uri: `/v1/dataset/find-by-ids`,
+        //                 method: 'POST',
+        //                 json: true,
+        //                 body: {
+        //                     ids: datasetIds,
+        //                     env: query.env
+        //                 }
+        //             });
+        //             validResourceIds.push(...datasets.map((dataset) => dataset.Id));
+        //         }
+        //         if (layerIds.length > 1) {
+        //             const layers = await RWAPIMicroservice.requestToMicroservice({
+        //                 uri: `/v1/layer/find-by-ids`,
+        //                 method: 'POST',
+        //                 json: true,
+        //                 body: {
+        //                     ids: layerIds,
+        //                     env: query.env
+        //                 }
+        //             });
 
-                    validResourceIds.push(...layers.map((dataset) => dataset.Id));
-                }
-                if (widgetIds.length > 1) {
-                    const widgets = await RWAPIMicroservice.requestToMicroservice({
-                        uri: `/v1/widget/find-by-ids`,
-                        method: 'POST',
-                        json: true,
-                        body: {
-                            ids: widgetIds,
-                            env: query.env
-                        }
-                    });
-                    validResourceIds.push(...widgets.map((dataset) => dataset.Id));
-                }
-                vocabularies.resources = vocabularies.resources.filter((resource) => validResourceIds.includes(resource.id));
-            } catch (err) {
-                logger.error(err);
-            }
-        }
+        //             validResourceIds.push(...layers.map((dataset) => dataset.Id));
+        //         }
+        //         if (widgetIds.length > 1) {
+        //             const widgets = await RWAPIMicroservice.requestToMicroservice({
+        //                 uri: `/v1/widget/find-by-ids`,
+        //                 method: 'POST',
+        //                 json: true,
+        //                 body: {
+        //                     ids: widgetIds,
+        //                     env: query.env
+        //                 }
+        //             });
+        //             validResourceIds.push(...widgets.map((dataset) => dataset.Id));
+        //         }
+        //         vocabularies.resources = vocabularies.resources.filter((resource) => validResourceIds.includes(resource.id));
+        //     } catch (err) {
+        //         logger.error(err);
+        //     }
+        // }
         return vocabularies;
     }
 
