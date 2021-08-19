@@ -120,7 +120,12 @@ class VocabularyRouter {
         const query = {
             env: ctx.query.env ? ctx.query.env : 'production'
         };
-        const result = await VocabularyService.getAll(filter, query);
+        const vocabularies = await VocabularyService.getAll(filter, query);
+
+        const relationshipQuery = {
+            env: query.env.split(',').map((elem) => elem.trim())
+        };
+        const result = await RelationshipService.getRelationships(vocabularies, relationshipQuery);
         ctx.set('cache', 'vocabulary');
         ctx.body = VocabularySerializer.serialize(result);
     }
@@ -132,7 +137,13 @@ class VocabularyRouter {
             env: ctx.query.env ? ctx.query.env : 'production'
         };
         const vocabulary = { name: ctx.params.vocabulary, application };
-        const result = await VocabularyService.getById(vocabulary, query);
+        const vocabularies = await VocabularyService.getById(vocabulary, query);
+
+        const relationshipQuery = {
+            env: query.env.split(',').map((elem) => elem.trim())
+        };
+
+        const result = await RelationshipService.getRelationships([vocabularies], relationshipQuery);
         ctx.set('cache', `${vocabulary.name} ${result.id}`);
         ctx.body = VocabularySerializer.serialize(result);
     }
@@ -144,7 +155,13 @@ class VocabularyRouter {
             env: ctx.query.env ? ctx.query.env : 'production'
         };
         const vocabulary = { name: ctx.params.vocabulary, application };
-        const result = await VocabularyService.getById(vocabulary, query);
+        const vocabularies = await VocabularyService.getById(vocabulary, query);
+
+        const relationshipQuery = {
+            env: query.env.split(',').map((elem) => elem.trim())
+        };
+
+        const result = await RelationshipService.getRelationships([vocabularies], relationshipQuery);
         ctx.body = VocabularySerializer.serializeTags(result);
     }
 
