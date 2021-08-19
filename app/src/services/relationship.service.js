@@ -8,11 +8,6 @@ const ResourceNotFound = require('errors/resource-not-found.error');
 const VocabularyNotFound = require('errors/vocabulary-not-found.error');
 const { RWAPIMicroservice } = require('rw-api-microservice-node');
 
-const serializeObjToQuery = (obj) => Object.keys(obj).reduce((a, k) => {
-    a.push(`${k}=${encodeURIComponent(obj[k])}`);
-    return a;
-}, []).join('&');
-
 class RelationshipService {
 
     static checkRelationship(resource, vocabulary) {
@@ -221,22 +216,6 @@ class RelationshipService {
         });
         logger.debug('New Vocabularies', vocabularies);
         return RelationshipService.createSome(user, vocabularies, body.newDataset, { type: 'dataset', id: body.newDataset });
-    }
-
-    /**
-     * - Clones the query object
-     * - Strips a few things that should not be passed over to other MSs
-     * - Encodes query into a URL param format
-     *
-     * @TODO: rawQuery is passed by reference, so we should evaluate cloning at an earlier point
-     *
-     * @param rawQuery
-     * @returns {string}
-     */
-    static prepareAndFormatQuery(rawQuery) {
-        const query = { ...rawQuery };
-
-        return serializeObjToQuery(query);
     }
 
     static async getRelationships(vocabularies, query = {}) {
