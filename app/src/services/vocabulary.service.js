@@ -1,7 +1,6 @@
 const logger = require('logger');
 const Vocabulary = require('models/vocabulary.model');
 const VocabularyDuplicated = require('errors/vocabulary-duplicated.error');
-const RelationshipService = require('./relationship.service');
 
 class VocabularyService {
 
@@ -163,38 +162,28 @@ class VocabularyService {
     //     return vocabulary;
     // }
 
-    static async getAll(filter, rawQuery) {
+    static async getAll(filter) {
         const limit = (Number.isNaN(parseInt(filter.limit, 10))) ? 0 : parseInt(filter.limit, 10);
 
         logger.debug('Getting vocabularies');
         const vocabularies = await Vocabulary.find({}).limit(limit).exec();
-        const relationshipQuery = {
-            env: rawQuery.env.split(',').map((elem) => elem.trim())
-        };
-        const vocabulariesWithFilteredRelationship = await RelationshipService.getRelationships(vocabularies, relationshipQuery);
-        return vocabulariesWithFilteredRelationship;
-        // return vocabularies;
+        return vocabularies;
     }
 
-    static async getById(pVocabulary, rawQuery) {
+    static async getById(pVocabulary) {
         logger.debug(`Getting vocabulary with id ${pVocabulary.name} and application ${pVocabulary.application}`);
         const query = {
             id: pVocabulary.name,
             application: pVocabulary.application ? pVocabulary.application : { $ne: null },
         };
 
-        const relationshipQuery = {
-            env: rawQuery.env.split(',').map((elem) => elem.trim())
-        };
-
         logger.debug('Getting vocabulary');
         const vocabulary = await Vocabulary.find(query).exec();
-        const vocabualyWithFilteredRelationship = await RelationshipService.getRelationships(vocabulary, relationshipQuery);
 
-        if (vocabualyWithFilteredRelationship.length === 1) {
+        if (vocabulary.length === 1) {
             return vocabulary[0];
         }
-        return vocabualyWithFilteredRelationship;
+        return vocabulary;
     }
 
     /*

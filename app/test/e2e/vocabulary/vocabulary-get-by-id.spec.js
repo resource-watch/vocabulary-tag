@@ -106,6 +106,31 @@ describe('Find all resources for a vocabulary', () => {
         response.body.data[0].attributes.should.have.property('resources').and.deep.equal(vocabularyOne.resources.toObject());
     });
 
+    it('Finding all resources for a vocabulary with query params and env while being authenticated should return a 200 OK and data array with empty resources', async () => {
+        await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
+        mockGetUserFromToken(USERS.USER);
+
+        nock(process.env.GATEWAY_URL)
+            .post('/v1/dataset/find-by-ids')
+            .reply(200, { data: [] });
+
+        const response = await requester
+            .get(`/api/v1/vocabulary/abcd`)
+            .query({
+                env: 'production'
+            })
+            .set('Authorization', `Bearer abcd`)
+            .send();
+
+        assertOKResponse(response, 1);
+
+        response.body.data[0].should.have.property('id').and.equal('abcd');
+        response.body.data[0].should.have.property('type').and.equal('vocabulary');
+        response.body.data[0].attributes.should.have.property('name').and.equal('abcd');
+        response.body.data[0].attributes.should.have.property('application').and.equal('rw');
+        response.body.data[0].attributes.should.have.property('resources').and.deep.equal([]);
+    });
+
     afterEach(async () => {
         if (!nock.isDone()) {
             throw new Error(`Not all nock interceptors were used: ${nock.pendingMocks()}`);
