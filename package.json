@@ -37,7 +37,7 @@
     "bunyan": "^1.8.15",
     "config": "^1.30.0",
     "cron-parser": "^2.5.0",
-    "firstline": "^1.3.0",
+    "firstline": "^2.0.2",
     "jsonapi-serializer": "2.1.1",
     "kcors": "^2.1.1",
     "koa": "^2.5.1",
