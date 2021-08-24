@@ -7,6 +7,7 @@ const RelationshipNotFound = require('errors/relationship-not-found.error');
 const ResourceNotFound = require('errors/resource-not-found.error');
 const VocabularyNotFound = require('errors/vocabulary-not-found.error');
 const { RWAPIMicroservice } = require('rw-api-microservice-node');
+const MicroserviceConnection = require('errors/microservice-connection.error');
 
 class RelationshipService {
 
@@ -215,60 +216,110 @@ class RelationshipService {
             return vocabulary;
         });
         logger.debug('New Vocabularies', vocabularies);
-        return RelationshipService.createSome(user, vocabularies, body.newDataset, { type: 'dataset', id: body.newDataset });
+        return RelationshipService.createSome(user, vocabularies, body.newDataset, {
+            type: 'dataset',
+            id: body.newDataset
+        });
     }
 
     static async getRelationships(vocabularies, query = {}) {
         logger.info(`Getting relationships of vocabularies: ${vocabularies}`);
-        // eslint-disable-next-line no-plusplus
-        for (let i = 0; i < vocabularies.length; i++) {
-            const datasetIds = vocabularies[i].resources.filter((resource) => resource.type === 'dataset').map((resource) => resource.id);
-            const layerIds = vocabularies[i].resources.filter((resource) => resource.type === 'layer').map((resource) => resource.id);
-            const widgetIds = vocabularies[i].resources.filter((resource) => resource.type === 'widget').map((resource) => resource.id);
-            const validResourceIds = [];
-            try {
-                if (datasetIds.length > 0) {
-                    const datasets = await RWAPIMicroservice.requestToMicroservice({
-                        uri: `/v1/dataset/find-by-ids`,
-                        method: 'POST',
-                        json: true,
-                        body: {
-                            ids: datasetIds,
-                            env: query.env
-                        }
-                    });
-                    validResourceIds.push(...datasets.data.map((dataset) => dataset.id));
-                }
-                if (layerIds.length > 0) {
-                    const layers = await RWAPIMicroservice.requestToMicroservice({
-                        uri: `/v1/layer/find-by-ids`,
-                        method: 'POST',
-                        json: true,
-                        body: {
-                            ids: layerIds,
-                            env: query.env
-                        }
-                    });
 
-                    validResourceIds.push(...layers.data.map((dataset) => dataset.id));
+        let datasetIds = [];
+        let layerIds = [];
+        let widgetIds = [];
+
+        vocabularies.forEach((vocabulary) => {
+            vocabulary.resources.forEach((resource) => {
+                switch (resource.type) {
+
+                    case 'dataset':
+                        datasetIds.push(resource.id);
+                        break;
+                    case 'layer':
+                        layerIds.push(resource.id);
+                        break;
+                    case 'widget':
+                        widgetIds.push(resource.id);
+                        break;
+                    default:
+                        throw new Error(`Unexpected resource type: ${resource.type}`);
+
                 }
-                if (widgetIds.length > 0) {
-                    const widgets = await RWAPIMicroservice.requestToMicroservice({
-                        uri: `/v1/widget/find-by-ids`,
-                        method: 'POST',
-                        json: true,
-                        body: {
-                            ids: widgetIds,
-                            env: query.env
-                        }
-                    });
-                    validResourceIds.push(...widgets.data.map((dataset) => dataset.id));
-                }
-                vocabularies[i].resources = vocabularies[i].resources.filter((resource) => validResourceIds.includes(resource.id));
-            } catch (err) {
-                logger.error(err);
+            });
+        });
+
+        try {
+            if (datasetIds.length > 0) {
+                const datasets = await RWAPIMicroservice.requestToMicroservice({
+                    uri: `/v1/dataset/find-by-ids`,
+                    method: 'POST',
+                    json: true,
+                    body: {
+                        ids: datasetIds,
+                        env: query.env
+                    }
+                });
+                datasetIds = datasets.data.map((dataset) => dataset.id);
             }
+        } catch (error) {
+            throw new MicroserviceConnection('Error loading datasets for env filtering');
         }
+        try {
+
+            if (layerIds.length > 0) {
+                const layers = await RWAPIMicroservice.requestToMicroservice({
+                    uri: `/v1/layer/find-by-ids`,
+                    method: 'POST',
+                    json: true,
+                    body: {
+                        ids: layerIds,
+                        env: query.env
+                    }
+                });
+
+                layerIds = layers.data.map((layer) => layer.id);
+            }
+
+        } catch (error) {
+            throw new MicroserviceConnection('Error loading layers for env filtering');
+        }
+        try {
+
+            if (widgetIds.length > 0) {
+                const widgets = await RWAPIMicroservice.requestToMicroservice({
+                    uri: `/v1/widget/find-by-ids`,
+                    method: 'POST',
+                    json: true,
+                    body: {
+                        ids: widgetIds,
+                        env: query.env
+                    }
+                });
+
+                widgetIds = widgets.data.map((widget) => widget.id);
+            }
+        } catch (error) {
+            throw new MicroserviceConnection('Error loading widgets for env filtering');
+        }
+
+        vocabularies.forEach((vocabulary) => {
+            vocabulary.resources = vocabulary.resources.filter((resource) => {
+                switch (resource.type) {
+
+                    case 'dataset':
+                        return datasetIds.includes(resource.id);
+                    case 'layer':
+                        return layerIds.includes(resource.id);
+                    case 'widget':
+                        return widgetIds.includes(resource.id);
+                    default:
+                        throw new Error(`Unexpected resource type: ${resource.type}`);
+
+                }
+            });
+        });
+
         return vocabularies;
     }
 

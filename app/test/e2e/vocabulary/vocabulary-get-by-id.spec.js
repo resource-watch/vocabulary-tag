@@ -4,7 +4,7 @@ const Resource = require('models/resource.model');
 const Vocabulary = require('models/vocabulary.model');
 
 const {
-    assertOKResponse, mockGetUserFromToken, createVocabulary
+    assertOKResponse, mockGetUserFromToken, createVocabulary, mockFindDatasetById, mockFindWidgetById, mockFindLayerById
 } = require('../utils/helpers');
 const { USERS } = require('../utils/test.constants');
 
@@ -106,13 +106,11 @@ describe('Find all resources for a vocabulary', () => {
         response.body.data[0].attributes.should.have.property('resources').and.deep.equal(vocabularyOne.resources.toObject());
     });
 
-    it('Finding all resources for a vocabulary with query params and env while being authenticated should return a 200 OK and data array with empty resources', async () => {
-        await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
+    it('Finding all resources for a vocabulary with query params and env while being authenticated should return a 200 OK and data array with empty resources if none match the env filter', async () => {
+        const vocabulary = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
         mockGetUserFromToken(USERS.USER);
 
-        nock(process.env.GATEWAY_URL)
-            .post('/v1/dataset/find-by-ids')
-            .reply(200, { data: [] });
+        mockFindDatasetById([vocabulary.resources[0].id], 'production', []);
 
         const response = await requester
             .get(`/api/v1/vocabulary/abcd`)
@@ -129,6 +127,235 @@ describe('Find all resources for a vocabulary', () => {
         response.body.data[0].attributes.should.have.property('name').and.equal('abcd');
         response.body.data[0].attributes.should.have.property('application').and.equal('rw');
         response.body.data[0].attributes.should.have.property('resources').and.deep.equal([]);
+    });
+
+    it('Finding all resources for a vocabulary with query params and env while being authenticated should return a 200 OK and data array with resources if they match the env filter', async () => {
+        const vocabulary = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
+        mockGetUserFromToken(USERS.USER);
+
+        mockFindDatasetById([vocabulary.resources[0].id], 'production');
+
+        const response = await requester
+            .get(`/api/v1/vocabulary/abcd`)
+            .query({
+                env: 'production'
+            })
+            .set('Authorization', `Bearer abcd`)
+            .send();
+
+        assertOKResponse(response, 1);
+
+        response.body.data[0].should.have.property('id').and.equal('abcd');
+        response.body.data[0].should.have.property('type').and.equal('vocabulary');
+        response.body.data[0].attributes.should.have.property('name').and.equal('abcd');
+        response.body.data[0].attributes.should.have.property('application').and.equal('rw');
+        response.body.data[0].attributes.should.have.property('resources').and.deep.equal([
+            {
+                dataset: vocabulary.resources[0].id,
+                id: vocabulary.resources[0].id,
+                tags: [
+                    'vector',
+                    'table',
+                    'global',
+                    'gdp'
+                ],
+                type: 'dataset'
+            }
+        ]);
+    });
+
+    it('Finding all resources for a vocabulary with query params and env while being authenticated should return a 200 OK and data array with resources if they match the env filter - multiple types', async () => {
+        const vocabulary = await (new Vocabulary(createVocabulary({
+            id: 'abcd',
+            resources: [
+                {
+                    id: 'datasetId',
+                    dataset: 'datasetId',
+                    type: 'dataset',
+                    tags: [
+                        'vector',
+                        'table',
+                        'global',
+                        'gdp'
+                    ]
+                },
+                {
+                    id: 'widgetId',
+                    dataset: 'datasetId',
+                    type: 'widget',
+                    tags: [
+                        'vector',
+                        'table',
+                        'global',
+                        'gdp'
+                    ]
+                },
+                {
+                    id: 'layerId',
+                    dataset: 'datasetId',
+                    type: 'layer',
+                    tags: [
+                        'vector',
+                        'table',
+                        'global',
+                        'gdp'
+                    ]
+                }
+            ]
+        }))).save();
+
+        mockGetUserFromToken(USERS.USER);
+
+        mockFindDatasetById([vocabulary.resources[0].id], 'production');
+        mockFindWidgetById([vocabulary.resources[1].id], 'production');
+        mockFindLayerById([vocabulary.resources[2].id], 'production');
+
+        const response = await requester
+            .get(`/api/v1/vocabulary/abcd`)
+            .query({
+                env: 'production'
+            })
+            .set('Authorization', `Bearer abcd`)
+            .send();
+
+        assertOKResponse(response, 1);
+
+        response.body.data[0].should.have.property('id').and.equal('abcd');
+        response.body.data[0].should.have.property('type').and.equal('vocabulary');
+        response.body.data[0].attributes.should.have.property('name').and.equal('abcd');
+        response.body.data[0].attributes.should.have.property('application').and.equal('rw');
+        response.body.data[0].attributes.should.have.property('resources').and.deep.equal([
+            {
+                dataset: 'datasetId',
+                id: 'datasetId',
+                tags: [
+                    'vector',
+                    'table',
+                    'global',
+                    'gdp'
+                ],
+                type: 'dataset',
+            },
+            {
+                dataset: 'datasetId',
+                id: 'widgetId',
+                tags: [
+                    'vector',
+                    'table',
+                    'global',
+                    'gdp',
+                ],
+                type: 'widget',
+            },
+            {
+                dataset: 'datasetId',
+                id: 'layerId',
+                tags: [
+                    'vector',
+                    'table',
+                    'global',
+                    'gdp',
+                ],
+                type: 'layer',
+            }
+        ]);
+    });
+
+    it('Finding all resources for a vocabulary with query params and env while being authenticated should return a 200 OK and data array with resources if they match the env filter - multiple types, multiple envs', async () => {
+        const vocabulary = await (new Vocabulary(createVocabulary({
+            id: 'abcd',
+            resources: [
+                {
+                    id: 'datasetId',
+                    dataset: 'datasetId',
+                    type: 'dataset',
+                    tags: [
+                        'vector',
+                        'table',
+                        'global',
+                        'gdp'
+                    ]
+                },
+                {
+                    id: 'widgetId',
+                    dataset: 'datasetId',
+                    type: 'widget',
+                    tags: [
+                        'vector',
+                        'table',
+                        'global',
+                        'gdp'
+                    ]
+                },
+                {
+                    id: 'layerId',
+                    dataset: 'datasetId',
+                    type: 'layer',
+                    tags: [
+                        'vector',
+                        'table',
+                        'global',
+                        'gdp'
+                    ]
+                }
+            ]
+        }))).save();
+
+        mockGetUserFromToken(USERS.USER);
+
+        mockFindDatasetById([vocabulary.resources[0].id], 'production,potato');
+        mockFindWidgetById([vocabulary.resources[1].id], 'production,potato');
+        mockFindLayerById([vocabulary.resources[2].id], 'production,potato');
+
+        const response = await requester
+            .get(`/api/v1/vocabulary/abcd`)
+            .query({
+                env: 'production,potato'
+            })
+            .set('Authorization', `Bearer abcd`)
+            .send();
+
+        assertOKResponse(response, 1);
+
+        response.body.data[0].should.have.property('id').and.equal('abcd');
+        response.body.data[0].should.have.property('type').and.equal('vocabulary');
+        response.body.data[0].attributes.should.have.property('name').and.equal('abcd');
+        response.body.data[0].attributes.should.have.property('application').and.equal('rw');
+        response.body.data[0].attributes.should.have.property('resources').and.deep.equal([
+            {
+                dataset: 'datasetId',
+                id: 'datasetId',
+                tags: [
+                    'vector',
+                    'table',
+                    'global',
+                    'gdp'
+                ],
+                type: 'dataset',
+            },
+            {
+                dataset: 'datasetId',
+                id: 'widgetId',
+                tags: [
+                    'vector',
+                    'table',
+                    'global',
+                    'gdp',
+                ],
+                type: 'widget',
+            },
+            {
+                dataset: 'datasetId',
+                id: 'layerId',
+                tags: [
+                    'vector',
+                    'table',
+                    'global',
+                    'gdp',
+                ],
+                type: 'layer',
+            }
+        ]);
     });
 
     afterEach(async () => {
