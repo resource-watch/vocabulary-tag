@@ -1,3 +1,7 @@
+## 24/08/2021
+
+- Add support for filtering by env when loading data by vocabularies
+
 ## 25/07/2021
 
 - Update `rw-api-microservice-node` to remove CT support.

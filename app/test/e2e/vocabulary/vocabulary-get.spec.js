@@ -4,7 +4,7 @@ const Resource = require('models/resource.model');
 const Vocabulary = require('models/vocabulary.model');
 
 const {
-    assertOKResponse, mockGetUserFromToken, createVocabulary
+    assertOKResponse, mockGetUserFromToken, createVocabulary, mockFindDatasetById, mockFindWidgetById, mockFindLayerById
 } = require('../utils/helpers');
 const { USERS } = require('../utils/test.constants');
 
@@ -29,7 +29,7 @@ describe('Find all resources for all vocabularies', () => {
         await Vocabulary.deleteMany({}).exec();
     });
 
-    it('Finding all resources for a vocabulary without query params or being authenticated should return a 200 OK and a data array', async () => {
+    it('Finding all resources for all vocabularies without query params or being authenticated should return a 200 OK and a data array', async () => {
         const vocabularyOne = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
         const vocabularyTwo = await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
 
@@ -52,7 +52,7 @@ describe('Find all resources for all vocabularies', () => {
         response.body.data[1].attributes.should.have.property('resources').and.deep.equal(vocabularyTwo.resources.toObject());
     });
 
-    it('Finding all resources for a vocabulary without query params while being authenticated should return a 200 OK and a data array', async () => {
+    it('Finding all resources for all vocabularies without query params while being authenticated should return a 200 OK and a data array', async () => {
         const vocabularyOne = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
         const vocabularyTwo = await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
         mockGetUserFromToken(USERS.USER);
@@ -77,7 +77,7 @@ describe('Find all resources for all vocabularies', () => {
         response.body.data[1].attributes.should.have.property('resources').and.deep.equal(vocabularyTwo.resources.toObject());
     });
 
-    it('Finding all resources for a vocabulary without auth and with a set of query params returns 200 OK and a data array', async () => {
+    it('Finding all resources for all vocabularies without auth and with a set of query params returns 200 OK and a data array', async () => {
         const vocabularyOne = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
         const vocabularyTwo = await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
         const response = await requester
@@ -102,7 +102,7 @@ describe('Find all resources for all vocabularies', () => {
         response.body.data[1].attributes.should.have.property('resources').and.deep.equal(vocabularyTwo.resources.toObject());
     });
 
-    it('Finding all resources for a vocabulary with query params while being authenticated should return a 200 OK and a data array', async () => {
+    it('Finding all resources for all vocabularies with query params while being authenticated should return a 200 OK and a data array', async () => {
         const vocabularyOne = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
         const vocabularyTwo = await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
         mockGetUserFromToken(USERS.USER);
@@ -130,20 +130,12 @@ describe('Find all resources for all vocabularies', () => {
         response.body.data[1].attributes.should.have.property('resources').and.deep.equal(vocabularyTwo.resources.toObject());
     });
 
-    it('Finding all resources for a vocabulary with query params and env while being authenticated should return a 200 OK and a data array with part of resources', async () => {
+    it('Finding all resources for all vocabularies with query params and env while being authenticated should return a 200 OK and a data array with part of resources', async () => {
         const vocabularyOne = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
-        await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
+        const vocabularyTwo = await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
         mockGetUserFromToken(USERS.USER);
 
-        nock(process.env.GATEWAY_URL)
-            .post('/v1/dataset/find-by-ids')
-            .once()
-            .reply(200, { data: [vocabularyOne.resources[0]] });
-
-        nock(process.env.GATEWAY_URL)
-            .post('/v1/dataset/find-by-ids')
-            .once()
-            .reply(200, { data: [] });
+        mockFindDatasetById([vocabularyOne.resources[0].id, vocabularyTwo.resources[0].id], 'production');
 
         const response = await requester
             .get(`/api/v1/vocabulary`)
@@ -168,20 +160,12 @@ describe('Find all resources for all vocabularies', () => {
         response.body.data[1].attributes.should.have.property('resources').and.deep.equal([]);
     });
 
-    it('Finding all resources for a vocabulary with query params and env while being authenticated should return a 200 OK and a data array with empty resources', async () => {
-        await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
-        await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
+    it('Finding all resources for all vocabularies with query params and env while being authenticated should return a 200 OK and a data array with empty resources', async () => {
+        const vocabularyOne = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
+        const vocabularyTwo = await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
         mockGetUserFromToken(USERS.USER);
 
-        nock(process.env.GATEWAY_URL)
-            .post('/v1/dataset/find-by-ids')
-            .once()
-            .reply(200, { data: [] });
-
-        nock(process.env.GATEWAY_URL)
-            .post('/v1/dataset/find-by-ids')
-            .once()
-            .reply(200, { data: [] });
+        mockFindDatasetById([vocabularyOne.resources[0].id, vocabularyTwo.resources[0].id], 'production', []);
 
         const response = await requester
             .get(`/api/v1/vocabulary`)
@@ -204,6 +188,202 @@ describe('Find all resources for all vocabularies', () => {
         response.body.data[1].attributes.should.have.property('name').and.equal('efgh');
         response.body.data[1].attributes.should.have.property('application').and.equal('rw');
         response.body.data[1].attributes.should.have.property('resources').and.deep.equal([]);
+    });
+
+    it('Finding all resources for all vocabularies with query params and env while being authenticated should return a 200 OK and data array with resources if they match the env filter - multiple types', async () => {
+        const vocabularyOne = await (new Vocabulary(createVocabulary({
+            id: 'abcd',
+            resources: [
+                {
+                    id: 'datasetId',
+                    dataset: 'datasetId',
+                    type: 'dataset',
+                    tags: [
+                        'vector',
+                        'table',
+                        'global',
+                        'gdp'
+                    ]
+                },
+                {
+                    id: 'widgetId',
+                    dataset: 'datasetId',
+                    type: 'widget',
+                    tags: [
+                        'vector',
+                        'table',
+                        'global',
+                        'gdp'
+                    ]
+                },
+                {
+                    id: 'layerId',
+                    dataset: 'datasetId',
+                    type: 'layer',
+                    tags: [
+                        'vector',
+                        'table',
+                        'global',
+                        'gdp'
+                    ]
+                }
+            ]
+        }))).save();
+        const vocabularyTwo = await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
+
+        mockGetUserFromToken(USERS.USER);
+
+        mockFindDatasetById([vocabularyOne.resources[0].id, vocabularyTwo.resources[0].id], 'production');
+        mockFindWidgetById([vocabularyOne.resources[1].id], 'production');
+        mockFindLayerById([vocabularyOne.resources[2].id], 'production');
+
+        const response = await requester
+            .get(`/api/v1/vocabulary`)
+            .query({
+                env: 'production'
+            })
+            .set('Authorization', `Bearer abcd`)
+            .send();
+
+        assertOKResponse(response, 2);
+
+        response.body.data[0].should.have.property('id').and.equal('abcd');
+        response.body.data[0].should.have.property('type').and.equal('vocabulary');
+        response.body.data[0].attributes.should.have.property('name').and.equal('abcd');
+        response.body.data[0].attributes.should.have.property('application').and.equal('rw');
+        response.body.data[0].attributes.should.have.property('resources').and.deep.equal([
+            {
+                dataset: 'datasetId',
+                id: 'datasetId',
+                tags: [
+                    'vector',
+                    'table',
+                    'global',
+                    'gdp'
+                ],
+                type: 'dataset',
+            },
+            {
+                dataset: 'datasetId',
+                id: 'widgetId',
+                tags: [
+                    'vector',
+                    'table',
+                    'global',
+                    'gdp',
+                ],
+                type: 'widget',
+            },
+            {
+                dataset: 'datasetId',
+                id: 'layerId',
+                tags: [
+                    'vector',
+                    'table',
+                    'global',
+                    'gdp',
+                ],
+                type: 'layer',
+            }
+        ]);
+    });
+
+    it('Finding all resources for all vocabularies with query params and env while being authenticated should return a 200 OK and data array with resources if they match the env filter - multiple types, multiple envs', async () => {
+        const vocabularyOne = await (new Vocabulary(createVocabulary({
+            id: 'abcd',
+            resources: [
+                {
+                    id: 'datasetId',
+                    dataset: 'datasetId',
+                    type: 'dataset',
+                    tags: [
+                        'vector',
+                        'table',
+                        'global',
+                        'gdp'
+                    ]
+                },
+                {
+                    id: 'widgetId',
+                    dataset: 'datasetId',
+                    type: 'widget',
+                    tags: [
+                        'vector',
+                        'table',
+                        'global',
+                        'gdp'
+                    ]
+                },
+                {
+                    id: 'layerId',
+                    dataset: 'datasetId',
+                    type: 'layer',
+                    tags: [
+                        'vector',
+                        'table',
+                        'global',
+                        'gdp'
+                    ]
+                }
+            ]
+        }))).save();
+        const vocabularyTwo = await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
+
+        mockGetUserFromToken(USERS.USER);
+
+        mockFindDatasetById([vocabularyOne.resources[0].id, vocabularyTwo.resources[0].id], 'production,potato');
+        mockFindWidgetById([vocabularyOne.resources[1].id], 'production,potato');
+        mockFindLayerById([vocabularyOne.resources[2].id], 'production,potato');
+
+        const response = await requester
+            .get(`/api/v1/vocabulary`)
+            .query({
+                env: 'production,potato'
+            })
+            .set('Authorization', `Bearer abcd`)
+            .send();
+
+        assertOKResponse(response, 2);
+
+        response.body.data[0].should.have.property('id').and.equal('abcd');
+        response.body.data[0].should.have.property('type').and.equal('vocabulary');
+        response.body.data[0].attributes.should.have.property('name').and.equal('abcd');
+        response.body.data[0].attributes.should.have.property('application').and.equal('rw');
+        response.body.data[0].attributes.should.have.property('resources').and.deep.equal([
+            {
+                dataset: 'datasetId',
+                id: 'datasetId',
+                tags: [
+                    'vector',
+                    'table',
+                    'global',
+                    'gdp'
+                ],
+                type: 'dataset',
+            },
+            {
+                dataset: 'datasetId',
+                id: 'widgetId',
+                tags: [
+                    'vector',
+                    'table',
+                    'global',
+                    'gdp',
+                ],
+                type: 'widget',
+            },
+            {
+                dataset: 'datasetId',
+                id: 'layerId',
+                tags: [
+                    'vector',
+                    'table',
+                    'global',
+                    'gdp',
+                ],
+                type: 'layer',
+            }
+        ]);
     });
 
     afterEach(async () => {
