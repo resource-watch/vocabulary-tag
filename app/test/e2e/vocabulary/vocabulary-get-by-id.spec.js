@@ -33,6 +33,8 @@ describe('Find all resources for a vocabulary', () => {
         const vocabularyOne = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
         await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
 
+        mockFindDatasetById([vocabularyOne.resources[0].id], 'production');
+
         const response = await requester
             .get(`/api/v1/vocabulary/abcd`)
             .send();
@@ -51,6 +53,8 @@ describe('Find all resources for a vocabulary', () => {
         await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
         mockGetUserFromToken(USERS.USER);
 
+        mockFindDatasetById([vocabularyOne.resources[0].id], 'production');
+
         const response = await requester
             .get(`/api/v1/vocabulary/abcd`)
             .set('Authorization', `Bearer abcd`)
@@ -68,6 +72,9 @@ describe('Find all resources for a vocabulary', () => {
     it('Finding all resources for a vocabulary without auth and with a set of query params returns 200 OK and a data array', async () => {
         const vocabularyOne = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
         await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
+
+        mockFindDatasetById([vocabularyOne.resources[0].id], 'production');
+
         const response = await requester
             .get(`/api/v1/vocabulary/abcd`)
             .query({
@@ -88,6 +95,8 @@ describe('Find all resources for a vocabulary', () => {
         const vocabularyOne = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
         await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
         mockGetUserFromToken(USERS.USER);
+
+        mockFindDatasetById([vocabularyOne.resources[0].id], 'production');
 
         const response = await requester
             .get(`/api/v1/vocabulary/abcd`)

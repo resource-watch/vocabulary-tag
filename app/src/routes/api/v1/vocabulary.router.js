@@ -120,13 +120,12 @@ class VocabularyRouter {
 
         let vocabularies = await VocabularyService.getAll(filter);
 
-        if (ctx.query.env) {
-            const relationshipQuery = {
-                env: ctx.query.env ? ctx.query.env : 'production'
-            };
+        const relationshipQuery = {
+            env: ctx.query.env ? ctx.query.env : 'production'
+        };
 
-            vocabularies = await RelationshipService.getRelationships(vocabularies, relationshipQuery);
-        }
+        vocabularies = await RelationshipService.getRelationships(vocabularies, relationshipQuery);
+
         ctx.set('cache', 'vocabulary');
         ctx.body = VocabularySerializer.serialize(vocabularies);
     }
@@ -138,13 +137,11 @@ class VocabularyRouter {
         const vocabularyDefinition = { name: ctx.params.vocabulary, application };
         let vocabulary = await VocabularyService.getById(vocabularyDefinition);
 
-        if (ctx.query.env) {
-            const relationshipQuery = {
-                env: ctx.query.env ? ctx.query.env : 'production'
-            };
+        const relationshipQuery = {
+            env: ctx.query.env ? ctx.query.env : 'production'
+        };
 
-            vocabulary = await RelationshipService.getRelationships([vocabulary], relationshipQuery);
-        }
+        vocabulary = await RelationshipService.getRelationships([vocabulary], relationshipQuery);
 
         ctx.set('cache', `${vocabularyDefinition.name} ${vocabulary.id}`);
         ctx.body = VocabularySerializer.serialize(vocabulary);
@@ -153,14 +150,12 @@ class VocabularyRouter {
     static async getTagsById(ctx) {
         logger.info(`Getting vocabulary tags by name: ${ctx.params.vocabulary}`);
         const application = ctx.query.application || ctx.query.app || 'rw';
-        const query = {
-            env: ctx.query.env ? ctx.query.env : 'production'
-        };
+
         const vocabularyDefinition = { name: ctx.params.vocabulary, application };
         const vocabulary = await VocabularyService.getById(vocabularyDefinition);
 
         const relationshipQuery = {
-            env: query.env
+            env: ctx.query.env ? ctx.query.env : 'production'
         };
 
         const result = await RelationshipService.getRelationships([vocabulary], relationshipQuery);
