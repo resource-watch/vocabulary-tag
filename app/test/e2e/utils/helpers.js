@@ -363,6 +363,7 @@ module.exports = {
     createVocabulary,
     createCollection,
     mockDataset,
+    mockDatasetStructure,
     mockFindDatasetById,
     mockFindLayerById,
     mockFindWidgetById,
