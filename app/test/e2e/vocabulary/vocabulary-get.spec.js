@@ -4,7 +4,13 @@ const Resource = require('models/resource.model');
 const Vocabulary = require('models/vocabulary.model');
 
 const {
-    assertOKResponse, mockGetUserFromToken, createVocabulary, mockFindDatasetById, mockFindWidgetById, mockFindLayerById, mockDatasetStructure
+    assertOKResponse,
+    mockGetUserFromToken,
+    createVocabulary,
+    mockFindDatasetById,
+    mockFindWidgetById,
+    mockFindLayerById,
+    mockDatasetStructure
 } = require('../utils/helpers');
 const { USERS } = require('../utils/test.constants');
 
@@ -33,10 +39,14 @@ describe('Find all resources for all vocabularies', () => {
         const vocabularyOne = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
         const vocabularyTwo = await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
 
-        mockFindDatasetById([vocabularyOne.resources[0].id, vocabularyTwo.resources[0].id], 'production', [
-            mockDatasetStructure(vocabularyOne.resources[0].id),
-            mockDatasetStructure(vocabularyTwo.resources[0].id)
-        ]);
+        mockFindDatasetById(
+            [vocabularyOne.resources[0].id, vocabularyTwo.resources[0].id],
+            undefined,
+            [
+                mockDatasetStructure(vocabularyOne.resources[0].id),
+                mockDatasetStructure(vocabularyTwo.resources[0].id)
+            ]
+        );
 
         const response = await requester
             .get(`/api/v1/vocabulary`)
@@ -62,10 +72,14 @@ describe('Find all resources for all vocabularies', () => {
         const vocabularyTwo = await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
         mockGetUserFromToken(USERS.USER);
 
-        mockFindDatasetById([vocabularyOne.resources[0].id, vocabularyTwo.resources[0].id], 'production', [
-            mockDatasetStructure(vocabularyOne.resources[0].id),
-            mockDatasetStructure(vocabularyTwo.resources[0].id)
-        ]);
+        mockFindDatasetById(
+            [vocabularyOne.resources[0].id, vocabularyTwo.resources[0].id],
+            undefined,
+            [
+                mockDatasetStructure(vocabularyOne.resources[0].id),
+                mockDatasetStructure(vocabularyTwo.resources[0].id)
+            ]
+        );
 
         const response = await requester
             .get(`/api/v1/vocabulary`)
@@ -91,10 +105,14 @@ describe('Find all resources for all vocabularies', () => {
         const vocabularyOne = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
         const vocabularyTwo = await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
 
-        mockFindDatasetById([vocabularyOne.resources[0].id, vocabularyTwo.resources[0].id], 'production', [
-            mockDatasetStructure(vocabularyOne.resources[0].id),
-            mockDatasetStructure(vocabularyTwo.resources[0].id)
-        ]);
+        mockFindDatasetById(
+            [vocabularyOne.resources[0].id, vocabularyTwo.resources[0].id],
+            undefined,
+            [
+                mockDatasetStructure(vocabularyOne.resources[0].id),
+                mockDatasetStructure(vocabularyTwo.resources[0].id)
+            ]
+        );
 
         const response = await requester
             .get(`/api/v1/vocabulary`)
@@ -123,11 +141,14 @@ describe('Find all resources for all vocabularies', () => {
         const vocabularyTwo = await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
         mockGetUserFromToken(USERS.USER);
 
-        mockFindDatasetById([vocabularyOne.resources[0].id, vocabularyTwo.resources[0].id], 'production', [
-            mockDatasetStructure(vocabularyOne.resources[0].id),
-            mockDatasetStructure(vocabularyTwo.resources[0].id)
-        ]);
-
+        mockFindDatasetById(
+            [vocabularyOne.resources[0].id, vocabularyTwo.resources[0].id],
+            undefined,
+            [
+                mockDatasetStructure(vocabularyOne.resources[0].id),
+                mockDatasetStructure(vocabularyTwo.resources[0].id)
+            ]
+        );
         const response = await requester
             .get(`/api/v1/vocabulary`)
             .query({

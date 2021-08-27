@@ -116,13 +116,16 @@ class VocabularyRouter {
     static async getAll(ctx) {
         logger.info('Getting all vocabularies');
         const filter = {};
-        if (ctx.query.limit) { filter.limit = ctx.query.limit; }
+        if (ctx.query.limit) {
+            filter.limit = ctx.query.limit;
+        }
 
         let vocabularies = await VocabularyService.getAll(filter);
 
-        const relationshipQuery = {
-            env: ctx.query.env ? ctx.query.env : 'production'
-        };
+        const relationshipQuery = {};
+        if (ctx.query.env) {
+            relationshipQuery.env = ctx.query.env;
+        }
 
         vocabularies = await RelationshipService.getRelationships(vocabularies, relationshipQuery);
 
@@ -137,9 +140,10 @@ class VocabularyRouter {
         const vocabularyDefinition = { name: ctx.params.vocabulary, application };
         let vocabulary = await VocabularyService.getById(vocabularyDefinition);
 
-        const relationshipQuery = {
-            env: ctx.query.env ? ctx.query.env : 'production'
-        };
+        const relationshipQuery = {};
+        if (ctx.query.env) {
+            relationshipQuery.env = ctx.query.env;
+        }
 
         vocabulary = await RelationshipService.getRelationships([vocabulary], relationshipQuery);
 
@@ -259,7 +263,8 @@ class VocabularyRouter {
             if (err instanceof VocabularyNotFound || err instanceof ResourceNotFound) {
                 ctx.throw(404, err.message);
                 return;
-            } if (err instanceof RelationshipNotFound) {
+            }
+            if (err instanceof RelationshipNotFound) {
                 // do nothing
             } else {
                 throw err;

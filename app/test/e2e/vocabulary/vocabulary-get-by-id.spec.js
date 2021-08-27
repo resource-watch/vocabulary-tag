@@ -33,7 +33,7 @@ describe('Find all resources for a vocabulary', () => {
         const vocabularyOne = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
         await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
 
-        mockFindDatasetById([vocabularyOne.resources[0].id], 'production');
+        mockFindDatasetById([vocabularyOne.resources[0].id]);
 
         const response = await requester
             .get(`/api/v1/vocabulary/abcd`)
@@ -53,7 +53,7 @@ describe('Find all resources for a vocabulary', () => {
         await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
         mockGetUserFromToken(USERS.USER);
 
-        mockFindDatasetById([vocabularyOne.resources[0].id], 'production');
+        mockFindDatasetById([vocabularyOne.resources[0].id]);
 
         const response = await requester
             .get(`/api/v1/vocabulary/abcd`)
@@ -73,7 +73,7 @@ describe('Find all resources for a vocabulary', () => {
         const vocabularyOne = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
         await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
 
-        mockFindDatasetById([vocabularyOne.resources[0].id], 'production');
+        mockFindDatasetById([vocabularyOne.resources[0].id]);
 
         const response = await requester
             .get(`/api/v1/vocabulary/abcd`)
@@ -96,7 +96,7 @@ describe('Find all resources for a vocabulary', () => {
         await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
         mockGetUserFromToken(USERS.USER);
 
-        mockFindDatasetById([vocabularyOne.resources[0].id], 'production');
+        mockFindDatasetById([vocabularyOne.resources[0].id]);
 
         const response = await requester
             .get(`/api/v1/vocabulary/abcd`)

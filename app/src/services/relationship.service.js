@@ -250,15 +250,18 @@ class RelationshipService {
         });
 
         try {
+            const body = {
+                ids: datasetIds
+            };
+            if (query.env) {
+                body.env = query.env;
+            }
             if (datasetIds.length > 0) {
                 const datasets = await RWAPIMicroservice.requestToMicroservice({
                     uri: `/v1/dataset/find-by-ids`,
                     method: 'POST',
                     json: true,
-                    body: {
-                        ids: datasetIds,
-                        env: query.env
-                    }
+                    body
                 });
                 datasetIds = datasets.data.map((dataset) => dataset.id);
             }
