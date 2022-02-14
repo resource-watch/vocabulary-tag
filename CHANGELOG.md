@@ -1,3 +1,9 @@
+## 14/02/2022
+
+- Fix issue with setting custom env values when creating collections
+- Update dependencies based on `yarn audit`
+- Update Docker base image following a BC break in Alpine
+
 ## 24/08/2021
 
 - Add support for filtering by env when loading data by vocabularies
