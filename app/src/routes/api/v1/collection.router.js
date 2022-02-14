@@ -100,6 +100,7 @@ class CollectionRouter {
             name: ctx.request.body.name,
             application: ctx.request.body.application,
             ownerId: ctx.request.body.loggedUser.id,
+            env: ctx.request.body.env || 'production',
             resources: ctx.request.body.resources || []
         };
         const data = await new CollectionModel(body).save();

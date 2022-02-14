@@ -50,6 +50,24 @@ describe('Create collections', () => {
         response.body.data.attributes.should.have.property('env').and.equal('production');
     });
 
+    it('Create a collection with a custom env field should return a 200 and save the correct env', async () => {
+        mockGetUserFromToken(USERS.USER);
+
+        const response = await requester
+            .post(`/api/v1/collection`)
+            .set('Authorization', `Bearer abcd`)
+            .send({
+                name: 'collection',
+                application: 'rw',
+                env: 'custom'
+            });
+
+        response.status.should.equal(200);
+        response.body.data.attributes.name.should.equal('collection');
+        response.body.data.attributes.application.should.equal('rw');
+        response.body.data.attributes.should.have.property('env').and.equal('custom');
+    });
+
     it('Create a collection with an invalid resource type should return a 400', async () => {
         mockGetUserFromToken(USERS.USER);
 
