@@ -1,3 +1,6 @@
+## 10/03/2022
+
+- Upgrade node 12 -> 16.
 ## 14/02/2022
 
 - Fix issue with setting custom env values when creating collections
