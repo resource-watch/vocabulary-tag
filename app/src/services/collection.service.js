@@ -138,7 +138,8 @@ class CollectionService {
 
         const filters = {
             ownerId: user.id,
-            application
+            application,
+            env: query.env ? query.env : 'production'
         };
 
         Object.keys(query).forEach((param) => {
@@ -170,14 +171,16 @@ class CollectionService {
 
                 }
             } else if (param === 'env') {
-                filters[param] = {
-                    $in: query[param].split(',')
-                };
+                if (query[param] === 'all') {
+                    logger.debug('Applying all environments filter');
+                    delete filters.env;
+                } else {
+                    filters[param] = {
+                        $in: query[param].split(',')
+                    };
+                }
             }
         });
-        if (!filters.env) { // default value
-            filters.env = 'production';
-        }
 
         logger.info(filters);
         return filters;
