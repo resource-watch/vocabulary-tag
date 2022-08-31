@@ -436,6 +436,7 @@ describe('Get collections', () => {
 
             response.status.should.equal(200);
             response.body.should.have.property('data').and.be.an('array').and.length(9);
+            [...new Set(response.body.data.map((elem) => elem.attributes.env))].sort().should.eql(['production', 'custom'].sort());
             response.body.should.have.property('links').and.be.an('object');
             response.body.links.should.have.property('self').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?env=all&page[number]=1&page[size]=9999999`);
             response.body.links.should.have.property('prev').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?env=all&page[number]=1&page[size]=9999999`);
