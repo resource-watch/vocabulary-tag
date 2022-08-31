@@ -400,6 +400,51 @@ describe('Get collections', () => {
             response.body.links.should.have.property('last').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?page[number]=1&page[size]=9999999`);
         });
 
+        it('Getting collections applying env filter "all" returns collections from every env', async () => {
+            mockGetUserFromToken(USERS.USER);
+
+            for (let i = 0; i < 3; i++) {
+                await new Collection(createCollection({
+                    application: 'rw',
+                    ownerId: USERS.USER.id,
+                    env: 'production'
+                })).save();
+            }
+
+            for (let i = 0; i < 3; i++) {
+                await new Collection(createCollection({
+                    application: 'rw',
+                    ownerId: USERS.USER.id,
+                })).save();
+            }
+
+            for (let i = 0; i < 3; i++) {
+                await new Collection(createCollection({
+                    application: 'rw',
+                    ownerId: USERS.USER.id,
+                    env: 'custom'
+                })).save();
+            }
+
+            const response = await requester
+                .get(`/api/v1/collection`)
+                .set('Authorization', `Bearer abcd`)
+                .query({
+                    env: 'all'
+                })
+                .send();
+
+            response.status.should.equal(200);
+            response.body.should.have.property('data').and.be.an('array').and.length(9);
+            [...new Set(response.body.data.map((elem) => elem.attributes.env))].sort().should.eql(['production', 'custom'].sort());
+            response.body.should.have.property('links').and.be.an('object');
+            response.body.links.should.have.property('self').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?env=all&page[number]=1&page[size]=9999999`);
+            response.body.links.should.have.property('prev').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?env=all&page[number]=1&page[size]=9999999`);
+            response.body.links.should.have.property('next').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?env=all&page[number]=1&page[size]=9999999`);
+            response.body.links.should.have.property('first').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?env=all&page[number]=1&page[size]=9999999`);
+            response.body.links.should.have.property('last').and.equal(`http://127.0.0.1:${config.get('service.port')}/v1/collection?env=all&page[number]=1&page[size]=9999999`);
+        });
+
         it('Getting collections with the env filter set to a custom value should returns all collections with that env', async () => {
             mockGetUserFromToken(USERS.USER);
 
