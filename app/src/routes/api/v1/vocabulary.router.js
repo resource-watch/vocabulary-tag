@@ -133,6 +133,25 @@ class VocabularyRouter {
         ctx.body = VocabularySerializer.serialize(vocabularies);
     }
 
+    static async getByUserId(ctx) {
+        logger.info('Getting all vocabularies');
+        const filter = {
+            userId: ctx.params.userId
+        };
+
+        let vocabularies = await VocabularyService.getAll(filter);
+
+        const relationshipQuery = {};
+        if (ctx.query.env) {
+            relationshipQuery.env = ctx.query.env;
+        }
+
+        vocabularies = await RelationshipService.getRelationships(vocabularies, relationshipQuery);
+
+        ctx.set('cache', 'vocabulary');
+        ctx.body = VocabularySerializer.serialize(vocabularies);
+    }
+
     static async getById(ctx) {
         logger.info(`Getting vocabulary by name: ${ctx.params.vocabulary}`);
         const application = ctx.query.application || ctx.query.app || 'rw';
@@ -554,6 +573,7 @@ router.delete('/dataset/:dataset/layer/:layer/vocabulary', isAuthenticatedMiddle
 
 // vocabulary (not the common use case)
 router.get('/vocabulary', VocabularyRouter.getAll);
+router.get('/vocabulary/by-user/:userId', VocabularyRouter.getByUserId);
 router.get('/vocabulary/:vocabulary', VocabularyRouter.getById);
 router.get('/vocabulary/:vocabulary/tags', VocabularyRouter.getTagsById);
 router.post('/vocabulary', isAuthenticatedMiddleware, vocabularyValidationMiddleware, vocabularyAuthorizationMiddleware, VocabularyRouter.create);
