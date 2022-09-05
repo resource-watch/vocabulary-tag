@@ -19,6 +19,7 @@ const RelationshipsNotValid = require('errors/relationships-not-valid.error');
 const RelationshipNotFound = require('errors/relationship-not-found.error');
 const ResourceNotFound = require('errors/resource-not-found.error');
 const { USER_ROLES } = require('app.constants');
+const pick = require('lodash/pick');
 
 const router = new Router();
 
@@ -115,29 +116,7 @@ class VocabularyRouter {
 
     static async getAll(ctx) {
         logger.info('Getting all vocabularies');
-        const filter = {};
-        if (ctx.query.limit) {
-            filter.limit = ctx.query.limit;
-        }
-
-        let vocabularies = await VocabularyService.getAll(filter);
-
-        const relationshipQuery = {};
-        if (ctx.query.env) {
-            relationshipQuery.env = ctx.query.env;
-        }
-
-        vocabularies = await RelationshipService.getRelationships(vocabularies, relationshipQuery);
-
-        ctx.set('cache', 'vocabulary');
-        ctx.body = VocabularySerializer.serialize(vocabularies);
-    }
-
-    static async getByUserId(ctx) {
-        logger.info('Getting all vocabularies');
-        const filter = {
-            userId: ctx.params.userId
-        };
+        const filter = pick(ctx.query, ['limit', 'userId']);
 
         let vocabularies = await VocabularyService.getAll(filter);
 
@@ -573,7 +552,6 @@ router.delete('/dataset/:dataset/layer/:layer/vocabulary', isAuthenticatedMiddle
 
 // vocabulary (not the common use case)
 router.get('/vocabulary', VocabularyRouter.getAll);
-router.get('/vocabulary/by-user/:userId', VocabularyRouter.getByUserId);
 router.get('/vocabulary/:vocabulary', VocabularyRouter.getById);
 router.get('/vocabulary/:vocabulary/tags', VocabularyRouter.getTagsById);
 router.post('/vocabulary', isAuthenticatedMiddleware, vocabularyValidationMiddleware, vocabularyAuthorizationMiddleware, VocabularyRouter.create);

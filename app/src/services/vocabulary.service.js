@@ -173,8 +173,7 @@ class VocabularyService {
         }
 
         logger.debug('Getting vocabularies');
-        const vocabularies = await Vocabulary.find(query).limit(limit).exec();
-        return vocabularies;
+        return Vocabulary.find(query).limit(limit).exec();
     }
 
     static async getById(pVocabulary) {
