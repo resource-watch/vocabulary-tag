@@ -443,7 +443,8 @@ describe('Find all resources for all vocabularies', () => {
         );
 
         const response = await requester
-            .get(`/api/v1/vocabulary/by-user/zzzz`)
+            .get(`/api/v1/vocabulary`)
+            .query({ userId: 'zzzz' })
             .send();
 
         assertOKResponse(response, 2);
@@ -477,7 +478,8 @@ describe('Find all resources for all vocabularies', () => {
         );
 
         const response = await requester
-            .get(`/api/v1/vocabulary/by-user/zzzz`)
+            .get(`/api/v1/vocabulary`)
+            .query({ userId: 'zzzz' })
             .set('Authorization', `Bearer abcd`)
             .send();
 
