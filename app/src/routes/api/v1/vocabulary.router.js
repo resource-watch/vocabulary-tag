@@ -19,6 +19,7 @@ const RelationshipsNotValid = require('errors/relationships-not-valid.error');
 const RelationshipNotFound = require('errors/relationship-not-found.error');
 const ResourceNotFound = require('errors/resource-not-found.error');
 const { USER_ROLES } = require('app.constants');
+const pick = require('lodash/pick');
 
 const router = new Router();
 
@@ -115,10 +116,7 @@ class VocabularyRouter {
 
     static async getAll(ctx) {
         logger.info('Getting all vocabularies');
-        const filter = {};
-        if (ctx.query.limit) {
-            filter.limit = ctx.query.limit;
-        }
+        const filter = pick(ctx.query, ['limit', 'userId']);
 
         let vocabularies = await VocabularyService.getAll(filter);
 

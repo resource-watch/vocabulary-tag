@@ -164,10 +164,16 @@ class VocabularyService {
 
     static async getAll(filter) {
         const limit = (Number.isNaN(parseInt(filter.limit, 10))) ? 0 : parseInt(filter.limit, 10);
+        const query = {};
+
+        if (filter.userId) {
+            query.userId = {
+                $eq: filter.userId
+            };
+        }
 
         logger.debug('Getting vocabularies');
-        const vocabularies = await Vocabulary.find({}).limit(limit).exec();
-        return vocabularies;
+        return Vocabulary.find(query).limit(limit).exec();
     }
 
     static async getById(pVocabulary) {
