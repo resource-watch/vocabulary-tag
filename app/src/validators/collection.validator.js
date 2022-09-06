@@ -1,6 +1,7 @@
 const logger = require('logger');
 const ErrorSerializer = require('serializers/error.serializer');
 const CollectionModel = require('models/collection.model');
+const { RESOURCES } = require('app.constants');
 
 class CollectionValidator {
 
@@ -11,10 +12,14 @@ class CollectionValidator {
         ctx.checkBody('application').optional().toLow();
         ctx.checkBody('resources').optional().check((data) => {
 
-            logger.debug('entering validation', data.resources);
-            if (data.resources) {
-                for (let i = 0; i < data.resources.length; i++) {
-                    if (!data.resources[i].type || !data.resources[i].id) { return false; }
+            logger.debug('entering validation', data);
+            if (data) {
+                for (let i = 0; i < data.length; i++) {
+                    if (
+                        !data[i].type
+                        || !data[i].id
+                        || !RESOURCES.includes(data[i].type)
+                    ) { return false; }
                 }
             }
             return true;
