@@ -49,6 +49,15 @@ const createCollection = (additionalData = {}) => {
     };
 };
 
+const createFavourite = (additionalData = {}) => {
+    const fakeResourceId = getUUID();
+    return {
+        resourceId: fakeResourceId,
+        resourceType: additionalData.resourceType || 'dataset',
+        ...additionalData,
+    };
+};
+
 const createResource = (app = 'rw', vocabularyCount = 1, type = 'dataset', id = null) => {
     const uuid = getUUID();
     const vocabularies = [];
@@ -329,6 +338,18 @@ const mockDeleteGraphAssociation = (datasetId, application = 'rw', mockSuccess =
         .reply(mockSuccess ? 200 : 404, { data: mockSuccess ? {} : { message: 'Resource XXXX not found.' } });
 };
 
+const mockAddFavouriteResourceToGraph = (resourceType, resourceId, loggedUser) => {
+    nock(process.env.GATEWAY_URL)
+        .post(`/v1/graph/favourite/${resourceType}/${resourceId}/${loggedUser.id}`,)
+        .reply(200);
+};
+
+const mockDeleteFavouriteResourceFromGraph = (resourceType, resourceId, favouriteId) => {
+    nock(process.env.GATEWAY_URL)
+        .delete(`/v1/graph/favourite/${resourceType}/${resourceId}/${favouriteId}`,)
+        .reply(200);
+};
+
 const assertUnauthorizedResponse = (response) => {
     response.status.should.equal(401);
     response.body.should.have.property('errors').and.be.an('array');
@@ -362,6 +383,7 @@ module.exports = {
     createResource,
     createVocabulary,
     createCollection,
+    createFavourite,
     mockDataset,
     mockDatasetStructure,
     mockFindDatasetById,
@@ -370,6 +392,8 @@ module.exports = {
     mockDeleteGraphAssociation,
     mockPostGraphAssociation,
     mockPutGraphAssociation,
+    mockAddFavouriteResourceToGraph,
+    mockDeleteFavouriteResourceFromGraph,
     mockLayer,
     mockWidget,
     mockGetUserFromToken,
