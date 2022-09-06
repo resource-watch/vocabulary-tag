@@ -3,6 +3,8 @@ const mongoosePaginate = require('mongoose-paginate');
 
 const { Schema } = mongoose;
 
+const { RESOURCES } = require('app.constants');
+
 const Collection = new Schema({
     name: { type: String, required: true, trim: true },
     application: {
@@ -15,7 +17,9 @@ const Collection = new Schema({
     resources: [{
         _id: false,
         id: { type: String, required: true, trim: true },
-        type: { type: String, required: true, trim: true }
+        type: {
+            type: String, required: true, trim: true, enum: RESOURCES
+        }
     }]
 });
 Collection.plugin(mongoosePaginate);
