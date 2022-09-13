@@ -122,6 +122,11 @@ class FavouriteRouter {
             application: ctx.request.body.app || ctx.request.body.application || 'rw',
             userId: ctx.request.body.userId
         };
+
+        if (ctx.request.body.application === 'all') {
+            delete filters.application;
+        }
+
         const data = await FavouriteModel.find(filters);
         ctx.body = FavouriteSerializer.serialize(data);
     }
