@@ -38,9 +38,10 @@ describe('Update collections', () => {
         ensureCorrectError(response.body, 'Unauthorized');
     });
 
-    it('Update a collection while being authenticated as a USER and the correct body fields should return a 200 (happy case)', async () => {
+    it('Update a collection while being authenticated as a USER and the correct body fields should return a 200 and update name and/or env (happy case)', async () => {
         mockGetUserFromToken(USERS.USER);
         const collection = await new Collection(createCollection({
+            name: 'name',
             application: 'rw',
             ownerId: USERS.USER.id
         })).save();
