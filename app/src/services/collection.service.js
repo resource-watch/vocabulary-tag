@@ -182,6 +182,10 @@ class CollectionService {
             }
         });
 
+        if (query.application === 'all') {
+            delete filters.application;
+        }
+
         logger.info(filters);
         return filters;
     }
