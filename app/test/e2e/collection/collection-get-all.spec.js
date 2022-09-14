@@ -181,6 +181,49 @@ describe('Get collections', () => {
         response.body.data.map((collection) => collection.id).should.have.members([collectionOne._id.toString()]);
     });
 
+    it('Get collections with a user id and all param for app should return a 200 with collections from all applications', async () => {
+        mockGetUserFromToken(USERS.USER);
+        const collectionOne = await new Collection(createCollection({
+            application: 'gfw',
+            ownerId: USERS.USER.id
+        })).save();
+        const collectionTwo = await new Collection(createCollection({
+            application: 'rw',
+            ownerId: USERS.USER.id
+        })).save();
+        const collectionThree = await new Collection(createCollection({
+            application: 'rw',
+            ownerId: USERS.USER.id
+        })).save();
+        const collectionFour = await new Collection(createCollection({
+            application: 'gfw',
+            ownerId: USERS.USER.id
+        })).save();
+
+        const response = await requester
+            .get(`/api/v1/collection`)
+            .set('Authorization', `Bearer abcd`)
+            .query({
+                application: 'all'
+            })
+            .send();
+
+        response.status.should.equal(200);
+        response.body.should.have.property('data').and.be.an('array').and.length(4);
+
+        response.body.data[0].should.have.property('id').and.equal(collectionOne._id.toString());
+        response.body.data[0].attributes.application.should.equal('gfw');
+
+        response.body.data[1].should.have.property('id').and.equal(collectionTwo._id.toString());
+        response.body.data[1].attributes.application.should.equal('rw');
+
+        response.body.data[2].should.have.property('id').and.equal(collectionThree._id.toString());
+        response.body.data[2].attributes.application.should.equal('rw');
+
+        response.body.data[3].should.have.property('id').and.equal(collectionFour._id.toString());
+        response.body.data[3].attributes.application.should.equal('gfw');
+    });
+
     it('Get collections with include should return a 200 with collections from the user and provided app (no resources associated with collection)', async () => {
         mockGetUserFromToken(USERS.USER);
         await new Collection(createCollection({
