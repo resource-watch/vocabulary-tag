@@ -137,7 +137,7 @@ class CollectionService {
         const application = query.application || query.app || 'rw';
 
         const filters = {
-            ownerId: user.id,
+            ownerId: query.ownerId || user.id,
             application,
             env: query.env ? query.env : 'production'
         };
@@ -206,6 +206,23 @@ class CollectionService {
             }
         });
         return filteredSort;
+    }
+
+    static async deleteByUserId(ownerId) {
+        logger.debug(`[CollectionsService]: Delete collections for user with id:  ${ownerId}`);
+
+        const userCollections = await CollectionService.getAll({ ownerId, application: 'all', env: 'all' });
+
+        if (userCollections.docs) {
+            // eslint-disable-next-line no-plusplus
+            for (let i = 0, { length } = userCollections.docs; i < length; i++) {
+                const currentCollection = userCollections.docs[i];
+                logger.info(`[DBACCESS-DELETE]: collection.id: ${currentCollection._id}`);
+                // eslint-disable-next-line no-await-in-loop
+                await currentCollection.remove();
+            }
+        }
+        return userCollections;
     }
 
 }

@@ -135,6 +135,19 @@ class CollectionRouter {
         ctx.body = CollectionSerializer.serialize(ctx.state.col);
     }
 
+    static async deleteByUserId(ctx) {
+        const userIdToDelete = ctx.params.userId;
+
+        logger.info(`[CollectionRouter] Deleting all collection for user with id: ${userIdToDelete}`);
+        try {
+            const deletedLayers = await CollectionService.deleteByUserId(userIdToDelete);
+            ctx.body = CollectionSerializer.serialize(deletedLayers);
+        } catch (err) {
+            logger.error(`Error deleting collections from user ${userIdToDelete}`, err);
+            ctx.throw(500, `Error deleting collections from user ${userIdToDelete}`);
+        }
+    }
+
 }
 
 const collectionExists = async (ctx, next) => {
@@ -208,6 +221,24 @@ const isAuthenticatedMiddleware = async (ctx, next) => {
     await next();
 };
 
+const deleteResourceAuthorizationMiddleware = async (ctx, next) => {
+    logger.info(`[CollectionRouter] Checking authorization`);
+    const user = getUser(ctx);
+    const userFromParam = ctx.params.userId;
+
+    if (user.id === 'microservice' || user.role === 'ADMIN') {
+        await next();
+        return;
+    }
+
+    if (userFromParam !== user.id) {
+        ctx.throw(403, 'Forbidden');
+        return;
+    }
+
+    await next();
+};
+
 router.get('/', isAuthenticatedMiddleware, CollectionRouter.getAll);
 router.get('/:id', isAuthenticatedMiddleware, collectionExists, CollectionRouter.getById);
 
@@ -218,6 +249,7 @@ router.post('/find-by-ids', findByIdValidationMiddleware, CollectionRouter.findB
 router.patch('/:id', isAuthenticatedMiddleware, collectionExists, CollectionRouter.patchCollection);
 
 router.delete('/:id', isAuthenticatedMiddleware, collectionExists, CollectionRouter.deleteCollection);
+router.delete('/by-user/:userId', isAuthenticatedMiddleware, deleteResourceAuthorizationMiddleware, CollectionRouter.deleteByUserId);
 router.delete('/:id/resource/:resourceType/:resourceId', isAuthenticatedMiddleware, collectionExists, CollectionRouter.deleteResource);
 
 module.exports = router;
