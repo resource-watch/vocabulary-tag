@@ -9,6 +9,18 @@ const router = new Router({
     prefix: '/favourite'
 });
 
+const removeFromGraph = async (favourite) => {
+    try {
+        await RWAPIMicroservice.requestToMicroservice({
+            uri: `/v1/graph/favourite/${favourite.resourceType}/${favourite.resourceId}/${favourite._id}`,
+            method: 'DELETE',
+            json: true
+        });
+    } catch (err) {
+        logger.error('error removing of graph', err);
+    }
+}
+
 class FavouriteRouter {
 
     static async get(ctx) {
@@ -160,17 +172,32 @@ class FavouriteRouter {
     static async delete(ctx) {
         logger.info('Deleting favourite with id ', ctx.params.id);
         ctx.assert(ctx.params.id.length === 24, 400, 'Id not valid');
-        try {
-            await RWAPIMicroservice.requestToMicroservice({
-                uri: `/v1/graph/favourite/${ctx.state.fav.resourceType}/${ctx.state.fav.resourceId}/${ctx.state.fav.id}`,
-                method: 'DELETE',
-                json: true
-            });
-        } catch (err) {
-            logger.error('error removing of graph', err);
-        }
+        await removeFromGraph(ctx.state.fav);
         await ctx.state.fav.remove();
         ctx.body = FavouriteSerializer.serialize(ctx.state.fav);
+    }
+
+    static async deleteByUserId(ctx) {
+        const userIdToDelete = ctx.params.userId;
+        logger.info(`[FavouriteRouter] Deleting all favourites for user with id: ${userIdToDelete}`);
+
+        try {
+            const userFavourites = await FavouriteModel.find({ userId: { $eq: userIdToDelete } }).exec();
+            if (userFavourites) {
+                for (let i = 0, { length } = userFavourites; i < length; i++) {
+                    const currentFavourite = userFavourites[i];
+
+                    await removeFromGraph(currentFavourite);
+
+                    logger.info(`[DBACCESS-DELETE]: favourite.id: ${currentFavourite._id}`);
+                    await currentFavourite.remove();
+                }
+            }
+            ctx.body = FavouriteSerializer.serialize(userFavourites);
+        } catch (err) {
+            logger.error(`Error deleting favourites from user ${userIdToDelete}`, err);
+            ctx.throw(500, `Error deleting favourites from user ${userIdToDelete}`);
+        }
     }
 
 }
@@ -210,10 +237,30 @@ const isAuthenticatedMiddleware = async (ctx, next) => {
     await next();
 };
 
+const deleteResourceAuthorizationMiddleware = async (ctx, next) => {
+    logger.info(`[FavouriteRouter] Checking authorization`);
+    const { query, body } = ctx.request;
+    const user = { ...(query.loggedUser ? JSON.parse(query.loggedUser) : {}), ...body.loggedUser };
+    const userFromParam = ctx.params.userId;
+
+    if (user.id === 'microservice' || user.role === 'ADMIN') {
+        await next();
+        return;
+    }
+
+    if (userFromParam !== user.id) {
+        ctx.throw(403, 'Forbidden');
+        return;
+    }
+
+    await next();
+};
+
 router.get('/', isAuthenticatedMiddleware, FavouriteRouter.get);
 router.get('/:id', isAuthenticatedMiddleware, existFavourite, FavouriteRouter.getById);
 router.post('/find-by-user', isAuthenticatedMiddleware, FavouriteRouter.findByUser);
 router.post('/', isAuthenticatedMiddleware, validationMiddleware, FavouriteRouter.create);
 router.delete('/:id', isAuthenticatedMiddleware, existFavourite, FavouriteRouter.delete);
+router.delete('/by-user/:userId', isAuthenticatedMiddleware, deleteResourceAuthorizationMiddleware, FavouriteRouter.deleteByUserId);
 
 module.exports = router;

@@ -53,7 +53,7 @@ describe('Delete favourites', () => {
     });
 
     it('Deleting a favourite as USER should return 200 and data from deleted fav', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockGetUserFromToken(USERS.USER);
         const favourite = await (new Favourite(createFavourite({ userId: USERS.USER.id }))).save();
         mockDeleteFavouriteResourceFromGraph(favourite.resourceType, favourite.resourceId, favourite._id);
 
