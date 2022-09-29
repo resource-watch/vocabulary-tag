@@ -23,6 +23,16 @@ const pick = require('lodash/pick');
 
 const router = new Router();
 
+const getUser = (ctx) => {
+    const { query, body } = ctx.request;
+
+    let user = { ...(query.loggedUser ? JSON.parse(query.loggedUser) : {}), ...ctx.request.body.loggedUser };
+    if (body.fields && body.fields.loggedUser) {
+        user = Object.assign(user, JSON.parse(body.fields.loggedUser));
+    }
+    return user;
+};
+
 class VocabularyRouter {
 
     static getResource(params) {
@@ -113,6 +123,19 @@ class VocabularyRouter {
     //         throw err;
     //     }
     // }
+
+    static async deleteByUserId(ctx) {
+        const userIdToDelete = ctx.params.userId;
+
+        logger.info(`[VocabularyRouter] Deleting all dataset for user with id: ${userIdToDelete}`);
+        try {
+            const deletedVocabulary = await VocabularyService.deleteByUserId(userIdToDelete);
+            ctx.body = VocabularySerializer.serialize(deletedVocabulary);
+        } catch (err) {
+            logger.error(`Error deleting vocabularies from user ${userIdToDelete}`, err);
+            ctx.throw(500, `Error deleting vocabularies from user ${userIdToDelete}`);
+        }
+    }
 
     static async getAll(ctx) {
         logger.info('Getting all vocabularies');
@@ -401,7 +424,7 @@ class VocabularyRouter {
 // Negative checking
 const relationshipAuthorizationMiddleware = async (ctx, next) => {
     // Get user from query (delete) or body (post-patch)
-    const user = { ...(ctx.request.query.loggedUser ? JSON.parse(ctx.request.query.loggedUser) : {}), ...ctx.request.body.loggedUser };
+    const user = getUser(ctx);
     if (user.id === 'microservice') {
         await next();
         return;
@@ -428,7 +451,7 @@ const relationshipAuthorizationMiddleware = async (ctx, next) => {
 // Negative checking
 const vocabularyAuthorizationMiddleware = async (ctx, next) => {
     // Get user from query (delete) or body (post-patch)
-    const user = { ...(ctx.request.query.loggedUser ? JSON.parse(ctx.request.query.loggedUser) : {}), ...ctx.request.body.loggedUser };
+    const user = getUser(ctx);
     if (user.id === 'microservice') {
         await next();
         return;
@@ -506,14 +529,30 @@ const cloneValidationMiddleware = async (ctx, next) => {
 
 const isAuthenticatedMiddleware = async (ctx, next) => {
     logger.info(`Verifying if user is authenticated`);
-    const { query, body } = ctx.request;
-
-    const user = { ...(query.loggedUser ? JSON.parse(query.loggedUser) : {}), ...body.loggedUser };
+    const user = getUser(ctx);
 
     if (!user || !user.id) {
         ctx.throw(401, 'Unauthorized');
         return;
     }
+    await next();
+};
+
+const deleteResourceAuthorizationMiddleware = async (ctx, next) => {
+    logger.info(`[VocabularyRouter] Checking delete by user authorization`);
+    const user = getUser(ctx);
+    const userFromParam = ctx.params.userId;
+
+    if (user.id === 'microservice' || user.role === 'ADMIN') {
+        await next();
+        return;
+    }
+
+    if (userFromParam !== user.id) {
+        ctx.throw(403, 'Forbidden');
+        return;
+    }
+
     await next();
 };
 
@@ -557,6 +596,7 @@ router.get('/vocabulary/:vocabulary/tags', VocabularyRouter.getTagsById);
 router.post('/vocabulary', isAuthenticatedMiddleware, vocabularyValidationMiddleware, vocabularyAuthorizationMiddleware, VocabularyRouter.create);
 // router.patch('/vocabulary/:vocabulary', isAuthenticatedMiddleware, vocabularyValidationMiddleware, vocabularyAuthorizationMiddleware, VocabularyRouter.update);
 // router.delete('/vocabulary/:vocabulary', isAuthenticatedMiddleware, vocabularyAuthorizationMiddleware, VocabularyRouter.delete);
+router.delete('/vocabulary/by-user/:userId', isAuthenticatedMiddleware, deleteResourceAuthorizationMiddleware, VocabularyRouter.deleteByUserId);
 
 // find by ids (to include queries)
 router.post('/dataset/vocabulary/find-by-ids', VocabularyRouter.findByIds);
