@@ -1,6 +1,22 @@
 const logger = require('logger');
 const Vocabulary = require('models/vocabulary.model');
 const VocabularyDuplicated = require('errors/vocabulary-duplicated.error');
+const RelationshipService = require('services/relationship.service');
+
+const removeRelationships = async (userId, vocabularyId, resources) => {
+    try {
+        for (let i = 0; i < resources.length; i++) {
+            await RelationshipService.delete(
+                userId,
+                vocabularyId,
+                resources[i].dataset,
+                resources[i]
+            );
+        }
+    } catch (err) {
+        logger.error(`Error removing relationships of vocabulary ${vocabularyId}`, err);
+    }
+};
 
 class VocabularyService {
 
@@ -190,6 +206,24 @@ class VocabularyService {
             return vocabulary[0];
         }
         return vocabulary;
+    }
+
+    static async deleteByUserId(userId) {
+        logger.debug(`[VocabularyService]: Delete widgets for user with id:  ${userId}`);
+
+        const userVocabularies = await VocabularyService.getAll({ userId });
+        if (userVocabularies) {
+            for (let i = 0; i < userVocabularies.length; i++) {
+                const currentVocabulary = userVocabularies[i];
+                const currentVocabularyId = currentVocabulary.id;
+                logger.debug('[VocabularyService]: Deleting relationships');
+                await removeRelationships(userId, currentVocabularyId, currentVocabulary.resources);
+                logger.info(`[DBACCESS-DELETE]: vocabulary.id: ${currentVocabularyId}`);
+                // eslint-disable-next-line no-await-in-loop
+                await currentVocabulary.remove();
+            }
+        }
+        return userVocabularies;
     }
 
     /*
