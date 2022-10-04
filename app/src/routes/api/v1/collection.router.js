@@ -140,8 +140,8 @@ class CollectionRouter {
 
         logger.info(`[CollectionRouter] Deleting all collection for user with id: ${userIdToDelete}`);
         try {
-            const deletedLayers = await CollectionService.deleteByUserId(userIdToDelete);
-            ctx.body = CollectionSerializer.serialize(deletedLayers);
+            const deletedCollections = await CollectionService.deleteByUserId(userIdToDelete);
+            ctx.body = CollectionSerializer.serialize(deletedCollections);
         } catch (err) {
             logger.error(`Error deleting collections from user ${userIdToDelete}`, err);
             ctx.throw(500, `Error deleting collections from user ${userIdToDelete}`);
@@ -231,12 +231,12 @@ const deleteResourceAuthorizationMiddleware = async (ctx, next) => {
         return;
     }
 
-    if (userFromParam !== user.id) {
-        ctx.throw(403, 'Forbidden');
+    if (userFromParam === user.id) {
+        await next();
         return;
     }
 
-    await next();
+    ctx.throw(403, 'Forbidden');
 };
 
 router.get('/', isAuthenticatedMiddleware, CollectionRouter.getAll);
@@ -248,8 +248,8 @@ router.post('/find-by-ids', findByIdValidationMiddleware, CollectionRouter.findB
 
 router.patch('/:id', isAuthenticatedMiddleware, collectionExists, CollectionRouter.patchCollection);
 
-router.delete('/:id', isAuthenticatedMiddleware, collectionExists, CollectionRouter.deleteCollection);
 router.delete('/by-user/:userId', isAuthenticatedMiddleware, deleteResourceAuthorizationMiddleware, CollectionRouter.deleteByUserId);
+router.delete('/:id', isAuthenticatedMiddleware, collectionExists, CollectionRouter.deleteCollection);
 router.delete('/:id/resource/:resourceType/:resourceId', isAuthenticatedMiddleware, collectionExists, CollectionRouter.deleteResource);
 
 module.exports = router;
