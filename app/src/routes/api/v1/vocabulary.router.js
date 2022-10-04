@@ -127,10 +127,10 @@ class VocabularyRouter {
     static async deleteByUserId(ctx) {
         const userIdToDelete = ctx.params.userId;
 
-        logger.info(`[VocabularyRouter] Deleting all dataset for user with id: ${userIdToDelete}`);
+        logger.info(`[VocabularyRouter] Deleting all vocabularies for user with id: ${userIdToDelete}`);
         try {
-            const deletedVocabulary = await VocabularyService.deleteByUserId(userIdToDelete);
-            ctx.body = VocabularySerializer.serialize(deletedVocabulary);
+            const deletedVocabularies = await RelationshipService.deleteByUserId(userIdToDelete);
+            ctx.body = VocabularySerializer.serialize(deletedVocabularies);
         } catch (err) {
             logger.error(`Error deleting vocabularies from user ${userIdToDelete}`, err);
             ctx.throw(500, `Error deleting vocabularies from user ${userIdToDelete}`);
@@ -548,12 +548,12 @@ const deleteResourceAuthorizationMiddleware = async (ctx, next) => {
         return;
     }
 
-    if (userFromParam !== user.id) {
-        ctx.throw(403, 'Forbidden');
+    if (userFromParam === user.id) {
+        await next();
         return;
     }
 
-    await next();
+    ctx.throw(403, 'Forbidden');
 };
 
 // dataset

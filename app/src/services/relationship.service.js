@@ -326,6 +326,26 @@ class RelationshipService {
         return vocabularies;
     }
 
+    static async deleteByUserId(userId) {
+        logger.debug(`[VocabularyService]: Delete vocabularies for user with id:  ${userId}`);
+
+        const userVocabularies = await VocabularyService.getAll({ userId });
+        await Promise.all(userVocabularies.map(async (vocabulary) => {
+            const vocabularyId = vocabulary.id;
+            logger.debug('[VocabularyService]: Deleting relationships');
+            await Promise.all(vocabulary.resources.map((resource) => RelationshipService.delete(
+                userId,
+                vocabulary,
+                resource.dataset,
+                resource
+            )));
+            logger.info(`[DBACCESS-DELETE]: vocabulary.id: ${vocabularyId}`);
+            await vocabulary.remove();
+        }));
+
+        return userVocabularies;
+    }
+
 }
 
 module.exports = RelationshipService;
