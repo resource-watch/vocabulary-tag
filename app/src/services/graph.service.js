@@ -97,6 +97,18 @@ class GraphService {
         }
     }
 
+    static async removeFromGraph(favourite) {
+        try {
+            await RWAPIMicroservice.requestToMicroservice({
+                uri: `/v1/graph/favourite/${favourite.resourceType}/${favourite.resourceId}/${favourite._id}`,
+                method: 'DELETE',
+                json: true
+            });
+        } catch (err) {
+            logger.error('error removing of graph', err);
+        }
+    }
+
     static async deleteAssociation(resource, application) {
         logger.info('[GraphService]: Deleting tags in the graph db');
         try {

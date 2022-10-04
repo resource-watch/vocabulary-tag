@@ -4,22 +4,11 @@ const { RWAPIMicroservice } = require('rw-api-microservice-node');
 const FavouriteSerializer = require('serializers/favourite.serializer');
 const FavouriteModel = require('models/favourite.model');
 const FavouriteValidator = require('validators/favourite.validator');
+const GraphService = require('services/graph.service');
 
 const router = new Router({
     prefix: '/favourite'
 });
-
-const removeFromGraph = async (favourite) => {
-    try {
-        await RWAPIMicroservice.requestToMicroservice({
-            uri: `/v1/graph/favourite/${favourite.resourceType}/${favourite.resourceId}/${favourite._id}`,
-            method: 'DELETE',
-            json: true
-        });
-    } catch (err) {
-        logger.error('error removing of graph', err);
-    }
-}
 
 class FavouriteRouter {
 
@@ -172,7 +161,7 @@ class FavouriteRouter {
     static async delete(ctx) {
         logger.info('Deleting favourite with id ', ctx.params.id);
         ctx.assert(ctx.params.id.length === 24, 400, 'Id not valid');
-        await removeFromGraph(ctx.state.fav);
+        await GraphService.removeFromGraph(ctx.state.fav);
         await ctx.state.fav.remove();
         ctx.body = FavouriteSerializer.serialize(ctx.state.fav);
     }
@@ -187,7 +176,7 @@ class FavouriteRouter {
                 for (let i = 0, { length } = userFavourites; i < length; i++) {
                     const currentFavourite = userFavourites[i];
 
-                    await removeFromGraph(currentFavourite);
+                    await GraphService.removeFromGraph(currentFavourite);
 
                     logger.info(`[DBACCESS-DELETE]: favourite.id: ${currentFavourite._id}`);
                     await currentFavourite.remove();
@@ -248,19 +237,19 @@ const deleteResourceAuthorizationMiddleware = async (ctx, next) => {
         return;
     }
 
-    if (userFromParam !== user.id) {
-        ctx.throw(403, 'Forbidden');
+    if (userFromParam === user.id) {
+        await next();
         return;
     }
 
-    await next();
+    ctx.throw(403, 'Forbidden');
 };
 
 router.get('/', isAuthenticatedMiddleware, FavouriteRouter.get);
 router.get('/:id', isAuthenticatedMiddleware, existFavourite, FavouriteRouter.getById);
 router.post('/find-by-user', isAuthenticatedMiddleware, FavouriteRouter.findByUser);
 router.post('/', isAuthenticatedMiddleware, validationMiddleware, FavouriteRouter.create);
-router.delete('/:id', isAuthenticatedMiddleware, existFavourite, FavouriteRouter.delete);
 router.delete('/by-user/:userId', isAuthenticatedMiddleware, deleteResourceAuthorizationMiddleware, FavouriteRouter.deleteByUserId);
+router.delete('/:id', isAuthenticatedMiddleware, existFavourite, FavouriteRouter.delete);
 
 module.exports = router;
