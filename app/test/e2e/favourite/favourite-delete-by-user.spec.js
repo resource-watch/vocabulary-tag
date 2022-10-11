@@ -80,6 +80,38 @@ describe('Delete favourites by user id', () => {
         favouriteResourceTypes.should.contain(favouriteByAdmin.resourceType);
     });
 
+    it('Deleting favourites by user as a microservice should return 200 and all deleted favourites', async () => {
+        mockGetUserFromToken(USERS.MICROSERVICE);
+        const favouriteOne = await (new Favourite(createFavourite({ userId: USERS.USER.id, application: 'rw', resourceType: 'layer' }))).save();
+        const favouriteTwo = await (new Favourite(createFavourite({ userId: USERS.USER.id, application: 'gfw', resourceType: 'widget' }))).save();
+        const favouriteByManager = await (new Favourite(createFavourite({ userId: USERS.MANAGER.id }))).save();
+        const favouriteByAdmin = await (new Favourite(createFavourite({ userId: USERS.ADMIN.id }))).save();
+        mockDeleteFavouriteResourceFromGraph(favouriteOne.resourceType, favouriteOne.resourceId, favouriteOne._id);
+        mockDeleteFavouriteResourceFromGraph(favouriteTwo.resourceType, favouriteTwo.resourceId, favouriteTwo._id);
+
+        const response = await requester
+            .delete(`/api/v1/favourite/by-user/${USERS.USER.id}`)
+            .set('Authorization', `Bearer abcd`);
+
+        response.status.should.equal(200);
+        response.body.data[0].attributes.application.should.equal(favouriteOne.application);
+        response.body.data[0].attributes.resourceType.should.equal(favouriteOne.resourceType);
+        response.body.data[0].attributes.resourceId.should.equal(favouriteOne.resourceId);
+        response.body.data[1].attributes.application.should.equal(favouriteTwo.application);
+        response.body.data[1].attributes.resourceType.should.equal(favouriteTwo.resourceType);
+        response.body.data[1].attributes.resourceId.should.equal(favouriteTwo.resourceId);
+
+        const findFavouritesByUser = await Favourite.find({ userId: { $eq: USERS.USER.id } }).exec();
+        findFavouritesByUser.should.be.an('array').with.lengthOf(0);
+
+        const findAllFavourites = await Favourite.find({}).exec();
+        findAllFavourites.should.be.an('array').with.lengthOf(2);
+
+        const favouriteResourceTypes = findAllFavourites.map((favourite) => favourite.resourceType);
+        favouriteResourceTypes.should.contain(favouriteByManager.resourceType);
+        favouriteResourceTypes.should.contain(favouriteByAdmin.resourceType);
+    });
+
     it('Deleting favourites by user as the user themselves should return 200 and all deleted favourites', async () => {
         mockGetUserFromToken(USERS.USER);
         const favouriteOne = await (new Favourite(createFavourite({ userId: USERS.USER.id, application: 'rw', resourceType: 'layer' }))).save();
@@ -110,6 +142,18 @@ describe('Delete favourites by user id', () => {
         const favouriteResourceTypes = findAllFavourites.map((favourite) => favourite.resourceType);
         favouriteResourceTypes.should.contain(favouriteByManager.resourceType);
         favouriteResourceTypes.should.contain(favouriteByAdmin.resourceType);
+    });
+
+    it('Deleting all favourites of an user while being authenticated as USER should return a 200 and all favourites deleted - no favourites in the db', async () => {
+        mockGetUserFromToken(USERS.USER);
+
+        const response = await requester
+            .delete(`/api/v1/favourite/by-user/${USERS.USER.id}`)
+            .set('Authorization', 'Bearer abcd')
+            .send();
+
+        response.status.should.equal(200);
+        response.body.data.should.be.an('array').with.lengthOf(0);
     });
 
     afterEach(async () => {
