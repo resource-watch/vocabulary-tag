@@ -4,7 +4,7 @@ const { RWAPIMicroservice } = require('rw-api-microservice-node');
 
 class CollectionService {
 
-    static async getAll(query = {}, user) {
+    static async getAll(user, query = {}) {
         logger.info(`[CollectionService - getAll]: Getting all collections`);
         const sort = query.sort || '';
         const page = query['page[number]'] ? parseInt(query['page[number]'], 10) : 1;
@@ -211,7 +211,7 @@ class CollectionService {
     static async deleteByUserId(ownerId) {
         logger.debug(`[CollectionsService]: Delete collections for user with id:  ${ownerId}`);
 
-        const userCollections = await CollectionService.getAll({ ownerId, application: 'all', env: 'all' });
+        const userCollections = await CollectionService.getAll(null, { ownerId, application: 'all', env: 'all' });
 
         if (userCollections.docs) {
             // eslint-disable-next-line no-plusplus

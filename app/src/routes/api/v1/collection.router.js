@@ -53,7 +53,7 @@ class CollectionRouter {
         }
 
         const { query } = ctx;
-        const collections = await CollectionService.getAll(query, user);
+        const collections = await CollectionService.getAll(user, query);
 
         const clonedQuery = { ...query };
         delete clonedQuery['page[size]'];

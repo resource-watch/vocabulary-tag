@@ -1,12 +1,13 @@
 ---
-extends: [airbnb, plugin:mocha/recommended]
+extends: [airbnb, plugin:import/recommended, plugin:mocha/recommended]
+root: true
 env:
   node: true
   es6: true
 parserOptions:
   sourceType: module
   ecmaVersion: 2018
-plugins: [mocha]
+plugins: [mocha, import]
 globals:
   describe: true
   it: true
@@ -34,3 +35,8 @@ rules:
   no-await-in-loop: off
   mocha/no-mocha-arrows: [0]
   mocha/no-hooks-for-single-case: [0]
+settings:
+  import/resolver:
+    node:
+      paths:
+        - app/src
