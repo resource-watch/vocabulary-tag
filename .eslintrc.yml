@@ -34,22 +34,3 @@ rules:
   no-await-in-loop: off
   mocha/no-mocha-arrows: [0]
   mocha/no-hooks-for-single-case: [0]
-settings:
-  import/resolver:
-    node:
-      extensions:
-        # if unset, default is just '.js', but it must be re-added explicitly if set
-        - .js
-        - .jsx
-        - .es6
-        - .coffee
-
-      paths:
-        # an array of absolute paths which will also be searched
-        # think NODE_PATH
-        - /usr/local/share/global_modules
-
-      # this is technically for identifying `node_modules` alternate names
-      moduleDirectory:
-        - node_modules # defaults to 'node_modules', but...
-        - app/src
