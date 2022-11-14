@@ -211,12 +211,12 @@ class CollectionService {
     static async deleteByUserId(ownerId) {
         logger.debug(`[CollectionsService]: Delete collections for user with id:  ${ownerId}`);
 
-        const userCollections = await CollectionService.getAll(null, { ownerId, application: 'all', env: 'all' });
+        const userCollections = await Collection.find({ ownerId: { $eq: ownerId } }).exec();
 
-        if (userCollections.docs) {
+        if (userCollections) {
             // eslint-disable-next-line no-plusplus
-            for (let i = 0, { length } = userCollections.docs; i < length; i++) {
-                const currentCollection = userCollections.docs[i];
+            for (let i = 0, { length } = userCollections; i < length; i++) {
+                const currentCollection = userCollections[i];
                 logger.info(`[DBACCESS-DELETE]: collection.id: ${currentCollection._id}`);
                 // eslint-disable-next-line no-await-in-loop
                 await currentCollection.remove();
