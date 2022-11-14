@@ -68,14 +68,7 @@ describe('Delete collections by user id', () => {
             .send();
 
         response.status.should.equal(200);
-        response.body.data[0].id.should.equal(collectionOne._id.toString());
-        response.body.data[0].attributes.name.should.equal(collectionOne.name);
-        response.body.data[0].attributes.ownerId.should.equal(collectionOne.ownerId);
-        response.body.data[0].attributes.application.should.equal(collectionOne.application);
-        response.body.data[1].id.should.equal(collectionTwo._id.toString());
-        response.body.data[1].attributes.name.should.equal(collectionTwo.name);
-        response.body.data[1].attributes.ownerId.should.equal(collectionTwo.ownerId);
-        response.body.data[1].attributes.application.should.equal(collectionTwo.application);
+        response.body.data.map((elem) => elem.id).sort().should.deep.equal([collectionOne.id, collectionTwo.id].sort());
 
         const findCollectionByUser = await Collection.find({ ownerId: { $eq: USERS.USER.id } }).exec();
         findCollectionByUser.should.be.an('array').with.lengthOf(0);
@@ -109,14 +102,7 @@ describe('Delete collections by user id', () => {
             .send();
 
         response.status.should.equal(200);
-        response.body.data[0].id.should.equal(collectionOne._id.toString());
-        response.body.data[0].attributes.name.should.equal(collectionOne.name);
-        response.body.data[0].attributes.ownerId.should.equal(collectionOne.ownerId);
-        response.body.data[0].attributes.application.should.equal(collectionOne.application);
-        response.body.data[1].id.should.equal(collectionTwo._id.toString());
-        response.body.data[1].attributes.name.should.equal(collectionTwo.name);
-        response.body.data[1].attributes.ownerId.should.equal(collectionTwo.ownerId);
-        response.body.data[1].attributes.application.should.equal(collectionTwo.application);
+        response.body.data.map((elem) => elem.id).sort().should.deep.equal([collectionOne.id, collectionTwo.id].sort());
 
         const findCollectionByUser = await Collection.find({ ownerId: { $eq: USERS.USER.id } }).exec();
         findCollectionByUser.should.be.an('array').with.lengthOf(0);
@@ -150,14 +136,7 @@ describe('Delete collections by user id', () => {
             .send();
 
         response.status.should.equal(200);
-        response.body.data[0].id.should.equal(collectionOne._id.toString());
-        response.body.data[0].attributes.name.should.equal(collectionOne.name);
-        response.body.data[0].attributes.ownerId.should.equal(collectionOne.ownerId);
-        response.body.data[0].attributes.application.should.equal(collectionOne.application);
-        response.body.data[1].id.should.equal(collectionTwo._id.toString());
-        response.body.data[1].attributes.name.should.equal(collectionTwo.name);
-        response.body.data[1].attributes.ownerId.should.equal(collectionTwo.ownerId);
-        response.body.data[1].attributes.application.should.equal(collectionTwo.application);
+        response.body.data.map((elem) => elem.id).sort().should.deep.equal([collectionOne.id, collectionTwo.id].sort());
 
         const findCollectionByUser = await Collection.find({ ownerId: { $eq: USERS.USER.id } }).exec();
         findCollectionByUser.should.be.an('array').with.lengthOf(0);
@@ -168,6 +147,30 @@ describe('Delete collections by user id', () => {
         const collectionNames = findAllCollections.map((collection) => collection.name);
         collectionNames.should.contain(fakeCollectionFromManager.name);
         collectionNames.should.contain(fakeCollectionFromAdmin.name);
+    });
+
+    it('Deleting collections from a user should delete them completely from a database (large number of collections)', async () => {
+        mockGetUserFromToken(USERS.USER);
+
+        await Promise.all([...Array(100)].map(async () => {
+            await new Collection(createCollection({
+                env: 'production', application: 'rw', ownerId: USERS.USER.id
+            })).save();
+            await new Collection(createCollection({
+                env: 'staging', application: 'gfw', ownerId: USERS.USER.id
+            })).save();
+        }));
+
+        const deleteResponse = await requester
+            .delete(`/api/v1/collection/by-user/${USERS.USER.id}`)
+            .set('Authorization', `Bearer abcd`)
+            .send();
+
+        deleteResponse.status.should.equal(200);
+        deleteResponse.body.should.have.property('data').with.lengthOf(200);
+
+        const findCollectionByUser = await Collection.find({ ownerId: { $eq: USERS.USER.id } }).exec();
+        findCollectionByUser.should.be.an('array').with.lengthOf(0);
     });
 
     it('Deleting all collections of an user while being authenticated as USER should return a 200 and all collections deleted - no collections in the db', async () => {

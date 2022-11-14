@@ -62,12 +62,7 @@ describe('Delete favourites by user id', () => {
             .set('Authorization', `Bearer abcd`);
 
         response.status.should.equal(200);
-        response.body.data[0].attributes.application.should.equal(favouriteOne.application);
-        response.body.data[0].attributes.resourceType.should.equal(favouriteOne.resourceType);
-        response.body.data[0].attributes.resourceId.should.equal(favouriteOne.resourceId);
-        response.body.data[1].attributes.application.should.equal(favouriteTwo.application);
-        response.body.data[1].attributes.resourceType.should.equal(favouriteTwo.resourceType);
-        response.body.data[1].attributes.resourceId.should.equal(favouriteTwo.resourceId);
+        response.body.data.map((elem) => elem.id).sort().should.deep.equal([favouriteOne._id.toString(), favouriteTwo.id.toString()].sort());
 
         const findFavouritesByUser = await Favourite.find({ userId: { $eq: USERS.USER.id } }).exec();
         findFavouritesByUser.should.be.an('array').with.lengthOf(0);
@@ -94,12 +89,7 @@ describe('Delete favourites by user id', () => {
             .set('Authorization', `Bearer abcd`);
 
         response.status.should.equal(200);
-        response.body.data[0].attributes.application.should.equal(favouriteOne.application);
-        response.body.data[0].attributes.resourceType.should.equal(favouriteOne.resourceType);
-        response.body.data[0].attributes.resourceId.should.equal(favouriteOne.resourceId);
-        response.body.data[1].attributes.application.should.equal(favouriteTwo.application);
-        response.body.data[1].attributes.resourceType.should.equal(favouriteTwo.resourceType);
-        response.body.data[1].attributes.resourceId.should.equal(favouriteTwo.resourceId);
+        response.body.data.map((elem) => elem.id).sort().should.deep.equal([favouriteOne._id.toString(), favouriteTwo.id.toString()].sort());
 
         const findFavouritesByUser = await Favourite.find({ userId: { $eq: USERS.USER.id } }).exec();
         findFavouritesByUser.should.be.an('array').with.lengthOf(0);
@@ -126,12 +116,7 @@ describe('Delete favourites by user id', () => {
             .set('Authorization', `Bearer abcd`);
 
         response.status.should.equal(200);
-        response.body.data[0].attributes.application.should.equal(favouriteOne.application);
-        response.body.data[0].attributes.resourceType.should.equal(favouriteOne.resourceType);
-        response.body.data[0].attributes.resourceId.should.equal(favouriteOne.resourceId);
-        response.body.data[1].attributes.application.should.equal(favouriteTwo.application);
-        response.body.data[1].attributes.resourceType.should.equal(favouriteTwo.resourceType);
-        response.body.data[1].attributes.resourceId.should.equal(favouriteTwo.resourceId);
+        response.body.data.map((elem) => elem.id).sort().should.deep.equal([favouriteOne._id.toString(), favouriteTwo.id.toString()].sort());
 
         const findFavouritesByUser = await Favourite.find({ userId: { $eq: USERS.USER.id } }).exec();
         findFavouritesByUser.should.be.an('array').with.lengthOf(0);
@@ -142,6 +127,30 @@ describe('Delete favourites by user id', () => {
         const favouriteResourceTypes = findAllFavourites.map((favourite) => favourite.resourceType);
         favouriteResourceTypes.should.contain(favouriteByManager.resourceType);
         favouriteResourceTypes.should.contain(favouriteByAdmin.resourceType);
+    });
+
+    it('Deleting favourites from a user should delete them completely from a database (large number of favourites)', async () => {
+        mockGetUserFromToken(USERS.USER);
+
+        await Promise.all([...Array(50)].map(async () => {
+            await new Favourite(createFavourite({
+                application: 'rw', userId: USERS.USER.id, resourceType: 'layer'
+            })).save();
+            await new Favourite(createFavourite({
+                application: 'gfw', userId: USERS.USER.id, resourceType: 'widget'
+            })).save();
+        }));
+
+        const deleteResponse = await requester
+            .delete(`/api/v1/favourite/by-user/${USERS.USER.id}`)
+            .set('Authorization', `Bearer abcd`)
+            .send();
+
+        deleteResponse.status.should.equal(200);
+        deleteResponse.body.should.have.property('data').with.lengthOf(100);
+
+        const findFAvouriteByUser = await Favourite.find({ userId: { $eq: USERS.USER.id } }).exec();
+        findFAvouriteByUser.should.be.an('array').with.lengthOf(0);
     });
 
     it('Deleting all favourites of an user while being authenticated as USER should return a 200 and all favourites deleted - no favourites in the db', async () => {
