@@ -124,22 +124,9 @@ class VocabularyRouter {
     //     }
     // }
 
-    static async deleteByUserId(ctx) {
-        const userIdToDelete = ctx.params.userId;
-
-        logger.info(`[VocabularyRouter] Deleting all vocabularies for user with id: ${userIdToDelete}`);
-        try {
-            const deletedVocabularies = await RelationshipService.deleteByUserId(userIdToDelete);
-            ctx.body = VocabularySerializer.serialize(deletedVocabularies);
-        } catch (err) {
-            logger.error(`Error deleting vocabularies from user ${userIdToDelete}`, err);
-            ctx.throw(500, `Error deleting vocabularies from user ${userIdToDelete}`);
-        }
-    }
-
     static async getAll(ctx) {
         logger.info('Getting all vocabularies');
-        const filter = pick(ctx.query, ['limit', 'userId']);
+        const filter = pick(ctx.query, ['limit']);
 
         let vocabularies = await VocabularyService.getAll(filter);
 
@@ -538,24 +525,6 @@ const isAuthenticatedMiddleware = async (ctx, next) => {
     await next();
 };
 
-const deleteResourceAuthorizationMiddleware = async (ctx, next) => {
-    logger.info(`[VocabularyRouter] Checking delete by user authorization`);
-    const user = getUser(ctx);
-    const userFromParam = ctx.params.userId;
-
-    if (user.id === 'microservice' || user.role === 'ADMIN') {
-        await next();
-        return;
-    }
-
-    if (userFromParam === user.id) {
-        await next();
-        return;
-    }
-
-    ctx.throw(403, 'Forbidden');
-};
-
 // dataset
 router.get('/dataset/:dataset/vocabulary', VocabularyRouter.getByResource);
 router.get('/dataset/:dataset/vocabulary/:vocabulary', VocabularyRouter.getByResource);
@@ -596,7 +565,6 @@ router.get('/vocabulary/:vocabulary/tags', VocabularyRouter.getTagsById);
 router.post('/vocabulary', isAuthenticatedMiddleware, vocabularyValidationMiddleware, vocabularyAuthorizationMiddleware, VocabularyRouter.create);
 // router.patch('/vocabulary/:vocabulary', isAuthenticatedMiddleware, vocabularyValidationMiddleware, vocabularyAuthorizationMiddleware, VocabularyRouter.update);
 // router.delete('/vocabulary/:vocabulary', isAuthenticatedMiddleware, vocabularyAuthorizationMiddleware, VocabularyRouter.delete);
-router.delete('/vocabulary/by-user/:userId', isAuthenticatedMiddleware, deleteResourceAuthorizationMiddleware, VocabularyRouter.deleteByUserId);
 
 // find by ids (to include queries)
 router.post('/dataset/vocabulary/find-by-ids', VocabularyRouter.findByIds);

@@ -18,9 +18,6 @@ const Vocabulary = new Schema({
         },
         tags: [{ type: String, required: true, trim: true }]
     }],
-    userId: {
-        type: String, required: false, trim: true, default: 'legacy'
-    },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
     status: { type: String, enum: STATUS, default: 'published' }
