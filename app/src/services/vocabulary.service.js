@@ -166,12 +166,6 @@ class VocabularyService {
         const limit = (Number.isNaN(parseInt(filter.limit, 10))) ? 0 : parseInt(filter.limit, 10);
         const query = {};
 
-        if (filter.userId) {
-            query.userId = {
-                $eq: filter.userId
-            };
-        }
-
         logger.debug('Getting vocabularies');
         return Vocabulary.find(query).limit(limit).exec();
     }
