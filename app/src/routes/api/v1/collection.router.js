@@ -46,8 +46,10 @@ class CollectionRouter {
             ctx.throw(401, 'Unauthorized');
         }
 
-        const user = getUser(ctx);
-        if (!user.role) {
+        let user = getUser(ctx);
+        if ((user.id === 'microservice' || user.role === 'ADMIN') && ctx.query.userId !== null) {
+            user = { id: ctx.query.userId };
+        } else if (!user.role) {
             ctx.throw(401, 'Unauthorized');
             return;
         }

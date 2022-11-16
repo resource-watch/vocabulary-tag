@@ -141,6 +141,54 @@ describe('Get collections', () => {
         response.body.data.map((collection) => collection.id).should.have.members([collectionOne._id.toString(), collectionTwo._id.toString()]);
     });
 
+    it('Get collections as an ADMIN with an explicit user id should return a 200 with collections from the provided user', async () => {
+        mockGetUserFromToken(USERS.ADMIN);
+        const collectionOne = await new Collection(createCollection({
+            application: 'rw',
+            ownerId: USERS.USER.id
+        })).save();
+        const collectionTwo = await new Collection(createCollection({
+            application: 'rw',
+            ownerId: USERS.USER.id
+        })).save();
+
+        const response = await requester
+            .get(`/api/v1/collection`)
+            .query({
+                userId: USERS.USER.id
+            })
+            .set('Authorization', `Bearer abcd`)
+            .send();
+
+        response.status.should.equal(200);
+        response.body.should.have.property('data').and.be.an('array').and.length(2);
+        response.body.data.map((collection) => collection.id).should.have.members([collectionOne._id.toString(), collectionTwo._id.toString()]);
+    });
+
+    it('Get collections as a microservice with an explicit user id should return a 200 with collections from the provided user', async () => {
+        mockGetUserFromToken(USERS.MICROSERVICE);
+        const collectionOne = await new Collection(createCollection({
+            application: 'rw',
+            ownerId: USERS.USER.id
+        })).save();
+        const collectionTwo = await new Collection(createCollection({
+            application: 'rw',
+            ownerId: USERS.USER.id
+        })).save();
+
+        const response = await requester
+            .get(`/api/v1/collection`)
+            .query({
+                userId: USERS.USER.id
+            })
+            .set('Authorization', `Bearer abcd`)
+            .send();
+
+        response.status.should.equal(200);
+        response.body.should.have.property('data').and.be.an('array').and.length(2);
+        response.body.data.map((collection) => collection.id).should.have.members([collectionOne._id.toString(), collectionTwo._id.toString()]);
+    });
+
     it('Get collections with a user id and no explicit app should return a 200 with collections from the user and default app (happy case)', async () => {
         mockGetUserFromToken(USERS.USER);
         await new Collection(createCollection({ application: 'gfw', ownerId: USERS.USER.id })).save();
