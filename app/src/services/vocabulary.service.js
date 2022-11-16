@@ -95,7 +95,7 @@ class VocabularyService {
         return vocabularies;
     }
 
-    static async create(user, pVocabulary) {
+    static async create(pVocabulary) {
         logger.debug('Checking if vocabulary already exists');
         let vocabulary = await Vocabulary.findOne({
             id: pVocabulary.name,
