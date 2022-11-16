@@ -15,12 +15,12 @@ class RelationshipService {
         return resource.vocabularies.find((elVocabulary) => (vocabulary.id === elVocabulary.id) && (vocabulary.application === elVocabulary.application));
     }
 
-    static async create(user, pVocabulary, dataset, pResource, body) {
+    static async create(pVocabulary, dataset, pResource, body) {
         logger.debug(`Checking entities`);
         let vocabulary = await VocabularyService.getById(pVocabulary);
         if (!vocabulary || vocabulary.length === 0) {
             logger.debug(`This Vocabulary doesn't exist, let's create it`);
-            vocabulary = await VocabularyService.create(user, pVocabulary);
+            vocabulary = await VocabularyService.create(pVocabulary);
         }
         let resource = await ResourceService.get(dataset, pResource);
         if (!resource) {
@@ -56,14 +56,14 @@ class RelationshipService {
         return resource;
     }
 
-    static async createSome(user, vocabularies, dataset, pResource) {
+    static async createSome(vocabularies, dataset, pResource) {
         for (let i = 0; i < vocabularies.length; i++) {
-            await RelationshipService.create(user, vocabularies[i], dataset, pResource, vocabularies[i]);
+            await RelationshipService.create(vocabularies[i], dataset, pResource, vocabularies[i]);
         }
         return ResourceService.get(dataset, pResource);
     }
 
-    static async delete(user, pVocabulary, dataset, pResource) {
+    static async delete(pVocabulary, dataset, pResource) {
         logger.debug(`Checking entities`);
         const vocabulary = await VocabularyService.getById(pVocabulary);
         if (!vocabulary) {
@@ -99,14 +99,14 @@ class RelationshipService {
         return resource;
     }
 
-    static async deleteSome(user, vocabularies, dataset, pResource) {
+    static async deleteSome(vocabularies, dataset, pResource) {
         for (let i = 0; i < vocabularies.length; i++) {
-            await RelationshipService.delete(user, vocabularies[i], dataset, pResource);
+            await RelationshipService.delete(vocabularies[i], dataset, pResource);
         }
         return ResourceService.get(dataset, pResource);
     }
 
-    static async deleteAll(user, dataset, pResource) {
+    static async deleteAll(dataset, pResource) {
         const resource = await ResourceService.get(dataset, pResource);
         if (!resource || !resource.vocabularies || resource.vocabularies.length === 0) {
             logger.debug(`This resource doesn't have Relationships`);
@@ -116,12 +116,12 @@ class RelationshipService {
             name: vocabulary.id
         }));
         for (let i = 0; i < vocabularies.length; i++) {
-            await RelationshipService.delete(user, vocabularies[i], dataset, pResource);
+            await RelationshipService.delete(vocabularies[i], dataset, pResource);
         }
         return resource;
     }
 
-    static async updateTagsFromRelationship(user, pVocabulary, dataset, pResource, body) {
+    static async updateTagsFromRelationship(pVocabulary, dataset, pResource, body) {
         logger.debug(`Checking entities`);
         const vocabulary = await VocabularyService.getById(pVocabulary);
         if (!vocabulary) {
@@ -178,12 +178,12 @@ class RelationshipService {
         return resource;
     }
 
-    static async concatTags(user, pVocabulary, dataset, pResource, body) {
+    static async concatTags(pVocabulary, dataset, pResource, body) {
         logger.debug(`Checking entities`);
         let vocabulary = await VocabularyService.getById(pVocabulary);
         if (!vocabulary) {
             logger.debug(`This Vocabulary doesn't exist, let's create it`);
-            vocabulary = await VocabularyService.create(user, pVocabulary);
+            vocabulary = await VocabularyService.create(pVocabulary);
         }
         let resource = await ResourceService.get(dataset, pResource);
         if (!resource) {
@@ -193,17 +193,17 @@ class RelationshipService {
         logger.debug(`Checking if relationship doesn't exist yet`);
         const relationship = RelationshipService.checkRelationship(resource, vocabulary);
         if (!relationship) {
-            return RelationshipService.create(user, pVocabulary, dataset, pResource, body);
+            return RelationshipService.create(pVocabulary, dataset, pResource, body);
         }
         body.tags.forEach((el) => {
             if (relationship.tags.indexOf(el) < 0) {
                 relationship.tags.push(el);
             }
         });
-        return RelationshipService.updateTagsFromRelationship(user, pVocabulary, dataset, pResource, relationship);
+        return RelationshipService.updateTagsFromRelationship(pVocabulary, dataset, pResource, relationship);
     }
 
-    static async cloneVocabularyTags(user, dataset, pResource, body) {
+    static async cloneVocabularyTags(dataset, pResource, body) {
         logger.debug(`Checking entities`);
         const resource = await ResourceService.get(dataset, pResource);
         if (!resource) {
@@ -216,7 +216,7 @@ class RelationshipService {
             return vocabulary;
         });
         logger.debug('New Vocabularies', vocabularies);
-        return RelationshipService.createSome(user, vocabularies, body.newDataset, {
+        return RelationshipService.createSome(vocabularies, body.newDataset, {
             type: 'dataset',
             id: body.newDataset
         });
