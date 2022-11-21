@@ -5,6 +5,7 @@ const FavouriteSerializer = require('serializers/favourite.serializer');
 const FavouriteModel = require('models/favourite.model');
 const FavouriteValidator = require('validators/favourite.validator');
 const GraphService = require('services/graph.service');
+const UserService = require('../../../services/user.service');
 
 const router = new Router({
     prefix: '/favourite'
@@ -168,8 +169,14 @@ class FavouriteRouter {
 
     static async deleteByUserId(ctx) {
         const userIdToDelete = ctx.params.userId;
-        logger.info(`[FavouriteRouter] Deleting all favourites for user with id: ${userIdToDelete}`);
 
+        try {
+            await UserService.getUserById(userIdToDelete);
+        } catch (error) {
+            ctx.throw(404, `User ${userIdToDelete} does not exist`);
+        }
+
+        logger.info(`[FavouriteRouter] Deleting all favourites for user with id: ${userIdToDelete}`);
         try {
             const userFavourites = await FavouriteModel.find({ userId: { $eq: userIdToDelete } }).exec();
             if (userFavourites) {
