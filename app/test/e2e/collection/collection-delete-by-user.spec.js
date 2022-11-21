@@ -62,6 +62,14 @@ describe('Delete collections by user id', () => {
             env: 'staging', application: 'rw', ownerId: USERS.MANAGER.id
         })).save();
 
+        nock(process.env.GATEWAY_URL)
+            .get(`/auth/user/${USERS.USER.id}`)
+            .reply(200, {
+                data: {
+                    ...USERS.USER,
+                }
+            });
+
         const response = await requester
             .delete(`/api/v1/collection/by-user/${USERS.USER.id}`)
             .set('Authorization', `Bearer abcd`)
@@ -96,6 +104,14 @@ describe('Delete collections by user id', () => {
             env: 'staging', application: 'rw', ownerId: USERS.MANAGER.id
         })).save();
 
+        nock(process.env.GATEWAY_URL)
+            .get(`/auth/user/${USERS.USER.id}`)
+            .reply(200, {
+                data: {
+                    ...USERS.USER,
+                }
+            });
+
         const response = await requester
             .delete(`/api/v1/collection/by-user/${USERS.USER.id}`)
             .set('Authorization', `Bearer abcd`)
@@ -115,6 +131,30 @@ describe('Delete collections by user id', () => {
         collectionNames.should.contain(fakeCollectionFromAdmin.name);
     });
 
+    it('Deleting a collection owned by a user that does not exist as a MICROSERVICE should return a 404', async () => {
+        mockGetUserFromToken(USERS.MICROSERVICE);
+
+        nock(process.env.GATEWAY_URL)
+            .get(`/auth/user/potato`)
+            .reply(403, {
+                errors: [
+                    {
+                        status: 403,
+                        detail: 'Not authorized'
+                    }
+                ]
+            });
+
+        const deleteResponse = await requester
+            .delete(`/api/v1/collection/by-user/potato`)
+            .set('Authorization', `Bearer abcd`)
+            .send();
+
+        deleteResponse.status.should.equal(404);
+        deleteResponse.body.should.have.property('errors').and.be.an('array');
+        deleteResponse.body.errors[0].should.have.property('detail').and.equal(`User potato does not exist`);
+    });
+
     it('Deleting all collections of an user while being authenticated as that same user should return a 200 and all collections deleted', async () => {
         mockGetUserFromToken(USERS.USER);
         const collectionOne = await new Collection(createCollection({
@@ -129,6 +169,14 @@ describe('Delete collections by user id', () => {
         const fakeCollectionFromManager = await new Collection(createCollection({
             env: 'staging', application: 'rw', ownerId: USERS.MANAGER.id
         })).save();
+
+        nock(process.env.GATEWAY_URL)
+            .get(`/auth/user/${USERS.USER.id}`)
+            .reply(200, {
+                data: {
+                    ...USERS.USER,
+                }
+            });
 
         const response = await requester
             .delete(`/api/v1/collection/by-user/${USERS.USER.id}`)
@@ -161,6 +209,14 @@ describe('Delete collections by user id', () => {
             })).save();
         }));
 
+        nock(process.env.GATEWAY_URL)
+            .get(`/auth/user/${USERS.USER.id}`)
+            .reply(200, {
+                data: {
+                    ...USERS.USER,
+                }
+            });
+
         const deleteResponse = await requester
             .delete(`/api/v1/collection/by-user/${USERS.USER.id}`)
             .set('Authorization', `Bearer abcd`)
@@ -175,6 +231,14 @@ describe('Delete collections by user id', () => {
 
     it('Deleting all collections of an user while being authenticated as USER should return a 200 and all collections deleted - no collections in the db', async () => {
         mockGetUserFromToken(USERS.USER);
+
+        nock(process.env.GATEWAY_URL)
+            .get(`/auth/user/${USERS.USER.id}`)
+            .reply(200, {
+                data: {
+                    ...USERS.USER,
+                }
+            });
 
         const response = await requester
             .delete(`/api/v1/collection/by-user/${USERS.USER.id}`)

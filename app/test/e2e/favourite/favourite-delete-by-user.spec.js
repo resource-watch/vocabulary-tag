@@ -57,6 +57,14 @@ describe('Delete favourites by user id', () => {
         mockDeleteFavouriteResourceFromGraph(favouriteOne.resourceType, favouriteOne.resourceId, favouriteOne._id);
         mockDeleteFavouriteResourceFromGraph(favouriteTwo.resourceType, favouriteTwo.resourceId, favouriteTwo._id);
 
+        nock(process.env.GATEWAY_URL)
+            .get(`/auth/user/${USERS.USER.id}`)
+            .reply(200, {
+                data: {
+                    ...USERS.USER,
+                }
+            });
+
         const response = await requester
             .delete(`/api/v1/favourite/by-user/${USERS.USER.id}`)
             .set('Authorization', `Bearer abcd`);
@@ -84,6 +92,14 @@ describe('Delete favourites by user id', () => {
         mockDeleteFavouriteResourceFromGraph(favouriteOne.resourceType, favouriteOne.resourceId, favouriteOne._id);
         mockDeleteFavouriteResourceFromGraph(favouriteTwo.resourceType, favouriteTwo.resourceId, favouriteTwo._id);
 
+        nock(process.env.GATEWAY_URL)
+            .get(`/auth/user/${USERS.USER.id}`)
+            .reply(200, {
+                data: {
+                    ...USERS.USER,
+                }
+            });
+
         const response = await requester
             .delete(`/api/v1/favourite/by-user/${USERS.USER.id}`)
             .set('Authorization', `Bearer abcd`);
@@ -102,6 +118,30 @@ describe('Delete favourites by user id', () => {
         favouriteResourceTypes.should.contain(favouriteByAdmin.resourceType);
     });
 
+    it('Deleting a favourite owned by a user that does not exist as a MICROSERVICE should return a 404', async () => {
+        mockGetUserFromToken(USERS.MICROSERVICE);
+
+        nock(process.env.GATEWAY_URL)
+            .get(`/auth/user/potato`)
+            .reply(403, {
+                errors: [
+                    {
+                        status: 403,
+                        detail: 'Not authorized'
+                    }
+                ]
+            });
+
+        const deleteResponse = await requester
+            .delete(`/api/v1/favourite/by-user/potato`)
+            .set('Authorization', `Bearer abcd`)
+            .send();
+
+        deleteResponse.status.should.equal(404);
+        deleteResponse.body.should.have.property('errors').and.be.an('array');
+        deleteResponse.body.errors[0].should.have.property('detail').and.equal(`User potato does not exist`);
+    });
+
     it('Deleting favourites by user as the user themselves should return 200 and all deleted favourites', async () => {
         mockGetUserFromToken(USERS.USER);
         const favouriteOne = await (new Favourite(createFavourite({ userId: USERS.USER.id, application: 'rw', resourceType: 'layer' }))).save();
@@ -110,6 +150,14 @@ describe('Delete favourites by user id', () => {
         const favouriteByAdmin = await (new Favourite(createFavourite({ userId: USERS.ADMIN.id }))).save();
         mockDeleteFavouriteResourceFromGraph(favouriteOne.resourceType, favouriteOne.resourceId, favouriteOne._id);
         mockDeleteFavouriteResourceFromGraph(favouriteTwo.resourceType, favouriteTwo.resourceId, favouriteTwo._id);
+
+        nock(process.env.GATEWAY_URL)
+            .get(`/auth/user/${USERS.USER.id}`)
+            .reply(200, {
+                data: {
+                    ...USERS.USER,
+                }
+            });
 
         const response = await requester
             .delete(`/api/v1/favourite/by-user/${USERS.USER.id}`)
@@ -141,6 +189,14 @@ describe('Delete favourites by user id', () => {
             })).save();
         }));
 
+        nock(process.env.GATEWAY_URL)
+            .get(`/auth/user/${USERS.USER.id}`)
+            .reply(200, {
+                data: {
+                    ...USERS.USER,
+                }
+            });
+
         const deleteResponse = await requester
             .delete(`/api/v1/favourite/by-user/${USERS.USER.id}`)
             .set('Authorization', `Bearer abcd`)
@@ -155,6 +211,14 @@ describe('Delete favourites by user id', () => {
 
     it('Deleting all favourites of an user while being authenticated as USER should return a 200 and all favourites deleted - no favourites in the db', async () => {
         mockGetUserFromToken(USERS.USER);
+
+        nock(process.env.GATEWAY_URL)
+            .get(`/auth/user/${USERS.USER.id}`)
+            .reply(200, {
+                data: {
+                    ...USERS.USER,
+                }
+            });
 
         const response = await requester
             .delete(`/api/v1/favourite/by-user/${USERS.USER.id}`)

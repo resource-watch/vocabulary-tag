@@ -5,6 +5,7 @@ const CollectionSerializer = require('serializers/collection.serializer');
 const CollectionValidator = require('validators/collection.validator');
 const CollectionService = require('services/collection.service');
 const mongoose = require('mongoose');
+const UserService = require('../../../services/user.service');
 
 const router = new Router({
     prefix: '/collection'
@@ -139,6 +140,12 @@ class CollectionRouter {
 
     static async deleteByUserId(ctx) {
         const userIdToDelete = ctx.params.userId;
+
+        try {
+            await UserService.getUserById(userIdToDelete);
+        } catch (error) {
+            ctx.throw(404, `User ${userIdToDelete} does not exist`);
+        }
 
         logger.info(`[CollectionRouter] Deleting all collection for user with id: ${userIdToDelete}`);
         try {
