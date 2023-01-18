@@ -36,7 +36,7 @@
   "homepage": "https://github.com/resource-watch/vocabulary-tag#readme",
   "dependencies": {
     "bunyan": "^1.8.15",
-    "config": "^1.30.0",
+    "config": "^3.3.9",
     "cron-parser": "^2.5.0",
     "jsonapi-serializer": "3.6.7",
     "kcors": "^2.1.1",
