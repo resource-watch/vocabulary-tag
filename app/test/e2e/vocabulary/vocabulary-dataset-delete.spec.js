@@ -9,7 +9,7 @@ const {
     mockDataset,
     assertUnauthorizedResponse,
     assertForbiddenResponse,
-    mockGetUserFromToken
+    mockValidateRequestWithApiKeyAndUserToken, mockValidateRequestWithApiKey
 } = require('../utils/helpers');
 const { getTestServer } = require('../utils/test-server');
 
@@ -33,7 +33,8 @@ describe('Delete dataset vocabulary', () => {
     });
 
     it('Deleting a vocabulary-dataset relationship while not being authenticated should return a 401', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
+        mockValidateRequestWithApiKey({});
         // Mock the request for dataset validation
         const mockDatasetId = mockDataset().id;
 
@@ -44,41 +45,21 @@ describe('Delete dataset vocabulary', () => {
         // Perform POST request for creating the vocabulary-dataset relationship
         await requester.post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
-            .send(vocabData);
-
-        // Perform DELETE request for deleting the vocabulary-dataset relationship
-        const response = await requester
-            .delete(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`).send();
-
-        assertUnauthorizedResponse(response);
-    });
-
-    it('Deleting a vocabulary-dataset relationship while being authenticated as an USER should return a 403', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
-        mockGetUserFromToken(USERS.USER);
-        // Mock the request for dataset validation
-        const mockDatasetId = mockDataset().id;
-
-        // Prepare vocabulary test data
-        const vocabName = 'science_v2';
-        const vocabData = { application: 'rw', tags: ['biology', 'chemistry'] };
-
-        // Perform POST request for creating the vocabulary-dataset relationship
-        await requester.post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
-            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         // Perform DELETE request for deleting the vocabulary-dataset relationship
         const response = await requester
             .delete(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
-            .set('Authorization', `Bearer abcd`).send();
+            .set('x-api-key', 'api-key-test')
+            .send();
 
-        assertForbiddenResponse(response);
+        assertUnauthorizedResponse(response);
     });
 
-    it('Deleting a vocabulary-dataset relationship while being authenticated as a MANAGER that does not own the resource should return a 403', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
-        mockGetUserFromToken(USERS.MANAGER);
+    it('Deleting a vocabulary-dataset relationship while being authenticated as an USER should return a 403', async () => {
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         // Mock the request for dataset validation
         const mockDatasetId = mockDataset().id;
 
@@ -89,6 +70,32 @@ describe('Delete dataset vocabulary', () => {
         // Perform POST request for creating the vocabulary-dataset relationship
         await requester.post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
+            .send(vocabData);
+
+        // Perform DELETE request for deleting the vocabulary-dataset relationship
+        const response = await requester
+            .delete(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
+            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test').send();
+
+        assertForbiddenResponse(response);
+    });
+
+    it('Deleting a vocabulary-dataset relationship while being authenticated as a MANAGER that does not own the resource should return a 403', async () => {
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
+        // Mock the request for dataset validation
+        const mockDatasetId = mockDataset().id;
+
+        // Prepare vocabulary test data
+        const vocabName = 'science_v2';
+        const vocabData = { application: 'rw', tags: ['biology', 'chemistry'] };
+
+        // Perform POST request for creating the vocabulary-dataset relationship
+        await requester.post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
+            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         // Mock the request for dataset validation
@@ -97,14 +104,15 @@ describe('Delete dataset vocabulary', () => {
         // Perform DELETE request for deleting the vocabulary-dataset relationship
         const response = await requester
             .delete(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
-            .set('Authorization', `Bearer abcd`).send();
+            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test').send();
 
         assertForbiddenResponse(response);
     });
 
     it('Deleting a vocabulary-dataset relationship while being authenticated as a MANAGER that owns the resource should return a 200', async () => {
-        mockGetUserFromToken(USERS.MANAGER);
-        mockGetUserFromToken(USERS.MANAGER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
         // Mock the request for dataset validation
         const mockDatasetId = mockDataset(null, { userId: USERS.MANAGER.id }).id;
 
@@ -115,6 +123,7 @@ describe('Delete dataset vocabulary', () => {
         // Perform POST request for creating the vocabulary-dataset relationship
         await requester.post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         // Mock the request for dataset validation
@@ -124,14 +133,15 @@ describe('Delete dataset vocabulary', () => {
         const response = await requester
             .delete(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         assertOKResponse(response);
     });
 
     it('Deleting a vocabulary-dataset relationship while being authenticated as an ADMIN returns 200 OK', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
         // Mock the request for dataset validation
         const mockDatasetId = mockDataset().id;
 
@@ -142,6 +152,7 @@ describe('Delete dataset vocabulary', () => {
         // Perform POST request for creating the vocabulary-dataset relationship
         await requester.post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         // Mock the request for dataset validation
@@ -151,6 +162,7 @@ describe('Delete dataset vocabulary', () => {
         const response = await requester
             .delete(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         assertOKResponse(response);

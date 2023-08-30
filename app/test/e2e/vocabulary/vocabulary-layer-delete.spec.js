@@ -9,7 +9,7 @@ const {
     mockLayer,
     assertUnauthorizedResponse,
     assertForbiddenResponse,
-    mockGetUserFromToken
+    mockValidateRequestWithApiKeyAndUserToken, mockValidateRequestWithApiKey
 } = require('../utils/helpers');
 const { getTestServer } = require('../utils/test-server');
 
@@ -33,7 +33,8 @@ describe('Delete layer vocabulary', () => {
     });
 
     it('Deleting a vocabulary-layer relationship while not being authenticated should return a 401', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
+        mockValidateRequestWithApiKey({});
         // Mock the request for layer validation
         const mockLayerId = mockLayer().id;
 
@@ -44,19 +45,21 @@ describe('Delete layer vocabulary', () => {
         // Perform POST request for creating the vocabulary-layer relationship
         await requester.post(`/api/v1/dataset/321/layer/${mockLayerId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         // Perform DELETE request for deleting the vocabulary-layer relationship
         const response = await requester
             .delete(`/api/v1/dataset/321/layer/${mockLayerId}/vocabulary/${vocabName}`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         assertUnauthorizedResponse(response);
     });
 
     it('Deleting a vocabulary-layer relationship while being authenticated as an USER should return a 403', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         // Mock the request for layer validation
         const mockLayerId = mockLayer().id;
 
@@ -67,20 +70,22 @@ describe('Delete layer vocabulary', () => {
         // Perform POST request for creating the vocabulary-layer relationship
         await requester.post(`/api/v1/dataset/321/layer/${mockLayerId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         // Perform DELETE request for deleting the vocabulary-layer relationship
         const response = await requester
             .delete(`/api/v1/dataset/321/layer/${mockLayerId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         assertForbiddenResponse(response);
     });
 
     it('Deleting a vocabulary-layer relationship while being authenticated as a MANAGER that does not own the resource should return a 403', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
-        mockGetUserFromToken(USERS.MANAGER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
         // Mock the request for layer validation
         const mockLayerId = mockLayer().id;
 
@@ -91,6 +96,7 @@ describe('Delete layer vocabulary', () => {
         // Perform POST request for creating the vocabulary-layer relationship
         await requester.post(`/api/v1/dataset/321/layer/${mockLayerId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         // Mock the request for layer validation
@@ -100,14 +106,15 @@ describe('Delete layer vocabulary', () => {
         const response = await requester
             .delete(`/api/v1/dataset/321/layer/${mockLayerId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         assertForbiddenResponse(response);
     });
 
     it('Deleting a vocabulary-layer relationship while being authenticated as a MANAGER that owns the resource should return a 200', async () => {
-        mockGetUserFromToken(USERS.MANAGER);
-        mockGetUserFromToken(USERS.MANAGER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
         // Mock the request for layer validation
         const mockLayerId = mockLayer(null, { userId: USERS.MANAGER.id }).id;
 
@@ -118,6 +125,7 @@ describe('Delete layer vocabulary', () => {
         // Perform POST request for creating the vocabulary-layer relationship
         await requester.post(`/api/v1/dataset/321/layer/${mockLayerId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         // Mock the request for layer validation
@@ -127,14 +135,15 @@ describe('Delete layer vocabulary', () => {
         const response = await requester
             .delete(`/api/v1/dataset/321/layer/${mockLayerId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         assertOKResponse(response);
     });
 
     it('Deleting a vocabulary-layer relationship while being authenticated as an ADMIN returns 200 OK', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
         // Mock the request for layer validation
         const mockLayerId = mockLayer().id;
 
@@ -145,6 +154,7 @@ describe('Delete layer vocabulary', () => {
         // Perform POST request for creating the vocabulary-layer relationship
         await requester.post(`/api/v1/dataset/321/layer/${mockLayerId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         // Mock the request for layer validation
@@ -154,6 +164,7 @@ describe('Delete layer vocabulary', () => {
         const response = await requester
             .delete(`/api/v1/dataset/321/layer/${mockLayerId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         assertOKResponse(response);

@@ -10,7 +10,7 @@ const {
     mockPostGraphAssociation,
     mockPutGraphAssociation,
     mockDeleteGraphAssociation,
-    mockGetUserFromToken
+    mockValidateRequestWithApiKeyAndUserToken
 } = require('../utils/helpers');
 const { getTestServer } = require('../utils/test-server');
 
@@ -22,49 +22,54 @@ nock.disableNetConnect();
 nock.enableNetConnect(process.env.HOST_IP);
 
 const assertCountOfVocabDatasetRelationships = async (datasetId, length) => {
-    mockGetUserFromToken(USERS.ADMIN);
+    mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
     assertOKResponse(await requester
         .get(`/api/v1/dataset/${datasetId}/vocabulary`)
         .set('Authorization', `Bearer abcd`)
+        .set('x-api-key', 'api-key-test')
         .send({}), length);
 };
 
 const postVocabDatasetRelationship = async (datasetId, vocabName, vocabData = {}) => {
-    mockGetUserFromToken(USERS.ADMIN);
+    mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
     const postData = {};
     postData[vocabName] = vocabData;
     mockPostGraphAssociation(datasetId);
     return requester.put(`/api/v1/dataset/${datasetId}/vocabulary`)
         .set('Authorization', `Bearer abcd`)
+        .set('x-api-key', 'api-key-test')
         .send(postData);
 };
 
 const putVocabDatasetRelationship = async (datasetId, vocabName, vocabData = {}, graphSuccess = true) => {
-    mockGetUserFromToken(USERS.ADMIN);
+    mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
     const putData = {};
     putData[vocabName] = vocabData;
     mockPostGraphAssociation(datasetId, graphSuccess);
     return requester.put(`/api/v1/dataset/${datasetId}/vocabulary`)
         .set('Authorization', `Bearer abcd`)
+        .set('x-api-key', 'api-key-test')
         .send(putData);
 };
 
 const patchVocabDatasetRelationship = async (datasetId, vocabName, vocabData = {}, graphSuccess = true) => {
-    mockGetUserFromToken(USERS.ADMIN);
+    mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
     mockDataset(datasetId);
     mockPutGraphAssociation(datasetId, graphSuccess);
     return requester.patch(`/api/v1/dataset/${datasetId}/vocabulary/${vocabName}`)
         .set('Authorization', `Bearer abcd`)
+        .set('x-api-key', 'api-key-test')
         .send(vocabData);
 };
 
 const deleteVocabDatasetRelationship = async (datasetId, vocabName, graphSuccess = true) => {
-    mockGetUserFromToken(USERS.ADMIN);
+    mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
     mockDataset(datasetId);
     mockDeleteGraphAssociation(datasetId, 'rw', graphSuccess);
     return requester
         .delete(`/api/v1/dataset/${datasetId}/vocabulary/${vocabName}`)
         .set('Authorization', `Bearer abcd`)
+        .set('x-api-key', 'api-key-test')
         .send();
 };
 

@@ -105,8 +105,13 @@ async function init() {
                 microserviceToken: process.env.MICROSERVICE_TOKEN,
                 fastlyEnabled: process.env.FASTLY_ENABLED,
                 fastlyServiceId: process.env.FASTLY_SERVICEID,
-                fastlyAPIKey: process.env.FASTLY_APIKEY
+                fastlyAPIKey: process.env.FASTLY_APIKEY,
+                requireAPIKey: process.env.REQUIRE_API_KEY || true,
+                awsCloudWatchLoggingEnabled: process.env.AWS_CLOUD_WATCH_LOGGING_ENABLED || true,
+                awsRegion: process.env.AWS_REGION,
+                awsCloudWatchLogStreamName: config.get('service.name'),
             }));
+
 
             loader.loadRoutes(app);
 

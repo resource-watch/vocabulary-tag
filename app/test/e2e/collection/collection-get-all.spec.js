@@ -3,7 +3,7 @@ const chai = require('chai');
 const config = require('config');
 const Collection = require('models/collection.model');
 const { USERS } = require('../utils/test.constants');
-const { createCollection, mockGetUserFromToken } = require('../utils/helpers');
+const { createCollection, mockValidateRequestWithApiKeyAndUserToken, mockValidateRequestWithApiKey } = require('../utils/helpers');
 
 const { getTestServer } = require('../utils/test-server');
 
@@ -27,10 +27,11 @@ describe('Get collections', () => {
 
     describe('Test pagination links', () => {
         it('Get collections without referer header should be successful and use the request host', async () => {
-            mockGetUserFromToken(USERS.USER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
             const response = await requester
                 .get(`/api/v1/collection`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send();
 
             response.status.should.equal(200);
@@ -44,10 +45,11 @@ describe('Get collections', () => {
         });
 
         it('Get collections with referer header should be successful and use that header on the links on the response', async () => {
-            mockGetUserFromToken(USERS.USER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
             const response = await requester
                 .get(`/api/v1/collection`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .set('referer', `https://potato.com/get-me-all-the-data`)
                 .send();
 
@@ -62,10 +64,11 @@ describe('Get collections', () => {
         });
 
         it('Get collections with x-rw-domain header should be successful and use that header on the links on the response', async () => {
-            mockGetUserFromToken(USERS.USER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
             const response = await requester
                 .get(`/api/v1/collection`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .set('x-rw-domain', `potato.com`)
                 .send();
 
@@ -80,10 +83,11 @@ describe('Get collections', () => {
         });
 
         it('Get collections with x-rw-domain and referer headers should be successful and use the x-rw-domain header on the links on the response', async () => {
-            mockGetUserFromToken(USERS.USER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
             const response = await requester
                 .get(`/api/v1/collection`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .set('x-rw-domain', `potato.com`)
                 .set('referer', `https://tomato.com/get-me-all-the-data`)
                 .send();
@@ -100,8 +104,10 @@ describe('Get collections', () => {
     });
 
     it('Get collections without being authenticated should return a 401 `Unauthorized`', async () => {
+        mockValidateRequestWithApiKey({});
         const response = await requester
             .get(`/api/v1/collection`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         response.status.should.equal(401);
@@ -110,10 +116,11 @@ describe('Get collections', () => {
     });
 
     it('Get collections with a user id should return a 200 with an empty list (happy case, no data)', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const response = await requester
             .get(`/api/v1/collection`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         response.status.should.equal(200);
@@ -121,7 +128,7 @@ describe('Get collections', () => {
     });
 
     it('Get collections with a user id should return a 200 with collections from the user and default app (happy case)', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const collectionOne = await new Collection(createCollection({
             application: 'rw',
             ownerId: USERS.USER.id
@@ -134,6 +141,7 @@ describe('Get collections', () => {
         const response = await requester
             .get(`/api/v1/collection`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         response.status.should.equal(200);
@@ -142,7 +150,7 @@ describe('Get collections', () => {
     });
 
     it('Get collections as an ADMIN with an explicit user id should return a 200 with collections from the provided user', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
         const collectionOne = await new Collection(createCollection({
             application: 'rw',
             ownerId: USERS.USER.id
@@ -158,6 +166,7 @@ describe('Get collections', () => {
                 userId: USERS.USER.id
             })
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         response.status.should.equal(200);
@@ -166,7 +175,7 @@ describe('Get collections', () => {
     });
 
     it('Get collections as a microservice with an explicit user id should return a 200 with collections from the provided user', async () => {
-        mockGetUserFromToken(USERS.MICROSERVICE);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MICROSERVICE });
         const collectionOne = await new Collection(createCollection({
             application: 'rw',
             ownerId: USERS.USER.id
@@ -182,6 +191,7 @@ describe('Get collections', () => {
                 userId: USERS.USER.id
             })
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         response.status.should.equal(200);
@@ -190,7 +200,7 @@ describe('Get collections', () => {
     });
 
     it('Get collections with a user id and no explicit app should return a 200 with collections from the user and default app (happy case)', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         await new Collection(createCollection({ application: 'gfw', ownerId: USERS.USER.id })).save();
         const collectionTwo = await new Collection(createCollection({
             application: 'rw',
@@ -200,6 +210,7 @@ describe('Get collections', () => {
         const response = await requester
             .get(`/api/v1/collection`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         response.status.should.equal(200);
@@ -208,7 +219,7 @@ describe('Get collections', () => {
     });
 
     it('Get collections with a user id and an explicit app should return a 200 with collections from the user and provided app', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const collectionOne = await new Collection(createCollection({
             application: 'gfw',
             ownerId: USERS.USER.id
@@ -221,6 +232,7 @@ describe('Get collections', () => {
         const response = await requester
             .get(`/api/v1/collection`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .query({ application: 'gfw' })
             .send();
 
@@ -230,7 +242,7 @@ describe('Get collections', () => {
     });
 
     it('Get collections with a user id and all param for app should return a 200 with collections from all applications', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const collectionOne = await new Collection(createCollection({
             application: 'gfw',
             ownerId: USERS.USER.id
@@ -251,6 +263,7 @@ describe('Get collections', () => {
         const response = await requester
             .get(`/api/v1/collection`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 application: 'all'
             })
@@ -273,7 +286,7 @@ describe('Get collections', () => {
     });
 
     it('Get collections with include should return a 200 with collections from the user and provided app (no resources associated with collection)', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         await new Collection(createCollection({
             application: 'gfw',
             ownerId: USERS.USER.id
@@ -286,6 +299,7 @@ describe('Get collections', () => {
         const response = await requester
             .get(`/api/v1/collection`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .query({ include: true })
             .send();
 
@@ -295,7 +309,7 @@ describe('Get collections', () => {
     });
 
     it('Get collections with include should return a 200 with collections from the user and provided app and the associated resources', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const collection = await new Collection(createCollection({
             application: 'rw',
             ownerId: USERS.USER.id,
@@ -311,7 +325,11 @@ describe('Get collections', () => {
             }]
         })).save();
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .get('/v1/dataset?ids=datasetId')
             .reply(200, {
                 data: [
@@ -335,7 +353,11 @@ describe('Get collections', () => {
                 }
             });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .get('/v1/widget?ids=widgetId')
             .reply(200, {
                 data: [
@@ -359,7 +381,11 @@ describe('Get collections', () => {
                 }
             });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .get('/v1/layer/layerId')
             .reply(200, {
                 data: {
@@ -372,6 +398,7 @@ describe('Get collections', () => {
         const response = await requester
             .get(`/api/v1/collection`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .query({ include: true })
             .send();
 
@@ -407,7 +434,7 @@ describe('Get collections', () => {
     });
 
     it('Get collections without pagination arguments should return the full list of collections', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         for (let i = 0; i < 20; i++) {
             await new Collection(createCollection({
                 application: 'rw',
@@ -418,6 +445,7 @@ describe('Get collections', () => {
         const response = await requester
             .get(`/api/v1/collection`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         response.status.should.equal(200);
@@ -426,7 +454,7 @@ describe('Get collections', () => {
     });
 
     it('Get collections with pagination arguments should return the paginated list of collections', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         for (let i = 0; i < 20; i++) {
             await new Collection(createCollection({
                 application: 'rw',
@@ -437,6 +465,7 @@ describe('Get collections', () => {
         const response = await requester
             .get(`/api/v1/collection`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 page: {
                     number: 1, size: 3
@@ -451,7 +480,7 @@ describe('Get collections', () => {
 
     describe('Environments', () => {
         it('Getting collections without applying env filter returns all collections with env production', async () => {
-            mockGetUserFromToken(USERS.USER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
             for (let i = 0; i < 3; i++) {
                 await new Collection(createCollection({
@@ -479,6 +508,7 @@ describe('Get collections', () => {
             const response = await requester
                 .get(`/api/v1/collection`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .send();
 
             response.status.should.equal(200);
@@ -492,7 +522,7 @@ describe('Get collections', () => {
         });
 
         it('Getting collections applying env filter "all" returns collections from every env', async () => {
-            mockGetUserFromToken(USERS.USER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
             for (let i = 0; i < 3; i++) {
                 await new Collection(createCollection({
@@ -520,6 +550,7 @@ describe('Get collections', () => {
             const response = await requester
                 .get(`/api/v1/collection`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .query({
                     env: 'all'
                 })
@@ -537,7 +568,7 @@ describe('Get collections', () => {
         });
 
         it('Getting collections with the env filter set to a custom value should returns all collections with that env', async () => {
-            mockGetUserFromToken(USERS.USER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
             const ds1 = await new Collection(createCollection({ ownerId: USERS.USER.id })).save();
             const ds2 = await new Collection(createCollection({ ownerId: USERS.USER.id, env: 'production' })).save();
@@ -547,6 +578,7 @@ describe('Get collections', () => {
             const response = await requester
                 .get(`/api/v1/collection`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .query({
                     env: 'custom'
                 })
@@ -569,7 +601,7 @@ describe('Get collections', () => {
         });
 
         it('Getting collections with the env filter set to a custom comma separated list of values should returns all collections with those envs', async () => {
-            mockGetUserFromToken(USERS.USER);
+            mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
             const ds1 = await new Collection(createCollection({ ownerId: USERS.USER.id })).save();
             const ds2 = await new Collection(createCollection({ ownerId: USERS.USER.id, env: 'production' })).save();
@@ -579,6 +611,7 @@ describe('Get collections', () => {
             const response = await requester
                 .get(`/api/v1/collection`)
                 .set('Authorization', `Bearer abcd`)
+                .set('x-api-key', 'api-key-test')
                 .query({
                     env: ['custom', 'potato'].join(',')
                 });

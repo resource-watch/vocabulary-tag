@@ -4,9 +4,9 @@ const Favourite = require('models/favourite.model');
 const { USERS } = require('../utils/test.constants');
 const {
     createFavourite,
-    mockGetUserFromToken,
+    mockValidateRequestWithApiKeyAndUserToken,
     ensureCorrectError,
-    mockDeleteFavouriteResourceFromGraph
+    mockDeleteFavouriteResourceFromGraph, mockValidateRequestWithApiKey
 } = require('../utils/helpers');
 
 const { getTestServer } = require('../utils/test-server');
@@ -30,34 +30,49 @@ describe('Delete favourites by user id', () => {
     });
 
     it('Deleting favourites by user while not being authenticated should return a 401', async () => {
+        mockValidateRequestWithApiKey({});
         const response = await requester
-            .delete(`/api/v1/favourite/by-user/${USERS.USER.id}`);
+            .delete(`/api/v1/favourite/by-user/${USERS.USER.id}`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(401);
         ensureCorrectError(response.body, 'Unauthorized');
     });
 
     it('Deleting favourites by user while not being logged as an ADMIN or as the same user that is being deleted should return a 403', async () => {
-        mockGetUserFromToken(USERS.MANAGER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
 
         const response = await requester
             .delete(`/api/v1/favourite/by-user/${USERS.USER.id}`)
-            .set('Authorization', `Bearer abcd`);
+            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(403);
         ensureCorrectError(response.body, 'Forbidden');
     });
 
     it('Deleting favourites by user as ADMIN should return 200 and all deleted favourites', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
-        const favouriteOne = await (new Favourite(createFavourite({ userId: USERS.USER.id, application: 'rw', resourceType: 'layer' }))).save();
-        const favouriteTwo = await (new Favourite(createFavourite({ userId: USERS.USER.id, application: 'gfw', resourceType: 'widget' }))).save();
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
+        const favouriteOne = await (new Favourite(createFavourite({
+            userId: USERS.USER.id,
+            application: 'rw',
+            resourceType: 'layer'
+        }))).save();
+        const favouriteTwo = await (new Favourite(createFavourite({
+            userId: USERS.USER.id,
+            application: 'gfw',
+            resourceType: 'widget'
+        }))).save();
         const favouriteByManager = await (new Favourite(createFavourite({ userId: USERS.MANAGER.id }))).save();
         const favouriteByAdmin = await (new Favourite(createFavourite({ userId: USERS.ADMIN.id }))).save();
         mockDeleteFavouriteResourceFromGraph(favouriteOne.resourceType, favouriteOne.resourceId, favouriteOne._id);
         mockDeleteFavouriteResourceFromGraph(favouriteTwo.resourceType, favouriteTwo.resourceId, favouriteTwo._id);
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .get(`/auth/user/${USERS.USER.id}`)
             .reply(200, {
                 data: {
@@ -67,7 +82,8 @@ describe('Delete favourites by user id', () => {
 
         const response = await requester
             .delete(`/api/v1/favourite/by-user/${USERS.USER.id}`)
-            .set('Authorization', `Bearer abcd`);
+            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(200);
         response.body.data.map((elem) => elem.id).sort().should.deep.equal([favouriteOne._id.toString(), favouriteTwo.id.toString()].sort());
@@ -84,15 +100,27 @@ describe('Delete favourites by user id', () => {
     });
 
     it('Deleting favourites by user as a microservice should return 200 and all deleted favourites', async () => {
-        mockGetUserFromToken(USERS.MICROSERVICE);
-        const favouriteOne = await (new Favourite(createFavourite({ userId: USERS.USER.id, application: 'rw', resourceType: 'layer' }))).save();
-        const favouriteTwo = await (new Favourite(createFavourite({ userId: USERS.USER.id, application: 'gfw', resourceType: 'widget' }))).save();
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MICROSERVICE });
+        const favouriteOne = await (new Favourite(createFavourite({
+            userId: USERS.USER.id,
+            application: 'rw',
+            resourceType: 'layer'
+        }))).save();
+        const favouriteTwo = await (new Favourite(createFavourite({
+            userId: USERS.USER.id,
+            application: 'gfw',
+            resourceType: 'widget'
+        }))).save();
         const favouriteByManager = await (new Favourite(createFavourite({ userId: USERS.MANAGER.id }))).save();
         const favouriteByAdmin = await (new Favourite(createFavourite({ userId: USERS.ADMIN.id }))).save();
         mockDeleteFavouriteResourceFromGraph(favouriteOne.resourceType, favouriteOne.resourceId, favouriteOne._id);
         mockDeleteFavouriteResourceFromGraph(favouriteTwo.resourceType, favouriteTwo.resourceId, favouriteTwo._id);
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .get(`/auth/user/${USERS.USER.id}`)
             .reply(200, {
                 data: {
@@ -102,7 +130,8 @@ describe('Delete favourites by user id', () => {
 
         const response = await requester
             .delete(`/api/v1/favourite/by-user/${USERS.USER.id}`)
-            .set('Authorization', `Bearer abcd`);
+            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(200);
         response.body.data.map((elem) => elem.id).sort().should.deep.equal([favouriteOne._id.toString(), favouriteTwo.id.toString()].sort());
@@ -119,9 +148,13 @@ describe('Delete favourites by user id', () => {
     });
 
     it('Deleting a favourite owned by a user that does not exist as a MICROSERVICE should return a 404', async () => {
-        mockGetUserFromToken(USERS.MICROSERVICE);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MICROSERVICE });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .get(`/auth/user/potato`)
             .reply(403, {
                 errors: [
@@ -135,6 +168,7 @@ describe('Delete favourites by user id', () => {
         const deleteResponse = await requester
             .delete(`/api/v1/favourite/by-user/potato`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         deleteResponse.status.should.equal(404);
@@ -143,15 +177,27 @@ describe('Delete favourites by user id', () => {
     });
 
     it('Deleting favourites by user as the user themselves should return 200 and all deleted favourites', async () => {
-        mockGetUserFromToken(USERS.USER);
-        const favouriteOne = await (new Favourite(createFavourite({ userId: USERS.USER.id, application: 'rw', resourceType: 'layer' }))).save();
-        const favouriteTwo = await (new Favourite(createFavourite({ userId: USERS.USER.id, application: 'gfw', resourceType: 'widget' }))).save();
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
+        const favouriteOne = await (new Favourite(createFavourite({
+            userId: USERS.USER.id,
+            application: 'rw',
+            resourceType: 'layer'
+        }))).save();
+        const favouriteTwo = await (new Favourite(createFavourite({
+            userId: USERS.USER.id,
+            application: 'gfw',
+            resourceType: 'widget'
+        }))).save();
         const favouriteByManager = await (new Favourite(createFavourite({ userId: USERS.MANAGER.id }))).save();
         const favouriteByAdmin = await (new Favourite(createFavourite({ userId: USERS.ADMIN.id }))).save();
         mockDeleteFavouriteResourceFromGraph(favouriteOne.resourceType, favouriteOne.resourceId, favouriteOne._id);
         mockDeleteFavouriteResourceFromGraph(favouriteTwo.resourceType, favouriteTwo.resourceId, favouriteTwo._id);
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .get(`/auth/user/${USERS.USER.id}`)
             .reply(200, {
                 data: {
@@ -161,7 +207,8 @@ describe('Delete favourites by user id', () => {
 
         const response = await requester
             .delete(`/api/v1/favourite/by-user/${USERS.USER.id}`)
-            .set('Authorization', `Bearer abcd`);
+            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(200);
         response.body.data.map((elem) => elem.id).sort().should.deep.equal([favouriteOne._id.toString(), favouriteTwo.id.toString()].sort());
@@ -178,7 +225,7 @@ describe('Delete favourites by user id', () => {
     });
 
     it('Deleting favourites from a user should delete them completely from a database (large number of favourites)', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         await Promise.all([...Array(50)].map(async () => {
             await new Favourite(createFavourite({
@@ -189,7 +236,11 @@ describe('Delete favourites by user id', () => {
             })).save();
         }));
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .get(`/auth/user/${USERS.USER.id}`)
             .reply(200, {
                 data: {
@@ -200,6 +251,7 @@ describe('Delete favourites by user id', () => {
         const deleteResponse = await requester
             .delete(`/api/v1/favourite/by-user/${USERS.USER.id}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         deleteResponse.status.should.equal(200);
@@ -210,9 +262,13 @@ describe('Delete favourites by user id', () => {
     });
 
     it('Deleting all favourites of an user while being authenticated as USER should return a 200 and all favourites deleted - no favourites in the db', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .get(`/auth/user/${USERS.USER.id}`)
             .reply(200, {
                 data: {
@@ -223,6 +279,7 @@ describe('Delete favourites by user id', () => {
         const response = await requester
             .delete(`/api/v1/favourite/by-user/${USERS.USER.id}`)
             .set('Authorization', 'Bearer abcd')
+            .set('x-api-key', 'api-key-test')
             .send();
 
         response.status.should.equal(200);

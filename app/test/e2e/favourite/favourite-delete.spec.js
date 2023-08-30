@@ -5,9 +5,9 @@ const Favourite = require('models/favourite.model');
 const { USERS } = require('../utils/test.constants');
 const {
     createFavourite,
-    mockGetUserFromToken,
+    mockValidateRequestWithApiKeyAndUserToken,
     ensureCorrectError,
-    mockDeleteFavouriteResourceFromGraph
+    mockDeleteFavouriteResourceFromGraph, mockValidateRequestWithApiKey
 } = require('../utils/helpers');
 
 const { getTestServer } = require('../utils/test-server');
@@ -31,35 +31,39 @@ describe('Delete favourites', () => {
     });
 
     it('Deleting a favourite while not being authenticated should return a 401', async () => {
+        mockValidateRequestWithApiKey({});
         const favourite = await (new Favourite(createFavourite({ userId: USERS.USER.id }))).save();
 
         const response = await requester
-            .delete(`/api/v1/favourite/${favourite._id}`);
+            .delete(`/api/v1/favourite/${favourite._id}`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(401);
         ensureCorrectError(response.body, 'Unauthorized');
     });
 
     it('Deleting a favourite with valid id that does not exists while authenticated should return a 404', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const fakeUUID = mongoose.Types.ObjectId();
 
         const response = await requester
             .delete(`/api/v1/favourite/${fakeUUID}`)
-            .set('Authorization', `Bearer abcd`);
+            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(404);
         ensureCorrectError(response.body, 'Favourite not found');
     });
 
     it('Deleting a favourite as USER should return 200 and data from deleted fav', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const favourite = await (new Favourite(createFavourite({ userId: USERS.USER.id }))).save();
         mockDeleteFavouriteResourceFromGraph(favourite.resourceType, favourite.resourceId, favourite._id);
 
         const response = await requester
             .delete(`/api/v1/favourite/${favourite._id}`)
-            .set('Authorization', `Bearer abcd`);
+            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(200);
         response.body.data.attributes.application.should.equal(favourite.application);
@@ -68,13 +72,14 @@ describe('Delete favourites', () => {
     });
 
     it('Deleting a favourite as ADMIN should return 200 and data from deleted fav', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
         const favourite = await (new Favourite(createFavourite({ userId: USERS.USER.id }))).save();
         mockDeleteFavouriteResourceFromGraph(favourite.resourceType, favourite.resourceId, favourite._id);
 
         const response = await requester
             .delete(`/api/v1/favourite/${favourite._id}`)
-            .set('Authorization', `Bearer abcd`);
+            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(200);
         response.body.data.attributes.application.should.equal(favourite.application);

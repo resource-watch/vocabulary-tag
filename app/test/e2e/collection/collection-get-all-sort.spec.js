@@ -2,7 +2,7 @@ const nock = require('nock');
 const chai = require('chai');
 const Collection = require('models/collection.model');
 const { USERS } = require('../utils/test.constants');
-const { createCollection, mockGetUserFromToken } = require('../utils/helpers');
+const { createCollection, mockValidateRequestWithApiKeyAndUserToken } = require('../utils/helpers');
 
 const { getTestServer } = require('../utils/test-server');
 
@@ -31,10 +31,11 @@ describe('Sort collections tests', () => {
     });
 
     it('Sort collections by non-existent field (implicit order)', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const response = await requester
             .get(`/api/v1/collection`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .query({ sort: 'potato' });
 
         const collectionsOne = response.body.data;
@@ -51,10 +52,11 @@ describe('Sort collections tests', () => {
     });
 
     it('Sort collections by name (implicit order)', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const response = await requester
             .get(`/api/v1/collection`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .query({ sort: 'name' });
         const collectionsOne = response.body.data;
 
@@ -70,10 +72,11 @@ describe('Sort collections tests', () => {
     });
 
     it('Sort collections by name (explicit asc order)', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const response = await requester
             .get(`/api/v1/collection`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .query({ sort: '+name' });
 
         const collectionsOne = response.body.data;
@@ -90,10 +93,11 @@ describe('Sort collections tests', () => {
     });
 
     it('Sort collections by name (explicit desc order)', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const response = await requester
             .get(`/api/v1/collection`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .query({ sort: '-name' });
 
         const collectionsOne = response.body.data;

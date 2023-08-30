@@ -4,8 +4,8 @@ const Favourite = require('models/favourite.model');
 const { USERS } = require('../utils/test.constants');
 const {
     ensureCorrectError,
-    mockGetUserFromToken,
-    createFavourite,
+    mockValidateRequestWithApiKeyAndUserToken,
+    createFavourite, mockValidateRequestWithApiKey,
 } = require('../utils/helpers');
 
 const { getTestServer } = require('../utils/test-server');
@@ -29,10 +29,12 @@ describe('Find favourites by user', () => {
     });
 
     it('Find favourites by userId without authenticated user returns a 401 error', async () => {
+        mockValidateRequestWithApiKey({});
         await (new Favourite(createFavourite({ userId: USERS.USER.id }))).save();
 
         const response = await requester
             .post(`/api/v1/favourite/find-by-user`)
+            .set('x-api-key', 'api-key-test')
             .send({ userId: USERS.USER.id });
 
         response.status.should.equal(401);
@@ -40,12 +42,13 @@ describe('Find favourites by user', () => {
     });
 
     it('Find favourites by userId being authenticated without userId in body returns a 400 error', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         await (new Favourite(createFavourite({ userId: USERS.USER.id }))).save();
 
         const response = await requester
             .post(`/api/v1/favourite/find-by-user`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({});
 
         response.status.should.equal(400);
@@ -53,14 +56,21 @@ describe('Find favourites by user', () => {
     });
 
     it('Find favourite by userId being authenticated and userId in body returns favourite data', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const favouriteOne = await (new Favourite(createFavourite({ userId: USERS.USER.id }))).save();
-        const favouriteTwo = await (new Favourite(createFavourite({ userId: USERS.USER.id, resourceType: 'widget' }))).save();
-        const favouriteThree = await (new Favourite(createFavourite({ userId: USERS.USER.id, resourceType: 'layer' }))).save();
+        const favouriteTwo = await (new Favourite(createFavourite({
+            userId: USERS.USER.id,
+            resourceType: 'widget'
+        }))).save();
+        const favouriteThree = await (new Favourite(createFavourite({
+            userId: USERS.USER.id,
+            resourceType: 'layer'
+        }))).save();
 
         const response = await requester
             .post(`/api/v1/favourite/find-by-user`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({ userId: USERS.USER.id });
 
         response.status.should.equal(200);
@@ -83,14 +93,22 @@ describe('Find favourites by user', () => {
     });
 
     it('Find favourite by userId being authenticated and userId in body but not app returns favourite data from rw app', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const favouriteOne = await (new Favourite(createFavourite({ userId: USERS.USER.id }))).save();
-        const favouriteTwo = await (new Favourite(createFavourite({ userId: USERS.USER.id, resourceType: 'widget' }))).save();
-        await (new Favourite(createFavourite({ userId: USERS.USER.id, resourceType: 'layer', application: 'gfw' }))).save();
+        const favouriteTwo = await (new Favourite(createFavourite({
+            userId: USERS.USER.id,
+            resourceType: 'widget'
+        }))).save();
+        await (new Favourite(createFavourite({
+            userId: USERS.USER.id,
+            resourceType: 'layer',
+            application: 'gfw'
+        }))).save();
 
         const response = await requester
             .post(`/api/v1/favourite/find-by-user`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({ userId: USERS.USER.id });
 
         response.status.should.equal(200);
@@ -108,14 +126,19 @@ describe('Find favourites by user', () => {
     });
 
     it('Find favourite by userId being authenticated and userId in body with app returns favourite data from included app', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         await (new Favourite(createFavourite({ userId: USERS.USER.id }))).save();
         await (new Favourite(createFavourite({ userId: USERS.USER.id, resourceType: 'widget' }))).save();
-        const gfwFavourite = await (new Favourite(createFavourite({ userId: USERS.USER.id, resourceType: 'layer', application: 'gfw' }))).save();
+        const gfwFavourite = await (new Favourite(createFavourite({
+            userId: USERS.USER.id,
+            resourceType: 'layer',
+            application: 'gfw'
+        }))).save();
 
         const response = await requester
             .post(`/api/v1/favourite/find-by-user`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({ userId: USERS.USER.id, application: 'gfw' });
 
         response.status.should.equal(200);
@@ -128,14 +151,22 @@ describe('Find favourites by user', () => {
     });
 
     it('Find favourite by userId being authenticated and userId and application with all returns favourite data from every app', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const favouriteOne = await (new Favourite(createFavourite({ userId: USERS.USER.id }))).save();
-        const favouriteTwo = await (new Favourite(createFavourite({ userId: USERS.USER.id, resourceType: 'widget' }))).save();
-        const favouriteThree = await (new Favourite(createFavourite({ userId: USERS.USER.id, resourceType: 'layer', application: 'gfw' }))).save();
+        const favouriteTwo = await (new Favourite(createFavourite({
+            userId: USERS.USER.id,
+            resourceType: 'widget'
+        }))).save();
+        const favouriteThree = await (new Favourite(createFavourite({
+            userId: USERS.USER.id,
+            resourceType: 'layer',
+            application: 'gfw'
+        }))).save();
 
         const response = await requester
             .post(`/api/v1/favourite/find-by-user`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({ userId: USERS.USER.id, application: 'all' });
 
         response.status.should.equal(200);
@@ -158,11 +189,12 @@ describe('Find favourites by user', () => {
     });
 
     it('Find favourite by userId without any favourites returns empty list', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         const response = await requester
             .post(`/api/v1/favourite/find-by-user`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({ userId: USERS.USER.id });
 
         response.status.should.equal(200);

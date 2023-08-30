@@ -2,7 +2,12 @@ const nock = require('nock');
 const chai = require('chai');
 const Collection = require('models/collection.model');
 const { USERS } = require('../utils/test.constants');
-const { createCollection, mockGetUserFromToken, ensureCorrectError } = require('../utils/helpers');
+const {
+    createCollection,
+    mockValidateRequestWithApiKeyAndUserToken,
+    ensureCorrectError,
+    mockValidateRequestWithApiKey
+} = require('../utils/helpers');
 
 const { getTestServer } = require('../utils/test-server');
 
@@ -25,15 +30,17 @@ describe('Delete collections by user id', () => {
     });
 
     it('Deleting a collection by user while not being authenticated should return a 401', async () => {
+        mockValidateRequestWithApiKey({});
         const response = await requester
-            .delete(`/api/v1/collection/by-user/${USERS.USER.id}`);
+            .delete(`/api/v1/collection/by-user/${USERS.USER.id}`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(401);
         ensureCorrectError(response.body, 'Unauthorized');
     });
 
     it('Deleting a collection by user while being authenticated as USER that is not the owner of collections or admin should return a 403 "Forbidden" error', async () => {
-        mockGetUserFromToken(USERS.MANAGER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
         await new Collection(createCollection({
             application: 'rw',
             ownerId: USERS.USER.id
@@ -41,14 +48,15 @@ describe('Delete collections by user id', () => {
 
         const response = await requester
             .delete(`/api/v1/collection/by-user/${USERS.USER.id}`)
-            .set('Authorization', `Bearer abcd`);
+            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(403);
         ensureCorrectError(response.body, 'Forbidden');
     });
 
     it('Deleting all collections of an user while being authenticated as ADMIN should return a 200 and all collections deleted', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
         const collectionOne = await new Collection(createCollection({
             env: 'production', application: 'rw', ownerId: USERS.USER.id
         })).save();
@@ -62,7 +70,11 @@ describe('Delete collections by user id', () => {
             env: 'staging', application: 'rw', ownerId: USERS.MANAGER.id
         })).save();
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .get(`/auth/user/${USERS.USER.id}`)
             .reply(200, {
                 data: {
@@ -73,6 +85,7 @@ describe('Delete collections by user id', () => {
         const response = await requester
             .delete(`/api/v1/collection/by-user/${USERS.USER.id}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         response.status.should.equal(200);
@@ -90,7 +103,7 @@ describe('Delete collections by user id', () => {
     });
 
     it('Deleting all collections of an user while being authenticated as a microservice should return a 200 and all collections deleted', async () => {
-        mockGetUserFromToken(USERS.MICROSERVICE);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MICROSERVICE });
         const collectionOne = await new Collection(createCollection({
             env: 'production', application: 'rw', ownerId: USERS.USER.id
         })).save();
@@ -104,7 +117,11 @@ describe('Delete collections by user id', () => {
             env: 'staging', application: 'rw', ownerId: USERS.MANAGER.id
         })).save();
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .get(`/auth/user/${USERS.USER.id}`)
             .reply(200, {
                 data: {
@@ -115,6 +132,7 @@ describe('Delete collections by user id', () => {
         const response = await requester
             .delete(`/api/v1/collection/by-user/${USERS.USER.id}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         response.status.should.equal(200);
@@ -132,9 +150,13 @@ describe('Delete collections by user id', () => {
     });
 
     it('Deleting a collection owned by a user that does not exist as a MICROSERVICE should return a 404', async () => {
-        mockGetUserFromToken(USERS.MICROSERVICE);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MICROSERVICE });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .get(`/auth/user/potato`)
             .reply(403, {
                 errors: [
@@ -148,6 +170,7 @@ describe('Delete collections by user id', () => {
         const deleteResponse = await requester
             .delete(`/api/v1/collection/by-user/potato`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         deleteResponse.status.should.equal(404);
@@ -156,7 +179,7 @@ describe('Delete collections by user id', () => {
     });
 
     it('Deleting all collections of an user while being authenticated as that same user should return a 200 and all collections deleted', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const collectionOne = await new Collection(createCollection({
             env: 'production', application: 'rw', ownerId: USERS.USER.id
         })).save();
@@ -170,7 +193,11 @@ describe('Delete collections by user id', () => {
             env: 'staging', application: 'rw', ownerId: USERS.MANAGER.id
         })).save();
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .get(`/auth/user/${USERS.USER.id}`)
             .reply(200, {
                 data: {
@@ -181,6 +208,7 @@ describe('Delete collections by user id', () => {
         const response = await requester
             .delete(`/api/v1/collection/by-user/${USERS.USER.id}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         response.status.should.equal(200);
@@ -198,7 +226,7 @@ describe('Delete collections by user id', () => {
     });
 
     it('Deleting collections from a user should delete them completely from a database (large number of collections)', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         await Promise.all([...Array(100)].map(async () => {
             await new Collection(createCollection({
@@ -209,7 +237,11 @@ describe('Delete collections by user id', () => {
             })).save();
         }));
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .get(`/auth/user/${USERS.USER.id}`)
             .reply(200, {
                 data: {
@@ -220,6 +252,7 @@ describe('Delete collections by user id', () => {
         const deleteResponse = await requester
             .delete(`/api/v1/collection/by-user/${USERS.USER.id}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         deleteResponse.status.should.equal(200);
@@ -230,9 +263,13 @@ describe('Delete collections by user id', () => {
     });
 
     it('Deleting all collections of an user while being authenticated as USER should return a 200 and all collections deleted - no collections in the db', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .get(`/auth/user/${USERS.USER.id}`)
             .reply(200, {
                 data: {
@@ -243,6 +280,7 @@ describe('Delete collections by user id', () => {
         const response = await requester
             .delete(`/api/v1/collection/by-user/${USERS.USER.id}`)
             .set('Authorization', 'Bearer abcd')
+            .set('x-api-key', 'api-key-test')
             .send();
 
         response.status.should.equal(200);

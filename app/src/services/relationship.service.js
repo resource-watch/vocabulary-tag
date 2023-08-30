@@ -15,7 +15,7 @@ class RelationshipService {
         return resource.vocabularies.find((elVocabulary) => (vocabulary.id === elVocabulary.id) && (vocabulary.application === elVocabulary.application));
     }
 
-    static async create(pVocabulary, dataset, pResource, body) {
+    static async create(pVocabulary, dataset, pResource, body, apiKey) {
         logger.debug(`Checking entities`);
         let vocabulary = await VocabularyService.getById(pVocabulary);
         if (!vocabulary || vocabulary.length === 0) {
@@ -51,19 +51,19 @@ class RelationshipService {
         // CREATE GRAPH ASSOCIATION
         if (vocabulary.id === 'knowledge_graph') {
             logger.info('Creating graph association');
-            await GraphService.createAssociation(resource, body.tags, pVocabulary.application);
+            await GraphService.createAssociation(resource, body.tags, pVocabulary.application, apiKey);
         }
         return resource;
     }
 
-    static async createSome(vocabularies, dataset, pResource) {
+    static async createSome(vocabularies, dataset, pResource, apiKey) {
         for (let i = 0; i < vocabularies.length; i++) {
-            await RelationshipService.create(vocabularies[i], dataset, pResource, vocabularies[i]);
+            await RelationshipService.create(vocabularies[i], dataset, pResource, vocabularies[i], apiKey);
         }
         return ResourceService.get(dataset, pResource);
     }
 
-    static async delete(pVocabulary, dataset, pResource) {
+    static async delete(pVocabulary, dataset, pResource, apiKey) {
         logger.debug(`Checking entities`);
         const vocabulary = await VocabularyService.getById(pVocabulary);
         if (!vocabulary) {
@@ -94,19 +94,12 @@ class RelationshipService {
         // DELETE GRAPH ASSOCIATION
         if (vocabulary.id === 'knowledge_graph') {
             logger.info('Deleting graph association');
-            await GraphService.deleteAssociation(resource, pVocabulary.application);
+            await GraphService.deleteAssociation(resource, pVocabulary.application, apiKey);
         }
         return resource;
     }
 
-    static async deleteSome(vocabularies, dataset, pResource) {
-        for (let i = 0; i < vocabularies.length; i++) {
-            await RelationshipService.delete(vocabularies[i], dataset, pResource);
-        }
-        return ResourceService.get(dataset, pResource);
-    }
-
-    static async deleteAll(dataset, pResource) {
+    static async deleteAll(dataset, pResource, apiKey) {
         const resource = await ResourceService.get(dataset, pResource);
         if (!resource || !resource.vocabularies || resource.vocabularies.length === 0) {
             logger.debug(`This resource doesn't have Relationships`);
@@ -116,12 +109,12 @@ class RelationshipService {
             name: vocabulary.id
         }));
         for (let i = 0; i < vocabularies.length; i++) {
-            await RelationshipService.delete(vocabularies[i], dataset, pResource);
+            await RelationshipService.delete(vocabularies[i], dataset, pResource, apiKey);
         }
         return resource;
     }
 
-    static async updateTagsFromRelationship(pVocabulary, dataset, pResource, body) {
+    static async updateTagsFromRelationship(pVocabulary, dataset, pResource, body, apiKey) {
         logger.debug(`Checking entities`);
         const vocabulary = await VocabularyService.getById(pVocabulary);
         if (!vocabulary) {
@@ -173,12 +166,12 @@ class RelationshipService {
         // CREATE GRAPH ASSOCIATION
         if (vocabulary.id === 'knowledge_graph') {
             logger.info('Creating graph association');
-            await GraphService.updateAssociation(resource, body.tags, pVocabulary.application);
+            await GraphService.updateAssociation(resource, body.tags, pVocabulary.application, apiKey);
         }
         return resource;
     }
 
-    static async concatTags(pVocabulary, dataset, pResource, body) {
+    static async concatTags(pVocabulary, dataset, pResource, body, apiKey) {
         logger.debug(`Checking entities`);
         let vocabulary = await VocabularyService.getById(pVocabulary);
         if (!vocabulary) {
@@ -200,10 +193,10 @@ class RelationshipService {
                 relationship.tags.push(el);
             }
         });
-        return RelationshipService.updateTagsFromRelationship(pVocabulary, dataset, pResource, relationship);
+        return RelationshipService.updateTagsFromRelationship(pVocabulary, dataset, pResource, relationship, apiKey);
     }
 
-    static async cloneVocabularyTags(dataset, pResource, body) {
+    static async cloneVocabularyTags(dataset, pResource, body, apiKey) {
         logger.debug(`Checking entities`);
         const resource = await ResourceService.get(dataset, pResource);
         if (!resource) {
@@ -219,10 +212,10 @@ class RelationshipService {
         return RelationshipService.createSome(vocabularies, body.newDataset, {
             type: 'dataset',
             id: body.newDataset
-        });
+        }, apiKey);
     }
 
-    static async getRelationships(vocabularies, query = {}) {
+    static async getRelationships(vocabularies, apiKey, query = {}) {
         logger.info(`Getting relationships of vocabularies: ${vocabularies}`);
 
         let datasetIds = [];
@@ -260,8 +253,10 @@ class RelationshipService {
                 const datasets = await RWAPIMicroservice.requestToMicroservice({
                     uri: `/v1/dataset/find-by-ids`,
                     method: 'POST',
-                    json: true,
-                    body
+                    body,
+                    headers: {
+                        'x-api-key': apiKey
+                    }
                 });
                 datasetIds = datasets.data.map((dataset) => dataset.id);
             }
@@ -274,10 +269,12 @@ class RelationshipService {
                 const layers = await RWAPIMicroservice.requestToMicroservice({
                     uri: `/v1/layer/find-by-ids`,
                     method: 'POST',
-                    json: true,
                     body: {
                         ids: layerIds,
                         env: query.env
+                    },
+                    headers: {
+                        'x-api-key': apiKey
                     }
                 });
 
@@ -293,7 +290,9 @@ class RelationshipService {
                 const widgets = await RWAPIMicroservice.requestToMicroservice({
                     uri: `/v1/widget/find-by-ids`,
                     method: 'POST',
-                    json: true,
+                    headers: {
+                        'x-api-key': apiKey
+                    },
                     body: {
                         ids: widgetIds,
                         env: query.env

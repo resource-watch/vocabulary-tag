@@ -56,7 +56,7 @@ class CollectionRouter {
         }
 
         const { query } = ctx;
-        const collections = await CollectionService.getAll(user, query);
+        const collections = await CollectionService.getAll(user, ctx.request.headers['x-api-key'], query);
 
         const clonedQuery = { ...query };
         delete clonedQuery['page[size]'];
@@ -142,7 +142,7 @@ class CollectionRouter {
         const userIdToDelete = ctx.params.userId;
 
         try {
-            await UserService.getUserById(userIdToDelete);
+            await UserService.getUserById(userIdToDelete, ctx.request.headers['x-api-key']);
         } catch (error) {
             ctx.throw(404, `User ${userIdToDelete} does not exist`);
         }

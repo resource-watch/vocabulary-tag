@@ -9,7 +9,7 @@ const {
     assertUnauthorizedResponse,
     assertForbiddenResponse,
     mockWidget,
-    mockGetUserFromToken
+    mockValidateRequestWithApiKeyAndUserToken, mockValidateRequestWithApiKey
 } = require('../utils/helpers');
 const { getTestServer } = require('../utils/test-server');
 
@@ -33,8 +33,10 @@ describe('Create multiple vocabulary for a widget', () => {
     });
 
     it('Creating a vocabulary-widget relationship without auth returns 401 Unauthorized', async () => {
+        mockValidateRequestWithApiKey({});
         assertUnauthorizedResponse(await requester
             .post(`/api/v1/dataset/345/widget/123/vocabulary`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 vocabulary1: {
                     tags: ['biology', 'chemistry'],
@@ -48,10 +50,11 @@ describe('Create multiple vocabulary for a widget', () => {
     });
 
     it('Creating a vocabulary-widget relationship while being authenticated as a USER should return a 403 Forbidden', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         assertForbiddenResponse(await requester
             .post(`/api/v1/dataset/345/widget/123/vocabulary`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 vocabulary1: {
                     tags: ['biology', 'chemistry'],
@@ -65,7 +68,7 @@ describe('Create multiple vocabulary for a widget', () => {
     });
 
     it('Creating a vocabulary-widget relationship while being authenticated as a MANAGER that does not own the resource should return a 403 Forbidden', async () => {
-        mockGetUserFromToken(USERS.MANAGER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
         const mockWidgetId = mockWidget().id;
 
         const vocabData = {
@@ -82,11 +85,12 @@ describe('Create multiple vocabulary for a widget', () => {
         assertForbiddenResponse(await requester
             .post(`/api/v1/dataset/345/widget/${mockWidgetId}/vocabulary`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData));
     });
 
     it('Creating a vocabulary-widget relationship while being authenticated as a MANAGER that owns the resource should return a 200', async () => {
-        mockGetUserFromToken(USERS.MANAGER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
         const mockWidgetId = mockWidget(null, { userId: USERS.MANAGER.id }).id;
 
         const vocabData = {
@@ -103,6 +107,7 @@ describe('Create multiple vocabulary for a widget', () => {
         const response = await requester
             .post(`/api/v1/dataset/345/widget/${mockWidgetId}/vocabulary`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         assertOKResponse(response);
@@ -111,7 +116,7 @@ describe('Create multiple vocabulary for a widget', () => {
     });
 
     it('Creating a vocabulary-widget relationship while being authenticated as a MANAGER that owns the resource but does not belong to the same application as the resource should return a 403 Forbidden', async () => {
-        mockGetUserFromToken(USERS.MANAGER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
         const mockWidgetId = mockWidget(null, { userId: USERS.MANAGER.id, application: ['fake'] }).id;
 
         const vocabData = {
@@ -128,13 +133,14 @@ describe('Create multiple vocabulary for a widget', () => {
         const response = await requester
             .post(`/api/v1/dataset/345/widget/${mockWidgetId}/vocabulary`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         assertForbiddenResponse(response);
     });
 
     it('Creating a vocabulary-widget relationship for a different app while being authenticated as a MANAGER that owns the resource should return a 200', async () => {
-        mockGetUserFromToken(USERS.MANAGER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
         const mockWidgetId = mockWidget(null, { userId: USERS.MANAGER.id }).id;
 
         const vocabData = {
@@ -151,6 +157,7 @@ describe('Create multiple vocabulary for a widget', () => {
         const response = await requester
             .post(`/api/v1/dataset/345/widget/${mockWidgetId}/vocabulary`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         assertOKResponse(response);
@@ -159,7 +166,7 @@ describe('Create multiple vocabulary for a widget', () => {
     });
 
     it('Creating a vocabulary-widget relationship while being authenticated as an ADMIN should return 200 OK and created data', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
         const mockWidgetId = mockWidget().id;
 
         const vocabData = {
@@ -177,6 +184,7 @@ describe('Create multiple vocabulary for a widget', () => {
         const response = await requester
             .post(`/api/v1/dataset/345/widget/${mockWidgetId}/vocabulary`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         assertOKResponse(response);

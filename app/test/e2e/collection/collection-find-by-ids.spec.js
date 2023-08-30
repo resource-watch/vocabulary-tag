@@ -2,7 +2,7 @@ const nock = require('nock');
 const chai = require('chai');
 const Collection = require('models/collection.model');
 const mongoose = require('mongoose');
-const { createCollection } = require('../utils/helpers');
+const { createCollection, mockValidateRequestWithApiKey } = require('../utils/helpers');
 
 const { getTestServer } = require('../utils/test-server');
 
@@ -31,8 +31,11 @@ describe('Find collections by IDs', () => {
     });
 
     it('Find collections without ids or userId in body returns a 400 error', async () => {
+        mockValidateRequestWithApiKey({});
+
         const response = await requester
             .post(`/api/v1/collection/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
             .send({});
 
         response.status.should.equal(400);
@@ -41,8 +44,10 @@ describe('Find collections by IDs', () => {
     });
 
     it('Find collections with empty id list returns a 400 error', async () => {
+        mockValidateRequestWithApiKey({});
         const response = await requester
             .post(`/api/v1/collection/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 ids: [],
                 userId: mongoose.Types.ObjectId()
@@ -54,8 +59,10 @@ describe('Find collections by IDs', () => {
     });
 
     it('Find collections with id list containing an invalid collection id that does not exist returns an empty list (empty db)', async () => {
+        mockValidateRequestWithApiKey({});
         const response = await requester
             .post(`/api/v1/collection/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 ids: ['abcd'],
                 userId: mongoose.Types.ObjectId()
@@ -66,8 +73,10 @@ describe('Find collections by IDs', () => {
     });
 
     it('Find collections with id list containing a valid id that does not exist returns an empty list (empty db)', async () => {
+        mockValidateRequestWithApiKey({});
         const response = await requester
             .post(`/api/v1/collection/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 ids: [mongoose.Types.ObjectId()],
                 userId: mongoose.Types.ObjectId()
@@ -78,11 +87,13 @@ describe('Find collections by IDs', () => {
     });
 
     it('Find collections with matching id list but different user id returns an empty list', async () => {
+        mockValidateRequestWithApiKey({});
         const collectionOne = await new Collection(createCollection({ application: 'rw' })).save();
         await new Collection(createCollection({ application: 'gfw' })).save();
 
         const response = await requester
             .post(`/api/v1/collection/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 ids: [collectionOne.id],
                 userId: mongoose.Types.ObjectId()
@@ -93,11 +104,13 @@ describe('Find collections by IDs', () => {
     });
 
     it('Find collections with id string for a collections that exists and a matching userId returns the collections that match user and id list - single result (happy case)', async () => {
+        mockValidateRequestWithApiKey({});
         const collectionOne = await new Collection(createCollection({ application: 'rw' })).save();
         await new Collection(createCollection({ application: 'gfw' })).save();
 
         const response = await requester
             .post(`/api/v1/collection/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 ids: collectionOne.id,
                 userId: collectionOne.ownerId
@@ -117,11 +130,13 @@ describe('Find collections by IDs', () => {
     });
 
     it('Find collections with id list containing a collections that exists and a matching userId returns the collections that match user and id list - single result (happy case)', async () => {
+        mockValidateRequestWithApiKey({});
         const collectionOne = await new Collection(createCollection({ application: 'rw' })).save();
         await new Collection(createCollection({ application: 'gfw' })).save();
 
         const response = await requester
             .post(`/api/v1/collection/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 ids: [collectionOne.id],
                 userId: collectionOne.ownerId
@@ -141,6 +156,7 @@ describe('Find collections by IDs', () => {
     });
 
     it('Find collections with id list containing a collections that exists and a matching userId returns the collections that match user and id list - multiple result (happy case)', async () => {
+        mockValidateRequestWithApiKey({});
         const userId = mongoose.Types.ObjectId();
 
         const collectionOne = await new Collection(createCollection({ application: 'rw', ownerId: userId })).save();
@@ -148,6 +164,7 @@ describe('Find collections by IDs', () => {
 
         const response = await requester
             .post(`/api/v1/collection/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 ids: [collectionOne.id, collectionTwo.id],
                 userId: collectionOne.ownerId
@@ -180,6 +197,7 @@ describe('Find collections by IDs', () => {
     });
 
     it('Find collections with id list containing a collections that exists and a matching userId doesn\'t return the collections that don\'t match user id', async () => {
+        mockValidateRequestWithApiKey({});
         const userId = mongoose.Types.ObjectId();
 
         const collectionOne = await new Collection(createCollection({ application: 'rw', ownerId: userId })).save();
@@ -191,6 +209,7 @@ describe('Find collections by IDs', () => {
 
         const response = await requester
             .post(`/api/v1/collection/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 ids: [collectionOne.id, collectionTwo.id, collectionThree.id],
                 userId: collectionOne.ownerId
@@ -223,11 +242,13 @@ describe('Find collections by IDs', () => {
     });
 
     it('Find collections with id list containing collections that exist returns the listed collections (query param is ignored)', async () => {
+        mockValidateRequestWithApiKey({});
         const collectionOne = await new Collection(createCollection({ application: 'rw' })).save();
         const collectionTwo = await new Collection(createCollection({ application: 'gfw' })).save();
 
         const response = await requester
             .post(`/api/v1/collection/find-by-ids?ids=${collectionTwo.id}`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 ids: [collectionOne.id],
                 userId: collectionOne.ownerId
@@ -247,15 +268,19 @@ describe('Find collections by IDs', () => {
     });
 
     it('Find collections with id list allows filtering by application using a query parameter, returning the listed collections', async () => {
+        mockValidateRequestWithApiKey({});
+        mockValidateRequestWithApiKey({});
         const userId = mongoose.Types.ObjectId();
 
         const collectionOne = await new Collection(createCollection({ application: 'rw', ownerId: userId })).save();
         const collectionTwo = await new Collection(createCollection({ application: 'gfw', ownerId: userId })).save();
 
-        const response = await requester.post(`/api/v1/collection/find-by-ids`).send({
-            ids: [collectionOne.id, collectionTwo.id],
-            userId,
-        });
+        const response = await requester.post(`/api/v1/collection/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
+            .send({
+                ids: [collectionOne.id, collectionTwo.id],
+                userId,
+            });
 
         assertValidFindByIdsResponse(response, [
             {
@@ -282,10 +307,13 @@ describe('Find collections by IDs', () => {
             }
         ]);
 
-        const response2 = await requester.post(`/api/v1/collection/find-by-ids?application=rw`).send({
-            ids: [collectionOne.id, collectionTwo.id],
-            userId,
-        });
+        const response2 = await requester
+            .post(`/api/v1/collection/find-by-ids?application=rw`)
+            .set('x-api-key', 'api-key-test')
+            .send({
+                ids: [collectionOne.id, collectionTwo.id],
+                userId,
+            });
 
         assertValidFindByIdsResponse(response2, [{
             id: collectionOne.id,

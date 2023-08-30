@@ -4,7 +4,7 @@ const Resource = require('models/resource.model');
 const Vocabulary = require('models/vocabulary.model');
 
 const { USERS } = require('../utils/test.constants');
-const { assertOKResponse, createResource, mockGetUserFromToken } = require('../utils/helpers');
+const { assertOKResponse, createResource, mockValidateRequestWithApiKeyAndUserToken, mockValidateRequestWithApiKey } = require('../utils/helpers');
 const { getTestServer } = require('../utils/test-server');
 
 chai.should();
@@ -27,19 +27,23 @@ describe('Get all dataset vocabulary', () => {
     });
 
     it('Getting vocabulary-dataset relationships without any data in the DB should return an empty array', async () => {
-        const response = await requester.get(`/api/v1/dataset/123/vocabulary`).send();
+        mockValidateRequestWithApiKey({});
+        const response = await requester
+            .get(`/api/v1/dataset/123/vocabulary`)
+            .set('x-api-key', 'api-key-test').send();
 
         assertOKResponse(response);
         response.body.data.should.be.an('array').and.length(0);
     });
 
     it('Getting vocabulary-dataset relationships returns 200 OK with the requested data - single vocabulary', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const resource = await (new Resource(createResource())).save();
 
         const response = await requester
             .get(`/api/v1/dataset/${resource.dataset}/vocabulary`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({});
 
         assertOKResponse(response);
@@ -52,12 +56,13 @@ describe('Get all dataset vocabulary', () => {
     });
 
     it('Getting vocabulary-dataset relationships returns 200 OK with the requested data - multiple vocabulary', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const resource = await (new Resource(createResource('rw', 4))).save();
 
         const response = await requester
             .get(`/api/v1/dataset/${resource.dataset}/vocabulary`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({});
 
         assertOKResponse(response);

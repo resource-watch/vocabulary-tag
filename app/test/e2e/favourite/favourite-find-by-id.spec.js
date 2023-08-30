@@ -5,7 +5,7 @@ const Favourite = require('models/favourite.model');
 const {
     ensureCorrectError,
     createFavourite,
-    mockGetUserFromToken,
+    mockValidateRequestWithApiKeyAndUserToken, mockValidateRequestWithApiKey,
 } = require('../utils/helpers');
 const { USERS } = require('../utils/test.constants');
 
@@ -30,22 +30,25 @@ describe('Find collections by IDs', () => {
     });
 
     it('Find favourite by id without authenticated user returns a 401 error', async () => {
+        mockValidateRequestWithApiKey({});
         const favourite = await (new Favourite(createFavourite({ userId: USERS.USER.id }))).save();
 
         const response = await requester
-            .get(`/api/v1/favourite/${favourite.id}`);
+            .get(`/api/v1/favourite/${favourite.id}`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(401);
         ensureCorrectError(response.body, 'Unauthorized');
     });
 
     it('Find favourite by id being authenticated returns favourite data', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const favourite = await (new Favourite(createFavourite({ userId: USERS.USER.id }))).save();
 
         const response = await requester
             .get(`/api/v1/favourite/${favourite._id.toString()}`)
-            .set('Authorization', `Bearer abcd`);
+            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(200);
         response.body.data.attributes.application.should.equal(favourite.application);
@@ -54,12 +57,13 @@ describe('Find collections by IDs', () => {
     });
 
     it('Find favourite by id containing a valid id that does not exist returns a 404', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const fakeFavouriteId = mongoose.Types.ObjectId();
 
         const response = await requester
             .get(`/api/v1/favourite/${fakeFavouriteId}`)
-            .set('Authorization', `Bearer abcd`);
+            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(404);
         ensureCorrectError(response.body, 'Favourite not found');

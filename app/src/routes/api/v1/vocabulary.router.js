@@ -96,7 +96,7 @@ class VocabularyRouter {
             relationshipQuery.env = ctx.query.env;
         }
 
-        vocabularies = await RelationshipService.getRelationships(vocabularies, relationshipQuery);
+        vocabularies = await RelationshipService.getRelationships(vocabularies, ctx.request.headers['x-api-key'], relationshipQuery);
 
         ctx.set('cache', 'vocabulary');
         ctx.body = VocabularySerializer.serialize(vocabularies);
@@ -114,7 +114,7 @@ class VocabularyRouter {
             relationshipQuery.env = ctx.query.env;
         }
 
-        vocabulary = await RelationshipService.getRelationships([vocabulary], relationshipQuery);
+        vocabulary = await RelationshipService.getRelationships([vocabulary], ctx.request.headers['x-api-key'], relationshipQuery);
 
         ctx.set('cache', `${vocabularyDefinition.name} ${vocabulary.id}`);
         ctx.body = VocabularySerializer.serialize(vocabulary);
@@ -131,7 +131,7 @@ class VocabularyRouter {
             env: ctx.query.env ? ctx.query.env : 'production'
         };
 
-        const result = await RelationshipService.getRelationships([vocabulary], relationshipQuery);
+        const result = await RelationshipService.getRelationships([vocabulary], ctx.request.headers['x-api-key'], relationshipQuery);
         ctx.body = VocabularySerializer.serializeTags(result);
     }
 
@@ -175,7 +175,7 @@ class VocabularyRouter {
         const { body } = ctx.request;
         logger.info(`Creating relationship between vocabulary: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
         try {
-            const result = await RelationshipService.create(vocabulary, dataset, resource, body);
+            const result = await RelationshipService.create(vocabulary, dataset, resource, body, ctx.request.headers['x-api-key']);
             ctx.set('uncache', `vocabulary ${resource.id}-vocabulary ${resource.id}-vocabulary-all ${vocabulary.name}`);
             ctx.body = ResourceSerializer.serialize(result);
         } catch (err) {
@@ -205,7 +205,7 @@ class VocabularyRouter {
             logger.info(`Creating relationships between vocabulary: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
         });
         try {
-            const result = await RelationshipService.createSome(vocabularies, dataset, resource);
+            const result = await RelationshipService.createSome(vocabularies, dataset, resource, ctx.request.headers['x-api-key']);
             ctx.set('uncache', `vocabulary ${resource.id}-vocabulary ${resource.id}-vocabulary-all ${vocabularies.map((el) => `${el.name}`).join(' ')}`);
             ctx.body = ResourceSerializer.serialize(result);
         } catch (err) {
@@ -223,7 +223,7 @@ class VocabularyRouter {
         const { body } = ctx.request;
         logger.info(`Deleting All Vocabularies of resource: ${resource.type} - ${resource.id}`);
         try {
-            const result = await RelationshipService.deleteAll(dataset, resource);
+            const result = await RelationshipService.deleteAll(dataset, resource, ctx.request.headers['x-api-key']);
             ctx.body = ResourceSerializer.serialize(result);
         } catch (err) {
             if (err instanceof VocabularyNotFound || err instanceof ResourceNotFound) {
@@ -250,7 +250,7 @@ class VocabularyRouter {
             logger.info(`Creating relationships between vocabulary: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
         });
         try {
-            const result = await RelationshipService.createSome(vocabularies, dataset, resource);
+            const result = await RelationshipService.createSome(vocabularies, dataset, resource, ctx.request.headers['x-api-key']);
             ctx.set('uncache', `vocabulary ${resource.id}-vocabulary ${resource.id}-vocabulary-all ${vocabularies.map((el) => `${el.name}`).join(' ')}`);
             ctx.body = ResourceSerializer.serialize(result);
         } catch (err) {
@@ -269,7 +269,7 @@ class VocabularyRouter {
         const resource = VocabularyRouter.getResource(ctx.params);
         logger.info(`Deleting Relationship between: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
         try {
-            const result = await RelationshipService.delete(vocabulary, dataset, resource);
+            const result = await RelationshipService.delete(vocabulary, dataset, resource, ctx.request.headers['x-api-key']);
             ctx.set('uncache', `vocabulary ${resource.id}-vocabulary ${resource.id}-vocabulary-all ${vocabulary.name}`);
             ctx.body = ResourceSerializer.serialize(result);
         } catch (err) {
@@ -286,7 +286,7 @@ class VocabularyRouter {
         const resource = VocabularyRouter.getResource(ctx.params);
         logger.info(`Deleting All Vocabularies of resource: ${resource.type} - ${resource.id}`);
         try {
-            const result = await RelationshipService.deleteAll(dataset, resource);
+            const result = await RelationshipService.deleteAll(dataset, resource, ctx.request.headers['x-api-key']);
             logger.debug(result);
             ctx.set('uncache', `vocabulary ${resource.id}-vocabulary ${resource.id}-vocabulary-all ${result.vocabularies.map((el) => `${el.id}`).join(' ')}`);
             ctx.body = ResourceSerializer.serialize(result);
@@ -307,7 +307,7 @@ class VocabularyRouter {
         const { body } = ctx.request;
         logger.info(`Updating tags of relationship: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
         try {
-            const result = await RelationshipService.updateTagsFromRelationship(vocabulary, dataset, resource, body);
+            const result = await RelationshipService.updateTagsFromRelationship(vocabulary, dataset, resource, body, ctx.request.headers['x-api-key']);
             ctx.set('uncache', `vocabulary ${resource.id}-vocabulary ${resource.id}-vocabulary-all ${vocabulary.name}`);
             ctx.body = ResourceSerializer.serialize(result);
         } catch (err) {
@@ -327,7 +327,7 @@ class VocabularyRouter {
         const { body } = ctx.request;
         logger.info(`Conacatenating more tags in relationship: ${vocabulary.name} and resource: ${resource.type} - ${resource.id}`);
         try {
-            const result = await RelationshipService.concatTags(vocabulary, dataset, resource, body);
+            const result = await RelationshipService.concatTags(vocabulary, dataset, resource, body, ctx.request.headers['x-api-key']);
             ctx.set('uncache', `vocabulary ${resource.id}-vocabulary ${resource.id}-vocabulary-all ${vocabulary.name}`);
             ctx.body = ResourceSerializer.serialize(result);
         } catch (err) {
@@ -346,7 +346,7 @@ class VocabularyRouter {
         const { newDataset } = body;
         logger.info(`Cloning relationships: of resource ${resource.type} - ${resource.id} in ${newDataset}`);
         try {
-            const result = await RelationshipService.cloneVocabularyTags(dataset, resource, body);
+            const result = await RelationshipService.cloneVocabularyTags(dataset, resource, body, ctx.request.headers['x-api-key']);
             ctx.set('uncache', `vocabulary ${resource.id}-vocabulary ${resource.id}-vocabulary-all`);
             ctx.body = ResourceSerializer.serialize(result);
         } catch (err) {
@@ -378,7 +378,7 @@ const relationshipAuthorizationMiddleware = async (ctx, next) => {
     }
     if (user.role === 'MANAGER' || user.role === 'ADMIN') {
         const resource = VocabularyRouter.getResource(ctx.params);
-        const permission = await ResourceService.hasPermission(user, ctx.params.dataset, resource);
+        const permission = await ResourceService.hasPermission(user, ctx.params.dataset, resource, ctx.request.headers['x-api-key']);
         if (!permission) {
             ctx.throw(403, 'Forbidden');
             return;

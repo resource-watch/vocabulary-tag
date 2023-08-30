@@ -9,7 +9,7 @@ const {
     mockWidget,
     assertUnauthorizedResponse,
     assertForbiddenResponse,
-    mockGetUserFromToken
+    mockValidateRequestWithApiKeyAndUserToken, mockValidateRequestWithApiKey
 } = require('../utils/helpers');
 const { getTestServer } = require('../utils/test-server');
 
@@ -33,7 +33,8 @@ describe('Delete widget vocabulary', () => {
     });
 
     it('Deleting a vocabulary-widget relationship while not being authenticated should return a 401', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKey({});
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
         // Mock the request for widget validation
         const mockWidgetId = mockWidget().id;
 
@@ -44,19 +45,21 @@ describe('Delete widget vocabulary', () => {
         // Perform POST request for creating the vocabulary-widget relationship
         await requester.post(`/api/v1/dataset/321/widget/${mockWidgetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         // Perform DELETE request for deleting the vocabulary-widget relationship
         const response = await requester
             .delete(`/api/v1/dataset/321/widget/${mockWidgetId}/vocabulary/${vocabName}`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         assertUnauthorizedResponse(response);
     });
 
     it('Deleting a vocabulary-widget relationship while being authenticated as an USER should return a 403', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         // Mock the request for widget validation
         const mockWidgetId = mockWidget().id;
 
@@ -68,20 +71,22 @@ describe('Delete widget vocabulary', () => {
         await requester
             .post(`/api/v1/dataset/321/widget/${mockWidgetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         // Perform DELETE request for deleting the vocabulary-widget relationship
         const response = await requester
             .delete(`/api/v1/dataset/321/widget/${mockWidgetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         assertForbiddenResponse(response);
     });
 
     it('Deleting a vocabulary-widget relationship while being authenticated as a MANAGER that does not own the resource should return a 403', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
-        mockGetUserFromToken(USERS.MANAGER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
         // Mock the request for widget validation
         const mockWidgetId = mockWidget().id;
 
@@ -92,6 +97,7 @@ describe('Delete widget vocabulary', () => {
         // Perform POST request for creating the vocabulary-widget relationship
         await requester.post(`/api/v1/dataset/321/widget/${mockWidgetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         // Mock the request for widget validation
@@ -101,14 +107,15 @@ describe('Delete widget vocabulary', () => {
         const response = await requester
             .delete(`/api/v1/dataset/321/widget/${mockWidgetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         assertForbiddenResponse(response);
     });
 
     it('Deleting a vocabulary-widget relationship while being authenticated as a MANAGER that owns the resource should return a 200', async () => {
-        mockGetUserFromToken(USERS.MANAGER);
-        mockGetUserFromToken(USERS.MANAGER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
         // Mock the request for widget validation
         const mockWidgetId = mockWidget(null, { userId: USERS.MANAGER.id }).id;
 
@@ -119,6 +126,7 @@ describe('Delete widget vocabulary', () => {
         // Perform POST request for creating the vocabulary-widget relationship
         await requester.post(`/api/v1/dataset/321/widget/${mockWidgetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         // Mock the request for widget validation
@@ -128,14 +136,15 @@ describe('Delete widget vocabulary', () => {
         const response = await requester
             .delete(`/api/v1/dataset/321/widget/${mockWidgetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         assertOKResponse(response);
     });
 
     it('Deleting a vocabulary-widget relationship while being authenticated as an ADMIN returns 200 OK', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
         // Mock the request for widget validation
         const mockWidgetId = mockWidget().id;
 
@@ -146,6 +155,7 @@ describe('Delete widget vocabulary', () => {
         // Perform POST request for creating the vocabulary-widget relationship
         await requester.post(`/api/v1/dataset/321/widget/${mockWidgetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         // Mock the request for widget validation
@@ -155,6 +165,7 @@ describe('Delete widget vocabulary', () => {
         const response = await requester
             .delete(`/api/v1/dataset/321/widget/${mockWidgetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         assertOKResponse(response);

@@ -49,7 +49,9 @@ class FavouriteRouter {
                     const datasetResources = await RWAPIMicroservice.requestToMicroservice({
                         uri: `/v1/dataset?ids=${datasets.join(',')}`,
                         method: 'GET',
-                        json: true
+                        headers: {
+                            'x-api-key': ctx.request.headers['x-api-key']
+                        }
                     });
                     for (let i = 0, { length } = datasetResources.data; i < length; i++) {
                         const dataset = datasetResources.data[i];
@@ -68,7 +70,9 @@ class FavouriteRouter {
                     const widgetResources = await RWAPIMicroservice.requestToMicroservice({
                         uri: `/v1/widget?ids=${widgets.join(',')}`,
                         method: 'GET',
-                        json: true
+                        headers: {
+                            'x-api-key': ctx.request.headers['x-api-key']
+                        }
                     });
                     logger.info('Obtained', widgetResources);
                     for (let i = 0, { length } = widgetResources.data; i < length; i++) {
@@ -90,7 +94,9 @@ class FavouriteRouter {
                             const layerResource = await RWAPIMicroservice.requestToMicroservice({
                                 uri: `/v1/layer/${layers[i]}`,
                                 method: 'GET',
-                                json: true
+                                headers: {
+                                    'x-api-key': ctx.request.headers['x-api-key']
+                                }
                             });
                             for (let j = 0, lengthData = data.length; j < lengthData; j++) {
                                 if (data[j].resourceType === 'layer' && data[j].resourceId === layers[i]) {
@@ -151,7 +157,9 @@ class FavouriteRouter {
             await RWAPIMicroservice.requestToMicroservice({
                 uri: `/v1/graph/favourite/${ctx.request.body.resourceType}/${ctx.request.body.resourceId}/${ctx.request.body.loggedUser.id}`,
                 method: 'POST',
-                json: true
+                headers: {
+                    'x-api-key': ctx.request.headers['x-api-key']
+                }
             });
         } catch (err) {
             logger.error(err);
@@ -162,7 +170,7 @@ class FavouriteRouter {
     static async delete(ctx) {
         logger.info('Deleting favourite with id ', ctx.params.id);
         ctx.assert(ctx.params.id.length === 24, 400, 'Id not valid');
-        await GraphService.removeFromGraph(ctx.state.fav);
+        await GraphService.removeFromGraph(ctx.state.fav, ctx.request.headers['x-api-key']);
         await ctx.state.fav.remove();
         ctx.body = FavouriteSerializer.serialize(ctx.state.fav);
     }
@@ -171,7 +179,7 @@ class FavouriteRouter {
         const userIdToDelete = ctx.params.userId;
 
         try {
-            await UserService.getUserById(userIdToDelete);
+            await UserService.getUserById(userIdToDelete, ctx.request.headers['x-api-key']);
         } catch (error) {
             ctx.throw(404, `User ${userIdToDelete} does not exist`);
         }
@@ -183,7 +191,7 @@ class FavouriteRouter {
                 for (let i = 0, { length } = userFavourites; i < length; i++) {
                     const currentFavourite = userFavourites[i];
 
-                    await GraphService.removeFromGraph(currentFavourite);
+                    await GraphService.removeFromGraph(currentFavourite, ctx.request.headers['x-api-key']);
 
                     logger.info(`[DBACCESS-DELETE]: favourite.id: ${currentFavourite._id}`);
                     await currentFavourite.remove();

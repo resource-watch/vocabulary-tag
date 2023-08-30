@@ -3,7 +3,7 @@ const chai = require('chai');
 const mongoose = require('mongoose');
 const Collection = require('models/collection.model');
 const { USERS } = require('../utils/test.constants');
-const { createCollection, mockGetUserFromToken, ensureCorrectError } = require('../utils/helpers');
+const { createCollection, mockValidateRequestWithApiKeyAndUserToken, ensureCorrectError, mockValidateRequestWithApiKey } = require('../utils/helpers');
 
 const { getTestServer } = require('../utils/test-server');
 
@@ -26,32 +26,36 @@ describe('Delete collections', () => {
     });
 
     it('Deleting a collection while not being authenticated should return a 401', async () => {
+        mockValidateRequestWithApiKey({});
+
         const collection = await new Collection(createCollection({
             application: 'rw',
             ownerId: USERS.USER.id
         })).save();
 
         const response = await requester
-            .delete(`/api/v1/collection/${collection._id}`);
+            .delete(`/api/v1/collection/${collection._id}`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(401);
         ensureCorrectError(response.body, 'Unauthorized');
     });
 
     it('Deleting a collection with valid id that does not exists while authenticated should return a 404', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const fakeUUID = mongoose.Types.ObjectId();
 
         const response = await requester
             .delete(`/api/v1/collection/${fakeUUID}`)
-            .set('Authorization', `Bearer abcd`);
+            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(404);
         ensureCorrectError(response.body, 'Collection not found');
     });
 
     it('Deleting a collection as USER should return 200 and data from deleted fav', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
         const collectionOne = await new Collection(createCollection({
             application: 'rw',
             ownerId: USERS.USER.id
@@ -61,7 +65,8 @@ describe('Delete collections', () => {
 
         const response = await requester
             .delete(`/api/v1/collection/${collectionOne._id}`)
-            .set('Authorization', `Bearer abcd`);
+            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(200);
         response.body.data.id.should.equal(collectionOne._id.toString());
@@ -79,7 +84,7 @@ describe('Delete collections', () => {
     });
 
     it('Deleting a favourite as ADMIN should return 200 and data from deleted fav', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
         const collectionOne = await new Collection(createCollection({
             application: 'rw',
             ownerId: USERS.USER.id
@@ -89,7 +94,8 @@ describe('Delete collections', () => {
 
         const response = await requester
             .delete(`/api/v1/collection/${collectionOne._id}`)
-            .set('Authorization', `Bearer abcd`);
+            .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test');
 
         response.status.should.equal(200);
         response.body.data.id.should.equal(collectionOne._id.toString());

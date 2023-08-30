@@ -9,7 +9,7 @@ const {
     mockDataset,
     assertForbiddenResponse,
     assertUnauthorizedResponse,
-    mockGetUserFromToken
+    mockValidateRequestWithApiKeyAndUserToken, mockValidateRequestWithApiKey
 } = require('../utils/helpers');
 const { getTestServer } = require('../utils/test-server');
 
@@ -33,7 +33,8 @@ describe('Update dataset vocabulary', () => {
     });
 
     it('Updating a vocabulary-dataset relationship while not being authenticated should return a 401', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKey({});
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
         // Mock the request for dataset validation
         const mockDatasetId = mockDataset().id;
         const vocabName = 'fruits';
@@ -43,19 +44,21 @@ describe('Update dataset vocabulary', () => {
         // Test creation of vocabulary associated with the mock dataset
         await requester.post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         // Test the update of vocabulary associated with the mock dataset
         const response = await requester
             .patch(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData2);
 
         assertUnauthorizedResponse(response);
     });
 
     it('Updating a vocabulary-dataset relationship while being authenticated as a USER should return a 403', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         // Mock the request for dataset validation
         const mockDatasetId = mockDataset().id;
         const vocabName = 'fruits';
@@ -65,20 +68,22 @@ describe('Update dataset vocabulary', () => {
         // Test creation of vocabulary associated with the mock dataset
         await requester.post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         // Test the update of vocabulary associated with the mock dataset
         const response = await requester
             .patch(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData2);
 
         assertForbiddenResponse(response);
     });
 
     it('Updating a vocabulary-dataset relationship while being authenticated as a MANAGER that does not own the resource should return a 403', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
-        mockGetUserFromToken(USERS.MANAGER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
         // Mock the request for dataset validation
         const mockDatasetId = mockDataset().id;
         const vocabName = 'fruits';
@@ -88,6 +93,7 @@ describe('Update dataset vocabulary', () => {
         // Test creation of vocabulary associated with the mock dataset
         await requester.post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         // Mock again the request for dataset validation
@@ -97,14 +103,15 @@ describe('Update dataset vocabulary', () => {
         const response = await requester
             .patch(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData2);
 
         assertForbiddenResponse(response);
     });
 
     it('Updating a vocabulary-dataset relationship while being authenticated as a MANAGER that does owns the resource should return a 200 OK and updated data', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
-        mockGetUserFromToken(USERS.MANAGER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.MANAGER });
         // Mock the request for dataset validation
         const mockDatasetId = mockDataset(null, { userId: USERS.MANAGER.id }).id;
         const vocabName = 'fruits';
@@ -114,6 +121,7 @@ describe('Update dataset vocabulary', () => {
         // Test creation of vocabulary associated with the mock dataset
         await requester.post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         // Mock again the request for dataset validation
@@ -123,6 +131,7 @@ describe('Update dataset vocabulary', () => {
         const response = await requester
             .patch(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData2);
 
         assertOKResponse(response);
@@ -132,8 +141,8 @@ describe('Update dataset vocabulary', () => {
     });
 
     it('Updating a vocabulary-dataset relationship while being authenticated as an ADMIN should return a 200 OK and updated data', async () => {
-        mockGetUserFromToken(USERS.ADMIN);
-        mockGetUserFromToken(USERS.ADMIN);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.ADMIN });
         // Mock the request for dataset validation
         const mockDatasetId = mockDataset().id;
         const vocabName = 'fruits';
@@ -143,6 +152,7 @@ describe('Update dataset vocabulary', () => {
         // Test creation of vocabulary associated with the mock dataset
         await requester.post(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData);
 
         // Mock again the request for dataset validation
@@ -152,6 +162,7 @@ describe('Update dataset vocabulary', () => {
         const response = await requester
             .patch(`/api/v1/dataset/${mockDatasetId}/vocabulary/${vocabName}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send(vocabData2);
 
         assertOKResponse(response);

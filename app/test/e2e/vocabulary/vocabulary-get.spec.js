@@ -5,12 +5,12 @@ const Vocabulary = require('models/vocabulary.model');
 
 const {
     assertOKResponse,
-    mockGetUserFromToken,
+    mockValidateRequestWithApiKeyAndUserToken,
     createVocabulary,
     mockFindDatasetById,
     mockFindWidgetById,
     mockFindLayerById,
-    mockDatasetStructure
+    mockDatasetStructure, mockValidateRequestWithApiKey
 } = require('../utils/helpers');
 const { USERS } = require('../utils/test.constants');
 
@@ -36,6 +36,7 @@ describe('Find all resources for all vocabularies', () => {
     });
 
     it('Finding all resources for all vocabularies without query params or being authenticated should return a 200 OK and a data array', async () => {
+        mockValidateRequestWithApiKey({});
         const vocabularyOne = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
         const vocabularyTwo = await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
 
@@ -50,6 +51,7 @@ describe('Find all resources for all vocabularies', () => {
 
         const response = await requester
             .get(`/api/v1/vocabulary`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         assertOKResponse(response, 2);
@@ -70,7 +72,7 @@ describe('Find all resources for all vocabularies', () => {
     it('Finding all resources for all vocabularies without query params while being authenticated should return a 200 OK and a data array', async () => {
         const vocabularyOne = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
         const vocabularyTwo = await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         mockFindDatasetById(
             [vocabularyOne.resources[0].id, vocabularyTwo.resources[0].id],
@@ -84,6 +86,7 @@ describe('Find all resources for all vocabularies', () => {
         const response = await requester
             .get(`/api/v1/vocabulary`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         assertOKResponse(response, 2);
@@ -102,6 +105,7 @@ describe('Find all resources for all vocabularies', () => {
     });
 
     it('Finding all resources for all vocabularies without auth and with a set of query params returns 200 OK and a data array', async () => {
+        mockValidateRequestWithApiKey({});
         const vocabularyOne = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
         const vocabularyTwo = await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
 
@@ -116,6 +120,7 @@ describe('Find all resources for all vocabularies', () => {
 
         const response = await requester
             .get(`/api/v1/vocabulary`)
+            .set('x-api-key', 'api-key-test')
             .query({
                 foo: 'bar'
             })
@@ -139,7 +144,7 @@ describe('Find all resources for all vocabularies', () => {
     it('Finding all resources for all vocabularies with query params while being authenticated should return a 200 OK and a data array', async () => {
         const vocabularyOne = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
         const vocabularyTwo = await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         mockFindDatasetById(
             [vocabularyOne.resources[0].id, vocabularyTwo.resources[0].id],
@@ -155,6 +160,7 @@ describe('Find all resources for all vocabularies', () => {
                 foo: 'bar'
             })
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         assertOKResponse(response, 2);
@@ -175,7 +181,7 @@ describe('Find all resources for all vocabularies', () => {
     it('Finding all resources for all vocabularies with query params and env while being authenticated should return a 200 OK and a data array with part of resources', async () => {
         const vocabularyOne = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
         const vocabularyTwo = await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         mockFindDatasetById([vocabularyOne.resources[0].id, vocabularyTwo.resources[0].id], 'production');
 
@@ -185,6 +191,7 @@ describe('Find all resources for all vocabularies', () => {
                 env: 'production'
             })
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         assertOKResponse(response, 2);
@@ -205,7 +212,7 @@ describe('Find all resources for all vocabularies', () => {
     it('Finding all resources for all vocabularies with query params and env while being authenticated should return a 200 OK and a data array with empty resources', async () => {
         const vocabularyOne = await (new Vocabulary(createVocabulary({ id: 'abcd' }))).save();
         const vocabularyTwo = await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         mockFindDatasetById([vocabularyOne.resources[0].id, vocabularyTwo.resources[0].id], 'production', []);
 
@@ -215,6 +222,7 @@ describe('Find all resources for all vocabularies', () => {
                 env: 'production'
             })
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         assertOKResponse(response, 2);
@@ -273,7 +281,7 @@ describe('Find all resources for all vocabularies', () => {
         }))).save();
         const vocabularyTwo = await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
 
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         mockFindDatasetById([vocabularyOne.resources[0].id, vocabularyTwo.resources[0].id], 'production');
         mockFindWidgetById([vocabularyOne.resources[1].id], 'production');
@@ -285,6 +293,7 @@ describe('Find all resources for all vocabularies', () => {
                 env: 'production'
             })
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         assertOKResponse(response, 2);
@@ -371,7 +380,7 @@ describe('Find all resources for all vocabularies', () => {
         }))).save();
         const vocabularyTwo = await (new Vocabulary(createVocabulary({ id: 'efgh' }))).save();
 
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         mockFindDatasetById([vocabularyOne.resources[0].id, vocabularyTwo.resources[0].id], 'production,potato');
         mockFindWidgetById([vocabularyOne.resources[1].id], 'production,potato');
@@ -383,6 +392,7 @@ describe('Find all resources for all vocabularies', () => {
                 env: 'production,potato'
             })
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         assertOKResponse(response, 2);

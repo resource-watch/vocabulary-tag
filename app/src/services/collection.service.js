@@ -4,7 +4,7 @@ const { RWAPIMicroservice } = require('rw-api-microservice-node');
 
 class CollectionService {
 
-    static async getAll(user, query = {}) {
+    static async getAll(user, apiKey, query = {}) {
         logger.info(`[CollectionService - getAll]: Getting all collections`);
         const sort = query.sort || '';
         const page = query['page[number]'] ? parseInt(query['page[number]'], 10) : 1;
@@ -57,7 +57,9 @@ class CollectionService {
                     const getDatasetsResponse = await RWAPIMicroservice.requestToMicroservice({
                         uri: `/v1/dataset?ids=${datasetIds.join(',')}`,
                         method: 'GET',
-                        json: true
+                        headers: {
+                            'x-api-key': apiKey
+                        }
                     });
                     getDatasetsResponse.data.forEach((dataset) => {
                         datasets[dataset.id] = dataset;
@@ -75,7 +77,9 @@ class CollectionService {
                     const getWidgetsResponse = await RWAPIMicroservice.requestToMicroservice({
                         uri: `/v1/widget?ids=${widgetIds.join(',')}`,
                         method: 'GET',
-                        json: true
+                        headers: {
+                            'x-api-key': apiKey
+                        }
                     });
                     getWidgetsResponse.data.forEach((widget) => {
                         widgets[widget.id] = widget;
@@ -93,7 +97,9 @@ class CollectionService {
                     const getLayersPromises = layerIds.map((layerId) => RWAPIMicroservice.requestToMicroservice({
                         uri: `/v1/layer/${layerId}`,
                         method: 'GET',
-                        json: true
+                        headers: {
+                            'x-api-key': apiKey
+                        }
                     }));
 
                     const getLayersResponse = await Promise.all(getLayersPromises);

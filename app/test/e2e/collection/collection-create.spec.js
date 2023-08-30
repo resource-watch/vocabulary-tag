@@ -2,7 +2,12 @@ const nock = require('nock');
 const chai = require('chai');
 const Collection = require('models/collection.model');
 const { USERS } = require('../utils/test.constants');
-const { ensureCorrectError, mockGetUserFromToken, getUUID } = require('../utils/helpers');
+const {
+    ensureCorrectError,
+    mockValidateRequestWithApiKeyAndUserToken,
+    getUUID,
+    mockValidateRequestWithApiKey
+} = require('../utils/helpers');
 
 const { getTestServer } = require('../utils/test-server');
 
@@ -25,8 +30,10 @@ describe('Create collections', () => {
     });
 
     it('Create a collection without being authenticated should return a 401 error', async () => {
+        mockValidateRequestWithApiKey({});
         const response = await requester
             .post(`/api/v1/collection`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         response.status.should.equal(401);
@@ -34,11 +41,12 @@ describe('Create collections', () => {
     });
 
     it('Create a collection while being authenticated as a USER and the necessary body fields should return a 200 (happy case)', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         const response = await requester
             .post(`/api/v1/collection`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 name: 'collection',
                 application: 'rw'
@@ -51,11 +59,12 @@ describe('Create collections', () => {
     });
 
     it('Create a collection with a custom env field should return a 200 and save the correct env', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         const response = await requester
             .post(`/api/v1/collection`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 name: 'collection',
                 application: 'rw',
@@ -69,11 +78,12 @@ describe('Create collections', () => {
     });
 
     it('Create a collection with an invalid resource type should return a 400', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         const response = await requester
             .post(`/api/v1/collection`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 name: 'collection',
                 application: 'rw',
@@ -87,11 +97,12 @@ describe('Create collections', () => {
     });
 
     it('Create a collection with no resource id but valid resource type should return a 400', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
 
         const response = await requester
             .post(`/api/v1/collection`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 name: 'collection',
                 application: 'rw',

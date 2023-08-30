@@ -112,12 +112,14 @@ class ResourceService {
     /*
     * @returns: hasPermission: <Boolean>
     */
-    static async hasPermission(user, dataset, pResource) {
+    static async hasPermission(user, dataset, pResource, apiKey) {
         let permission = true;
         let resource = await RWAPIMicroservice.requestToMicroservice({
             uri: `/v1/${pResource.type}/${pResource.id}`,
             method: 'GET',
-            json: true
+            headers: {
+                'x-api-key': apiKey
+            }
         });
         resource = deserializer(resource);
         if (!resource) {

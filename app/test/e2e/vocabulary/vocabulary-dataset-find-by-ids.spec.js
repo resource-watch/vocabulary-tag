@@ -1,7 +1,7 @@
 const nock = require('nock');
 const chai = require('chai');
 const Resource = require('models/resource.model');
-const { createResource } = require('../utils/helpers');
+const { createResource, mockValidateRequestWithApiKey } = require('../utils/helpers');
 
 const { getTestServer } = require('../utils/test-server');
 
@@ -27,8 +27,10 @@ describe('Find dataset vocabularies by IDs', () => {
     });
 
     it('Find vocabularies without ids in body returns a 400 error', async () => {
+        mockValidateRequestWithApiKey({});
         const response = await requester
             .post(`/api/v1/dataset/vocabulary/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
             .send({});
 
         response.status.should.equal(400);
@@ -37,8 +39,10 @@ describe('Find dataset vocabularies by IDs', () => {
     });
 
     it('Find vocabularies with empty id list returns an empty list (empty db)', async () => {
+        mockValidateRequestWithApiKey({});
         const response = await requester
             .post(`/api/v1/dataset/vocabulary/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 ids: []
             });
@@ -48,8 +52,10 @@ describe('Find dataset vocabularies by IDs', () => {
     });
 
     it('Find vocabularies with id list containing vocabulary that does not exist returns an empty list (empty db)', async () => {
+        mockValidateRequestWithApiKey({});
         const response = await requester
             .post(`/api/v1/dataset/vocabulary/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 ids: ['abcd']
             });
@@ -59,11 +65,13 @@ describe('Find dataset vocabularies by IDs', () => {
     });
 
     it('Find vocabularies with id list containing a vocabulary that exists returns only the listed vocabulary', async () => {
+        mockValidateRequestWithApiKey({});
         resourceOne = await new Resource(createResource('rw', 3)).save();
         resourceTwo = await new Resource(createResource('gfw', 4)).save();
 
         const response = await requester
             .post(`/api/v1/dataset/vocabulary/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 ids: [resourceOne.id]
             });
@@ -92,11 +100,13 @@ describe('Find dataset vocabularies by IDs', () => {
     });
 
     it('Find vocabularies with id list containing vocabularies that exist returns the listed vocabularies', async () => {
+        mockValidateRequestWithApiKey({});
         resourceOne = await new Resource(createResource('rw', 3)).save();
         resourceTwo = await new Resource(createResource('gfw', 4)).save();
 
         const response = await requester
             .post(`/api/v1/dataset/vocabulary/find-by-ids`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 ids: [resourceOne.id, resourceTwo.id]
             });
@@ -144,11 +154,13 @@ describe('Find dataset vocabularies by IDs', () => {
     });
 
     it('Find vocabularies with id list containing vocabularies that exist returns the listed vocabularies (query param is ignored)', async () => {
+        mockValidateRequestWithApiKey({});
         resourceOne = await new Resource(createResource('rw', 3)).save();
         resourceTwo = await new Resource(createResource('gfw', 4)).save();
 
         const response = await requester
             .post(`/api/v1/dataset/vocabulary/find-by-ids?ids=${resourceTwo.id}`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 ids: [resourceOne.id]
             });

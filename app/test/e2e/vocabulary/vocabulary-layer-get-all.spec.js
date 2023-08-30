@@ -5,7 +5,7 @@ const Vocabulary = require('models/vocabulary.model');
 
 const { USERS } = require('../utils/test.constants');
 const {
-    assertOKResponse, createResource, getUUID, mockGetUserFromToken
+    assertOKResponse, createResource, getUUID, mockValidateRequestWithApiKeyAndUserToken, mockValidateRequestWithApiKey
 } = require('../utils/helpers');
 const { getTestServer } = require('../utils/test-server');
 
@@ -29,19 +29,24 @@ describe('Get all layer vocabulary', () => {
     });
 
     it('Getting vocabulary-layer relationships without any data in the DB should return an empty array', async () => {
-        const response = await requester.get(`/api/v1/dataset/345/layer/123/vocabulary`).send();
+        mockValidateRequestWithApiKey({});
+        const response = await requester
+            .get(`/api/v1/dataset/345/layer/123/vocabulary`)
+            .set('x-api-key', 'api-key-test')
+            .send();
 
         assertOKResponse(response);
         response.body.data.should.be.an('array').and.length(0);
     });
 
     it('Getting vocabulary-layer relationships returns 200 OK with the requested data - single vocabulary', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const resource = await (new Resource(createResource('rw', 1, 'layer', getUUID()))).save();
 
         const response = await requester
             .get(`/api/v1/dataset/${resource.dataset}/layer/${resource.id}/vocabulary`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({});
 
         assertOKResponse(response);
@@ -54,12 +59,13 @@ describe('Get all layer vocabulary', () => {
     });
 
     it('Getting vocabulary-layer relationships returns 200 OK with the requested data - multiple vocabulary', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const resource = await (new Resource(createResource('rw', 4, 'layer', getUUID()))).save();
 
         const response = await requester
             .get(`/api/v1/dataset/${resource.dataset}/layer/${resource.id}/vocabulary`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({});
 
         assertOKResponse(response);

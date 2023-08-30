@@ -4,9 +4,9 @@ const Favourite = require('models/favourite.model');
 const { USERS } = require('../utils/test.constants');
 const {
     ensureCorrectError,
-    mockGetUserFromToken,
+    mockValidateRequestWithApiKeyAndUserToken,
     mockAddFavouriteResourceToGraph,
-    getUUID,
+    getUUID, mockValidateRequestWithApiKey,
 } = require('../utils/helpers');
 
 const { getTestServer } = require('../utils/test-server');
@@ -30,8 +30,10 @@ describe('Create favourites', () => {
     });
 
     it('Create a favourite without being authenticated should return a 401 error', async () => {
+        mockValidateRequestWithApiKey({});
         const response = await requester
             .post(`/api/v1/collection`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         response.status.should.equal(401);
@@ -39,13 +41,14 @@ describe('Create favourites', () => {
     });
 
     it('Create a favourite for a dataset while being authenticated as a USER and the necessary body fields should return a 200 (happy case)', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const mockDatasetId = getUUID();
         mockAddFavouriteResourceToGraph('dataset', mockDatasetId, USERS.USER);
 
         const response = await requester
             .post(`/api/v1/favourite`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 application: 'rw',
                 resourceType: 'dataset',
@@ -59,13 +62,14 @@ describe('Create favourites', () => {
     });
 
     it('Create a favourite for a layer while being authenticated as a USER and the necessary body fields should return a 200 (happy case)', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const mockLayerId = getUUID();
         mockAddFavouriteResourceToGraph('layer', mockLayerId, USERS.USER);
 
         const response = await requester
             .post(`/api/v1/favourite`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 application: 'rw',
                 resourceType: 'layer',
@@ -79,13 +83,14 @@ describe('Create favourites', () => {
     });
 
     it('Create a favourite for a widget while being authenticated as a USER and the necessary body fields should return a 200 (happy case)', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const mockWidgetId = getUUID();
         mockAddFavouriteResourceToGraph('widget', mockWidgetId, USERS.USER);
 
         const response = await requester
             .post(`/api/v1/favourite`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 application: 'rw',
                 resourceType: 'widget',
@@ -99,12 +104,13 @@ describe('Create favourites', () => {
     });
 
     it('Create a favourite with an invalid resourceType should return a 400', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const mockWidgetId = getUUID();
 
         const response = await requester
             .post(`/api/v1/favourite`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 application: 'rw',
                 resourceType: 'potato',

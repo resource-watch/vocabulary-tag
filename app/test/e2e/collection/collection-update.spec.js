@@ -2,7 +2,7 @@ const nock = require('nock');
 const chai = require('chai');
 const Collection = require('models/collection.model');
 const { USERS } = require('../utils/test.constants');
-const { ensureCorrectError, mockGetUserFromToken, createCollection } = require('../utils/helpers');
+const { ensureCorrectError, mockValidateRequestWithApiKeyAndUserToken, createCollection, mockValidateRequestWithApiKey } = require('../utils/helpers');
 
 const { getTestServer } = require('../utils/test-server');
 
@@ -25,6 +25,7 @@ describe('Update collections', () => {
     });
 
     it('Update a collection without being authenticated should return a 401 error', async () => {
+        mockValidateRequestWithApiKey({});
         const collection = await new Collection(createCollection({
             application: 'rw',
             ownerId: USERS.USER.id
@@ -32,6 +33,7 @@ describe('Update collections', () => {
 
         const response = await requester
             .patch(`/api/v1/collection/${collection.id}`)
+            .set('x-api-key', 'api-key-test')
             .send();
 
         response.status.should.equal(401);
@@ -39,7 +41,7 @@ describe('Update collections', () => {
     });
 
     it('Update a collection while being authenticated as a USER and the correct body fields should return a 200 and update name and/or env (happy case)', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const collection = await new Collection(createCollection({
             name: 'name',
             application: 'rw',
@@ -49,6 +51,7 @@ describe('Update collections', () => {
         const response = await requester
             .patch(`/api/v1/collection/${collection.id}`)
             .set('Authorization', `Bearer abcd`)
+            .set('x-api-key', 'api-key-test')
             .send({
                 name: 'new collection name',
                 application: 'gfw',

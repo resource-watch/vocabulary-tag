@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
+const config = require('config');
 const nock = require('nock');
+const { mockValidateRequest, mockCloudWatchLogRequest } = require('rw-api-microservice-node/dist/test-mocks');
+const { USERS } = require('./test.constants');
 
 const getUUID = () => Math.random().toString(36).substring(7);
 
@@ -126,7 +129,11 @@ const mockDatasetStructure = (id, extraData = {}) => ({
 const mockDataset = (id = undefined, extraData = {}) => {
     const idToUse = id || mongoose.Types.ObjectId();
     const responseData = mockDatasetStructure(idToUse, extraData);
-    nock(process.env.GATEWAY_URL).get(`/v1/dataset/${idToUse}`).reply(200, { data: responseData });
+    nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    }).get(`/v1/dataset/${idToUse}`).reply(200, { data: responseData });
     return responseData;
 };
 
@@ -140,7 +147,11 @@ const mockFindDatasetById = (datasetIds, env = undefined, customResponseData = u
         body.env = env;
     }
 
-    nock(process.env.GATEWAY_URL)
+    nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
         .post('/v1/dataset/find-by-ids', body)
         .reply(200, { data: responseData });
 };
@@ -183,7 +194,11 @@ const mockWidgetStructure = (id, extraData = {}) => ({
 const mockWidget = (id = undefined, extraData = {}) => {
     const idToUse = id || mongoose.Types.ObjectId();
     const mockData = mockWidgetStructure(idToUse, extraData);
-    nock(process.env.GATEWAY_URL).get(`/v1/widget/${idToUse}`).reply(200, { data: mockData });
+    nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    }).get(`/v1/widget/${idToUse}`).reply(200, { data: mockData });
     return mockData;
 };
 
@@ -197,7 +212,11 @@ const mockFindWidgetById = (widgetIds, env = undefined, customResponseData = und
         body.env = env;
     }
 
-    nock(process.env.GATEWAY_URL)
+    nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
         .post('/v1/widget/find-by-ids', body)
         .reply(200, { data: responseData });
 };
@@ -284,7 +303,11 @@ const mockLayerStructure = (id, extraData = {}) => ({
 const mockLayer = (id = undefined, extraData = {}) => {
     const idToUse = id || mongoose.Types.ObjectId().toString();
     const mockData = mockLayerStructure(idToUse, extraData);
-    nock(process.env.GATEWAY_URL).get(`/v1/layer/${idToUse}`).reply(200, { data: mockData });
+    nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    }).get(`/v1/layer/${idToUse}`).reply(200, { data: mockData });
     return mockData;
 };
 
@@ -298,54 +321,94 @@ const mockFindLayerById = (layerIds, env = undefined, customResponseData = undef
         body.env = env;
     }
 
-    nock(process.env.GATEWAY_URL)
+    nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
         .post('/v1/layer/find-by-ids', body)
         .reply(200, { data: responseData });
 };
 
 const mockPostGraphAssociation = (datasetId, mockSuccess = true) => {
-    nock(process.env.GATEWAY_URL)
+    nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
         .post(`/v1/graph/dataset/${datasetId}/associate`)
         .reply(mockSuccess ? 200 : 404, { data: mockSuccess ? {} : { message: 'Resource XXXX not found.' } });
 
     if (!mockSuccess) {
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .post(`/v1/graph/dataset/${datasetId}`)
             .reply(200, { data: {} });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .post(`/v1/graph/dataset/${datasetId}/associate`).reply(200, { data: {} });
     }
 };
 
 const mockPutGraphAssociation = (datasetId, mockSuccess = true) => {
-    nock(process.env.GATEWAY_URL)
+    nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
         .put(`/v1/graph/dataset/${datasetId}/associate`)
         .reply(mockSuccess ? 200 : 404, { data: mockSuccess ? {} : { message: 'Resource XXXX not found.' } });
 
     if (!mockSuccess) {
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .post(`/v1/graph/dataset/${datasetId}`).reply(200, { data: {} });
 
-        nock(process.env.GATEWAY_URL)
+        nock(process.env.GATEWAY_URL, {
+            reqheaders: {
+                'x-api-key': 'api-key-test',
+            }
+        })
             .put(`/v1/graph/dataset/${datasetId}/associate`).reply(200, { data: {} });
     }
 };
 
 const mockDeleteGraphAssociation = (datasetId, application = 'rw', mockSuccess = true) => {
-    nock(process.env.GATEWAY_URL)
+    nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
         .delete(`/v1/graph/dataset/${datasetId}/associate?application=${application}`)
         .reply(mockSuccess ? 200 : 404, { data: mockSuccess ? {} : { message: 'Resource XXXX not found.' } });
 };
 
 const mockAddFavouriteResourceToGraph = (resourceType, resourceId, loggedUser) => {
-    nock(process.env.GATEWAY_URL)
+    nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
         .post(`/v1/graph/favourite/${resourceType}/${resourceId}/${loggedUser.id}`,)
         .reply(200);
 };
 
 const mockDeleteFavouriteResourceFromGraph = (resourceType, resourceId, favouriteId) => {
-    nock(process.env.GATEWAY_URL)
+    nock(process.env.GATEWAY_URL, {
+        reqheaders: {
+            'x-api-key': 'api-key-test',
+        }
+    })
         .delete(`/v1/graph/favourite/${resourceType}/${resourceId}/${favouriteId}`,)
         .reply(200);
 };
@@ -369,10 +432,60 @@ const assertOKResponse = (response, length = undefined) => {
     }
 };
 
-const mockGetUserFromToken = (userProfile) => {
-    nock(process.env.GATEWAY_URL, { reqheaders: { authorization: 'Bearer abcd' } })
-        .get('/auth/user/me')
-        .reply(200, userProfile);
+const APPLICATION = {
+    data: {
+        type: 'applications',
+        id: '649c4b204967792f3a4e52c9',
+        attributes: {
+            name: 'grouchy-armpit',
+            organization: null,
+            user: null,
+            apiKeyValue: 'a1a9e4c3-bdff-4b6b-b5ff-7a60a0454e13',
+            createdAt: '2023-06-28T15:00:48.149Z',
+            updatedAt: '2023-06-28T15:00:48.149Z'
+        }
+    }
+};
+
+const mockValidateRequestWithApiKey = ({
+    apiKey = 'api-key-test',
+    application = APPLICATION
+}) => {
+    mockValidateRequest({
+        gatewayUrl: process.env.GATEWAY_URL,
+        microserviceToken: process.env.MICROSERVICE_TOKEN,
+        application,
+        apiKey
+    });
+    mockCloudWatchLogRequest({
+        application,
+        awsRegion: process.env.AWS_REGION,
+        logGroupName: process.env.CLOUDWATCH_LOG_GROUP_NAME,
+        logStreamName: config.get('service.name')
+    });
+};
+
+const mockValidateRequestWithApiKeyAndUserToken = ({
+    apiKey = 'api-key-test',
+    token = 'abcd',
+    application = APPLICATION,
+    user = USERS.USER
+}) => {
+    mockValidateRequest({
+        gatewayUrl: process.env.GATEWAY_URL,
+        microserviceToken: process.env.MICROSERVICE_TOKEN,
+        user,
+        application,
+        token,
+        apiKey
+    });
+    mockCloudWatchLogRequest({
+        user,
+        application,
+        awsRegion: process.env.AWS_REGION,
+        logGroupName: process.env.CLOUDWATCH_LOG_GROUP_NAME,
+        logStreamName: config.get('service.name')
+    });
 };
 
 module.exports = {
@@ -396,6 +509,7 @@ module.exports = {
     mockDeleteFavouriteResourceFromGraph,
     mockLayer,
     mockWidget,
-    mockGetUserFromToken,
+    mockValidateRequestWithApiKeyAndUserToken,
+    mockValidateRequestWithApiKey,
     ensureCorrectError
 };

@@ -5,7 +5,7 @@ const Vocabulary = require('models/vocabulary.model');
 
 const { USERS } = require('../utils/test.constants');
 const {
-    assertOKResponse, createResource, getUUID, mockGetUserFromToken
+    assertOKResponse, createResource, getUUID, mockValidateRequestWithApiKeyAndUserToken, mockValidateRequestWithApiKey
 } = require('../utils/helpers');
 const { getTestServer } = require('../utils/test-server');
 
@@ -29,20 +29,23 @@ describe('Get single layer vocabulary', () => {
     });
 
     it('Getting vocabulary-layer relationships by id without any data in the DB should return an empty array', async () => {
-        const response = await requester.get(`/api/v1/dataset/345/layer/123/vocabulary/123`).send();
+        mockValidateRequestWithApiKey({});
+        const response = await requester.get(`/api/v1/dataset/345/layer/123/vocabulary/123`)
+            .set('x-api-key', 'api-key-test').send();
 
         assertOKResponse(response);
         response.body.data.should.be.an('array').and.length(0);
     });
 
     it('Getting vocabulary-layer relationships by id returns 200 OK with the requested data', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const resource = await (new Resource(createResource('rw', 1, 'layer', getUUID()))).save();
 
         const response = await requester
             .get(`/api/v1/dataset/${resource.dataset}/layer/${resource.id}/vocabulary/${resource.vocabularies[0].id}`)
             .set('Authorization', `Bearer abcd`)
-            .send({ });
+            .set('x-api-key', 'api-key-test')
+            .send({});
 
         assertOKResponse(response);
         response.body.data.should.be.an('array').and.length(1);
@@ -54,26 +57,28 @@ describe('Get single layer vocabulary', () => {
     });
 
     it('Getting vocabulary-layer relationships by id returns 200 OK with no data if the id does not match an existing vocabulary', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const resource = await (new Resource(createResource('rw', 1, 'layer', getUUID()))).save();
 
         const response = await requester
             .get(`/api/v1/dataset/345/layer/${resource.layer}/vocabulary/123`)
             .set('Authorization', `Bearer abcd`)
-            .send({ });
+            .set('x-api-key', 'api-key-test')
+            .send({});
 
         assertOKResponse(response);
         response.body.data.should.be.an('array').and.length(0);
     });
 
     it('Getting vocabulary-layer relationships by id returns 200 OK with the requested data - multiple vocabulary', async () => {
-        mockGetUserFromToken(USERS.USER);
+        mockValidateRequestWithApiKeyAndUserToken({ user: USERS.USER });
         const resource = await (new Resource(createResource('rw', 4, 'layer', getUUID()))).save();
 
         const response = await requester
             .get(`/api/v1/dataset/${resource.dataset}/layer/${resource.id}/vocabulary/${resource.vocabularies[0].id}`)
             .set('Authorization', `Bearer abcd`)
-            .send({ });
+            .set('x-api-key', 'api-key-test')
+            .send({});
 
         assertOKResponse(response);
         response.body.data.should.be.an('array').and.length(1);
